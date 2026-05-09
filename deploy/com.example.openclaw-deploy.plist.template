@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  launchd unit template for the OpenClaw deploy webhook receiver.
+
+  Adopter MUST fill in TODO markers and rename this file before installing.
+
+  Install:
+    1. Copy to ~/Library/LaunchAgents/com.<your-domain>.openclaw-deploy.plist
+    2. Replace TODO markers with real values
+    3. launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.<your-domain>.openclaw-deploy.plist
+    4. launchctl enable gui/$(id -u)/com.<your-domain>.openclaw-deploy
+
+  Reload after env-var changes:
+    launchctl bootout gui/$(id -u) <path-to-plist>
+    launchctl bootstrap gui/$(id -u) <path-to-plist>
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <!-- TODO: replace with your reverse-domain-style identifier -->
+  <string>com.example.openclaw-deploy</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <!-- TODO: absolute path to node, and absolute path to webhook-receiver.js -->
+    <string>/usr/local/bin/node</string>
+    <string>/Users/USER/path/to/deploy/webhook-receiver.js</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <!-- Log paths. macOS doesn't auto-rotate; configure newsyslog if logs grow large. -->
+  <key>StandardOutPath</key>
+  <!-- TODO: log path -->
+  <string>/Users/USER/Library/Logs/openclaw-deploy.out.log</string>
+  <key>StandardErrorPath</key>
+  <!-- TODO: log path -->
+  <string>/Users/USER/Library/Logs/openclaw-deploy.err.log</string>
+
+  <!--
+    EnvironmentVariables — the source of truth for process.env on the runtime host.
+
+    This is what mcporter.json `${ENV_VAR}` references resolve from. NOT .env files.
+
+    Real secrets go here. NEVER commit this file with real values to git.
+    The .template suffix marks this as "needs adopter input"; the actual deployed
+    plist (without .template) lives only on the runtime host.
+  -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>WEBHOOK_SECRET</key>
+    <!-- TODO: replace with real secret (must match GitHub webhook config) -->
+    <string>REPLACE_WITH_REAL_SECRET</string>
+
+    <key>ANTHROPIC_API_KEY</key>
+    <!-- TODO: default Anthropic key; per-cron keys can be added below as ANTHROPIC_API_KEY_<NAME> -->
+    <string>REPLACE_WITH_REAL_KEY</string>
+
+    <!-- TODO: add per-MCP-server tokens here. Each ${ENV_VAR} reference in
+         workspace/config/mcporter.json must have a corresponding entry. -->
+  </dict>
+</dict>
+</plist>

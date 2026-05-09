@@ -1,0 +1,48 @@
+{
+  "name": "@insynq/agent-blueprint",
+  "version": "0.1.0",
+  "description": "Installer for the @insynq/agent-blueprint framework: slash-command + KB scaffold for OpenClaw agent projects.",
+  "license": "MIT",
+  "author": "Insynq",
+  "homepage": "https://github.com/Insynq/agent-blueprint",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Insynq/agent-blueprint.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Insynq/agent-blueprint/issues"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "framework",
+    "scaffold",
+    "installer",
+    "agent",
+    "agent-dev",
+    "slash-commands",
+    "openclaw",
+    "mcp"
+  ],
+  "bin": {
+    "agent-blueprint": "bin/init.js"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "tar": "^7.5.15"
+  },
+  "scripts": {
+    "prepublishOnly": "node ./bin/init.js --version >/dev/null && test -x ./bin/init.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

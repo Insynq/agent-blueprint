@@ -1,0 +1,99 @@
+{
+  "manifest_schema_version": "1",
+  "version": "0.1.0",
+  "name": "agent-blueprint",
+  "canonical_url": "https://github.com/Insynq/agent-blueprint",
+  "github_owner": "Insynq",
+  "github_repo": "agent-blueprint",
+  "_meta": {
+    "notes": [
+      "Directory entries end with /. File entries do not.",
+      "Files at docs/ root must be enumerated explicitly (no directory-level rule applies to docs/).",
+      "framework-managed: framework owns; updates overwrite (with backup of any local copy).",
+      "hybrid: framework provides structure, adopter fills content; updates require user decision.",
+      "project-owned: adopter owns; framework never writes after install.",
+      "installer_generated: created by installer at adopter side; never compared to canonical.",
+      "excluded: exists in canonical repo but never shipped to adopters.",
+      "default_action_on_conflict semantics: 'skip' = keep local untouched; 'sibling' = write incoming as <name>.framework alongside local; 'overwrite-with-backup' = backup local to .framework-backup/ then overwrite with incoming.",
+      "More-specific entries override less-specific ones (file path beats directory path).",
+      "version is the framework release version (semver, no v prefix). manifest_schema_version is the schema version of THIS file's structure and bumps independently.",
+      "canonical_url is a full https URL. github_owner and github_repo are provided explicitly to avoid URL parsing in consumers."
+    ],
+    "category_defaults": {
+      "framework-managed": "overwrite-with-backup",
+      "hybrid": "sibling",
+      "project-owned": "skip",
+      "installer_generated": "skip",
+      "excluded": "skip"
+    }
+  },
+  "categories": {
+    "framework-managed": [
+      ".claude/commands/",
+      ".env.example",
+      ".framework-manifest.json",
+      ".github/",
+      "FRAMEWORK_CHANGELOG.md",
+      "docs/KB_INDEX.md",
+      "docs/MULTI_AGENT_WORKFLOW.md",
+      "docs/OpenClaw KBs/"
+    ],
+    "hybrid": [
+      ".claude/settings.json",
+      "CLAUDE.md",
+      "_dev/",
+      "deploy/",
+      "docs/KB_1_Architecture.md",
+      "docs/KB_8_Current_State.md",
+      "workspace/"
+    ],
+    "project-owned": [
+      ".claude/memory/MEMORY.md",
+      "docs/APP_CONCEPT.md",
+      "docs/CHANGELOG.md",
+      "docs/LESSONS.md",
+      "docs/SCOPE.md",
+      "docs/plans/",
+      "docs/smoke-tests-pending.md"
+    ],
+    "installer_generated": [
+      ".framework-version"
+    ],
+    "excluded": [
+      ".gitignore",
+      ".vscode/extensions.json",
+      "CONTRIBUTING.md",
+      "LICENSE",
+      "README.md",
+      "bin/",
+      "lib/",
+      "package-lock.json",
+      "package.json"
+    ]
+  },
+  "default_action_on_conflict": {
+    "CLAUDE.md": "sibling",
+    "docs/KB_1_Architecture.md": "skip",
+    "docs/KB_8_Current_State.md": "skip",
+    ".claude/settings.json": "sibling",
+    ".claude/commands/": "overwrite-with-backup",
+    ".claude/memory/MEMORY.md": "skip",
+    ".env.example": "sibling",
+    ".github/": "overwrite-with-backup",
+    ".framework-manifest.json": "overwrite-with-backup",
+    "FRAMEWORK_CHANGELOG.md": "overwrite-with-backup",
+    "docs/KB_INDEX.md": "overwrite-with-backup",
+    "docs/MULTI_AGENT_WORKFLOW.md": "overwrite-with-backup",
+    "docs/OpenClaw KBs/": "overwrite-with-backup",
+    "_dev/": "sibling",
+    "deploy/": "sibling",
+    "workspace/": "sibling",
+    "docs/APP_CONCEPT.md": "skip",
+    "docs/CHANGELOG.md": "skip",
+    "docs/LESSONS.md": "skip",
+    "docs/SCOPE.md": "skip",
+    "docs/plans/": "skip",
+    "docs/smoke-tests-pending.md": "skip",
+    ".framework-version": "skip"
+  }
+}
