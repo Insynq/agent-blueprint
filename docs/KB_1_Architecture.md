@@ -15,7 +15,13 @@
 [TODO — high-level entities and their relationships. Not a full schema yet, just the concepts and how they connect]
 
 ## Architecture Decisions
-[Empty — add decisions here as they're made during development]
+
+Record architectural decisions in the table below. Format and column semantics match `_dev/agent-improvement-spec-template.md` §1 — see that file for the canonical decisions-table format.
+
+| # | Decision | Choice | Reasoning | Date |
+|---|---|---|---|---|
+| 1 | [TODO decision] | [TODO choice] | [TODO reasoning] | YYYY-MM-DD |
+| 2 | [TODO decision] | [TODO choice] | [TODO reasoning] | YYYY-MM-DD |
 
 ## Open Questions
 [Empty — add unresolved architecture questions here. Review and resolve before implementing the affected area]

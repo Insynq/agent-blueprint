@@ -26,8 +26,10 @@
   (and how stale it might be). One bullet per decision; keep terse.
 -->
 
-- [TODO decision] — confirmed YYYY-MM-DD
-- [TODO decision] — confirmed YYYY-MM-DD
+| # | Decision | Choice | Reasoning | Date |
+|---|---|---|---|---|
+| 1 | [TODO decision] | [TODO choice] | [TODO reasoning] | YYYY-MM-DD |
+| 2 | [TODO decision] | [TODO choice] | [TODO reasoning] | YYYY-MM-DD |
 
 ## 2. Sequence
 

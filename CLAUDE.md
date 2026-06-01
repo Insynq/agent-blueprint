@@ -61,6 +61,9 @@
 [Empty — patterns emerge during development. Add here when established so all future sessions inherit them.]
 - Spec docs: Live in `/docs/` with `*-spec.md` naming (e.g., `docs/feature-name-spec.md`). Created by `/brainstorm` or `/unify` output, consumed by `/plan-review` and `/implement`.
 - Agent-improvement spec template: `_dev/agent-improvement-spec-template.md` is the structural skeleton for non-trivial agent-improvement initiatives. Section 5 (Capability Fixes) is organized by the `OC_KB_10` capability layers; Section 6 (Capability Enhancements) is organized by the `OC_KB_11–14` enhancement axes.
+- PM owns architectural decisions before worker dispatch (Phases 1–3 of `/orchestrate`). Workers receive locked plans, not forks. See `docs/MULTI_AGENT_WORKFLOW.md` → PM Pre-Dispatch Responsibilities.
+- Spec docs become implementable once `/plan-review` writes a `Status: LOCKED YYYY-MM-DD` header. Drafts without the header are exploratory only — `/orchestrate` Phase 6 and `/implement` use the header to decide whether to dispatch workers.
+- Spec docs and `KB_1_Architecture.md` record architectural decisions in `Decision | Choice | Reasoning | Date` table format (per `_dev/agent-improvement-spec-template.md` §1).
 
 ## Preferences
 [TODO — populate during /kickoff with working style and communication preferences]

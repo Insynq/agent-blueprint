@@ -41,6 +41,8 @@ Decide where you are:
 
 State your read clearly to the user: *"I see we're entering Phase N: [phase name]. Here's what's done and what's next."*
 
+> **Phases 1–3 are the PM's pre-dispatch (architect) phase.** Research, brainstorm, options comparison, decisions-table capture, plan audit, and lockdown verification all happen here, *before* any worker is dispatched in Phase 4. Workers receive locked plans, not forks. See [MULTI_AGENT_WORKFLOW.md → PM Pre-Dispatch Responsibilities](../../docs/MULTI_AGENT_WORKFLOW.md#pm-pre-dispatch-responsibilities-phases-13).
+
 ## Step 1: Pivot review (Phase 1)
 
 **Skip if phase-plan.md already exists.**
@@ -280,6 +282,8 @@ Once smokes pass and blockers clear:
 - Update `docs/CHANGELOG.md` (or invoke `/changelog`).
 - In `phase-plan.md`, set status to "shipped" and confirm worker plan doc links are present.
 - Run `/ship` with user approval.
+
+**Post-ship habit (Phase 10.5):** invoke `/retro [phase-slug]` retroactively after `/ship` completes. Non-blocking — the retro doc lands at `docs/retros/[phase-slug]-retro.md` for review at the next session start or before the next phase kicks off. Skip on trivial phases; reach for it whenever the phase surfaced friction, close-calls, or candidate `LESSONS.md` entries.
 
 ---
 

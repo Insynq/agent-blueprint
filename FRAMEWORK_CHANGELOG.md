@@ -60,6 +60,34 @@ Only the canonical repo (this repo) maintains `FRAMEWORK_CHANGELOG.md`. Adopter 
 
 ---
 
+## [0.3.0] - 2026-06-01
+
+Adopts four discipline-enforcement patterns from a sister app-focused framework's phase-9 retro (forwarded by the user, reframed for headless agents — no text copied verbatim). The four changes reinforce a single loop: **surface decisions early → lock them before dispatch → reflect after ship**. The load-bearing artifact is the new decisions table, created in spec, verified at lockdown, referenced in retro. See `docs/sister-framework-adoption-spec.md` for the full rationale.
+
+### Added
+
+- **`/retro` command** (`.claude/commands/retro.md`) — phase-closure skill that runs **post-`/ship`** (Phase 10.5 of the PM phase loop), non-blocking. Spawns an `Explore` subagent that reads phase artifacts on a **best-effort** basis (spec doc with decisions table, `docs/plans/[phase-slug]/` worker docs if present, smokes filtered by phase-slug prefix, `git log` for the phase commit range, changelog entry if parseable) and produces a structured retro at `docs/retros/[phase-slug]-retro.md`. Self-heals the `docs/retros/` directory via runtime `mkdir`. Candidate `LESSONS.md` entries are surfaced with `[CATEGORY-N]` tags but never auto-committed — PM decides per entry.
+- **`_dev/phase-retro-template.md`** — 7-section template skeleton (What worked / Harder than expected / Close-calls / Lessons (candidate `LESSONS.md` entries) / Tools to build / TL;DR recipe / Inputs available vs missing). Lives in `_dev/` (matching `_dev/skill-template.md` and `_dev/agent-improvement-spec-template.md` precedent) so it propagates to installed agents via `/update-framework` as a `.new` sibling for manual merge.
+- **Decisions-table format in `_dev/agent-improvement-spec-template.md` §1 and `docs/KB_1_Architecture.md` Architecture Decisions** — replaces the prior bullet skeleton with a required `# | Decision | Choice | Reasoning | Date` table. The empty table heading itself is the discipline; bullets don't enforce columns. Backward-compatible — existing specs with the bullet format remain valid; new specs use the table. `docs/sister-framework-adoption-spec.md` dogfoods the format at its top.
+- **Lockdown checkpoint in `/plan-review` Step 6** (`.claude/commands/plan-review.md`) — new final step that scans the spec for unresolved-fork patterns (`[TODO decision]`, `or`-between-alternatives, `(a)/(b)/(c)` enumerations, "open decision" mentions), verifies the decisions table has at least one row per fork raised in conversation, and verifies a brainstorm trace / investigation log / source-of-evidence is cited for each decision. On pass, prepends `> **Status: LOCKED YYYY-MM-DD**` blockquote header to the spec. On fail, lists unresolved items and stops. Includes F1/F2 refinements caught by dogfooding: 6a excludes matches inside fenced code blocks, inline backtick spans, paragraphs documenting the patterns themselves, and `§Resolved decisions`-style revisit-trigger sections; 6c adds an engineering-judgment exception where stated technical reasoning serves as the citation for pure tech choices.
+- **PM Pre-Dispatch Responsibilities subsection in `docs/MULTI_AGENT_WORKFLOW.md`** (before Phase 4) — explicitly names the architect work that already happens inside `/orchestrate` Phases 1–3 (research codebase context, generate/compare options via `/brainstorm`, capture decisions in the decisions table, audit the plan via `/audit-code`, verify no unresolved forks via the lockdown check). No new role, no new command — the work is now named so it's harder to skip when dispatch pressure mounts.
+- **`Status: LOCKED YYYY-MM-DD` convention** — header written by `/plan-review` Step 6 marking a spec as implementable. Documented in `MULTI_AGENT_WORKFLOW.md` (Phase 6 — workers descending from a LOCKED spec are clear to dispatch into Phase 7) and in `CLAUDE.md` Patterns.
+
+### Changed
+
+- **`/orchestrate`** (`.claude/commands/orchestrate.md`) — added a header note before Phase 1 framing Phases 1–3 as the PM's pre-dispatch (architect) phase that must complete before any worker dispatch in Phase 4. Added a post-Step-10 note pointing at `/retro` as the optional post-ship habit (Phase 10.5).
+- **`/brainstorm`** (`.claude/commands/brainstorm.md`) — added a one-line role-in-the-phase-loop tie at the top of the subagent prompt, explicitly framing `/brainstorm` as the PM's primary pre-dispatch tool that feeds the decisions table in `phase-plan.md`.
+- **`CLAUDE.md`** — added three Patterns-section bullets: PM owns architectural decisions before worker dispatch; spec docs become implementable once `/plan-review` writes a `Status: LOCKED YYYY-MM-DD` header; spec docs and `KB_1` record architectural decisions in `Decision | Choice | Reasoning | Date` table format.
+- **`_dev/agent-improvement-spec-template.md`** — §1 Confirmed Decisions skeleton upgraded from bullets to the new `# | Decision | Choice | Reasoning | Date` table format.
+
+### Migration Notes
+
+- All edits are additive insertions at stable anchors (carrying forward the v0.2.0 additive-only constraint). Adopters customizing `MULTI_AGENT_WORKFLOW.md`, `orchestrate.md`, `brainstorm.md`, or `plan-review.md` should get clean three-way merges via `/update-framework`. Hybrid files (`CLAUDE.md`, `_dev/agent-improvement-spec-template.md`, the new `_dev/phase-retro-template.md`) arrive as `.framework` siblings for manual merge per the standard hybrid pattern.
+- **`docs/KB_1_Architecture.md` adopters get a `.new` sibling for the first time post-manifest-update.** The v0.3.0 manifest changes `default_action_on_conflict` for `docs/KB_1_Architecture.md` from `"skip"` to `"sibling"` — previously, adopters' customized `KB_1` never received framework-side updates to that file. After the v0.3.0 update lands, adopters will see the new decisions-table skeleton arrive as a `.framework` sibling for manual merge into their existing `KB_1`.
+- Reference patterns captured in `docs/sister-framework-adoption-spec.md` §7 (five reframed sister-framework lessons: ARCH-3 capability ≠ default responsibility, ARCH-8 architecture lockdown before PM dispatch, PROC-1 talk it out before any docs, PROC-2 git commits as conversation checkpoints, PROC-3 when all options feel meh the framing is wrong) are **not seeded** into `docs/LESSONS.md` — that file is project-owned and ships starter-empty by design. Adopters may consult §7 and selectively copy entries into their own `LESSONS.md` if matching incidents surface.
+
+---
+
 ## [0.2.0] - 2026-05-27
 
 Adopts four discipline-enforcement techniques observed in `obra/superpowers` (Jesse Vincent, MIT) — patterns only, original wording. All changes are additive edits to existing authoring commands, templates, and reference docs; no new commands, no runtime/MCP/deploy changes. See `docs/superpowers-adoption-spec.md` for the full rationale.

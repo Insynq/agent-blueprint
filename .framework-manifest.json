@@ -1,6 +1,6 @@
 {
   "manifest_schema_version": "1",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "name": "agent-blueprint",
   "canonical_url": "https://github.com/Insynq/agent-blueprint",
   "github_owner": "Insynq",
@@ -73,7 +73,7 @@
   },
   "default_action_on_conflict": {
     "CLAUDE.md": "sibling",
-    "docs/KB_1_Architecture.md": "skip",
+    "docs/KB_1_Architecture.md": "sibling",
     "docs/KB_8_Current_State.md": "skip",
     ".claude/settings.json": "sibling",
     ".claude/commands/": "overwrite-with-backup",

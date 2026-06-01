@@ -101,6 +101,18 @@ If a single window suffices, use one window. The relay overhead is real — only
 - PM runs `/audit-code` against the holistic plan.
 - PM updates `phase-plan.md` with audit findings.
 
+### PM Pre-Dispatch Responsibilities (Phases 1–3)
+
+Phases 1–3 are the **PM's pre-dispatch (architect) phase**. Before any worker is spawned in Phase 4, the PM owns:
+
+- **Research the codebase context** — Phase 2 (`/brainstorm`), plus `/investigate` if a flow needs tracing.
+- **Generate and compare options** — `/brainstorm` produces codebase-grounded alternatives. Pick or refine.
+- **Capture every architectural decision in a decisions table** — `Decision | Choice | Reasoning | Date` format (per `_dev/agent-improvement-spec-template.md` §1) recorded in `phase-plan.md`. Every fork raised in conversation gets a row.
+- **Audit the resulting plan against existing patterns** — Phase 3 `/audit-code` against the holistic plan.
+- **Verify no unresolved forks remain** — the `/plan-review` Step 6 lockdown check sits here. Workers receive locked plans, not forks.
+
+Phase 6 (PM reconciliation) is a gray zone — workers have been dispatched and reported audits, but the PM is still editing worker plan docs before implementation begins in Phase 7. Treat that as part of dispatch hygiene, not pre-dispatch.
+
 ### Phase 4: Initial worker dispatch (audit round)
 
 For each worker slice:
@@ -132,6 +144,8 @@ Each worker (subagent or separate-window):
 - PM brainstorms gaps — what did the workers see that the holistic view missed? What did the holistic view see that workers can't?
 - For each worker plan doc, PM **edits the doc directly** with annotations: key decisions, reasoning, scope adjustments, integration constraints. The annotation lives at the top of the relevant section, prefixed `**PM annotation:**`.
 - For each worker, PM picks the implementation [dispatch mode](#dispatch-modes): subagent if the spec is clear and self-contained, separate-window if iterative debugging or live steering is expected.
+
+**Lockdown convention.** Worker plan docs that descend from a spec carrying the `> **Status: LOCKED YYYY-MM-DD**` header (written by `/plan-review` Step 6) are clear to dispatch into Phase 7 implementation. Specs without the LOCKED header are exploratory only — do not dispatch implementation workers against them.
 
 ### Phase 7: Worker implementation
 
@@ -171,6 +185,16 @@ Once smokes pass and blockers clear:
 - PM updates `docs/CHANGELOG.md`.
 - PM links worker plan docs as references in `phase-plan.md` (so the phase plan becomes a navigable record of how the work actually went).
 - PM runs `/ship` with user approval.
+
+### Phase 10.5: Retro (post-ship, non-blocking)
+
+PM runs `/retro [phase-slug]` retroactively, post-ship. Output is **non-blocking** — review at the next session start or before kicking off the next phase. The retro:
+
+- Reads whatever phase artifacts exist (spec doc, worker plan docs, smokes, git log, changelog) on a **best-effort** basis. Lighter phases produce lighter retros.
+- Writes a structured doc to `docs/retros/[phase-slug]-retro.md` covering what worked, what was harder than expected, close-calls, candidate `LESSONS.md` entries (PM decides which to commit), tools to build, and a 2–3 sentence TL;DR.
+- Proposes `LESSONS.md` entries with `[CATEGORY-N]` tags but does **not** auto-commit them.
+
+Phase 10.5 is a habit, not a gate. Skip it on small phases without consequence — but treat the missed retro as the phase deciding it had nothing worth capturing.
 
 ---
 
