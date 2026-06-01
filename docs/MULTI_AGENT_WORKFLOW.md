@@ -148,10 +148,12 @@ Each worker (subagent or separate-window):
 
 ### Phase 8: PM verification + integration
 
-- PM verifies the integrated result against the holistic plan: gaps, edge cases, missed integration points.
-- For gaps the PM can fill directly (it has full context), the PM does the work itself rather than spinning up another worker.
+Phase 8 is a **two-stage gate**: spec-compliance first, then quality. Stage 2 runs only after Stage 1 passes.
+
+- **Stage 1 — spec-compliance gate (PASS/FAIL):** PM verifies the integration built *exactly what the holistic plan specified*, checking both directions — no gaps (every planned slice implemented), no unrequested extras (every changed file is in the plan's scope; `git diff --name-only` vs. the plan), and no drift (no plan-specified behavior missing or altered). Also confirms cross-worker integration points and edge cases line up. Output a PASS/FAIL verdict; do not advance to Stage 2 until PASS. For gaps the PM can fill directly (it has full context), the PM does the work itself rather than spinning up another worker. Skippable for trivial phases with a `"skipped — trivial"` note.
+- **Stage 2 — quality (`/audit-code`):** once Stage 1 passes, PM runs `/audit-code` on the integrated result for elegance, reuse, anti-patterns, and security, and addresses its recommendations.
 - PM manages commit hygiene — coalesces or splits commits as needed.
-- PM updates `phase-plan.md` with progress.
+- PM updates `phase-plan.md` with progress (Stage-1 verdict + Stage-2 audit findings).
 
 ### Phase 9: Smoke tests
 

@@ -26,6 +26,8 @@ Spawn a Task with `subagent_type: Explore` using the prompt below. The subagent 
 
 Audit target: `$ARGUMENTS` (if argument supplied; otherwise audit current pending changes).
 
+> **This is the quality stage (Stage 2).** It assumes the Stage-1 spec-compliance gate already passed — i.e., the implementation built what the plan specified, with no gaps or unrequested extras (see `/implement` Step 5b and `/orchestrate` Phase 8). Do not re-check plan-conformance here; this review is about elegance, reuse, anti-patterns, and security.
+
 ## Core Question
 
 > "Knowing what you know now about this codebase, is this solution the most elegant option?"

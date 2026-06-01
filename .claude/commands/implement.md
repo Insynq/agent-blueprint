@@ -168,6 +168,16 @@ Skip this only if (a) the file is being CREATED fresh, or (b) you have already r
 - Don't refactor surrounding code
 - Don't add comments or docstrings the plan didn't specify
 - Don't expand the Explore query into a broad survey — keep it narrow to the symbol/file you're editing
+
+## Scope-Creep Guard
+
+You will be tempted to do more than the plan asked. Each excuse has a predictable reality:
+
+| Excuse | Reality |
+|--------|---------|
+| "While I'm here I'll also fix/refactor X." | The plan didn't ask for X. Out-of-plan edits break review and reconciliation. |
+| "This needs error handling the plan missed." | Note it for the PM/plan-review; don't add unrequested scope mid-implementation. |
+| "It's cleaner if I restructure this too." | Cleaner-but-unplanned is still unplanned. Stay inside the step. |
 ```
 
 Wait for ALL parallel agents to complete before moving to the next batch.
@@ -210,6 +220,18 @@ If anything fails:
 2. Fix obvious issues (missing imports, JSON shape, frontmatter spelling)
 3. Re-run validation
 4. Report any remaining errors
+
+## Step 5b: Spec-Compliance Gate (Stage 1 — before any quality review)
+
+Build/shape validation above confirms the code *runs*; it does not confirm you built *what the plan specified*. Before advancing to a quality review (`/audit-code`, Stage 2), run a spec-compliance check. You have both the plan and the edits in context, so spawn one `Explore` agent to diff the working tree against the plan and report a checklist:
+
+- **No gaps:** every plan step → implemented?
+- **No unrequested extras:** every changed file → in the plan's affected-files list? (Run `git diff --name-only` and compare against the plan; flag any file the plan didn't name.)
+- **No drift:** any plan-specified behavior missing or altered?
+
+Output a `PASS / NEEDS-CHANGES` verdict. **Gate: do not hand off to the Stage-2 quality review (`/audit-code`) until compliance is PASS.** If `NEEDS-CHANGES`, fix the gaps/extras and re-check.
+
+**Skippable for trivial changes.** A single-file or tiny diff may skip this gate — record `"spec-compliance: skipped — trivial"` in the report rather than spawning an Explore pass for a one-line fix.
 
 ## Step 6: Summary Report
 

@@ -1,6 +1,6 @@
 ---
 name: skill-name-here
-description: Single sentence describing what this skill does and when to use it
+description: Use when [trigger condition] — single sentence stating WHEN to invoke, not WHAT the skill does
 user-invokable: true
 ---
 
@@ -11,8 +11,10 @@ user-invokable: true
     1. The folder name MUST equal the `name` field above. Mismatch → router never sees the skill.
     2. The `user-invokable` field is spelled with a `k` — NOT `user-invocable`.
        The typo silently un-callable.
-    3. The `description` is what the router scans on every prompt. Be specific:
-       lead with a verb + domain noun. "Triage incoming email" beats "helps with mail."
+    3. The `description` is what the router scans on every prompt. State WHEN to invoke
+       (the trigger condition), not WHAT the skill does (a behavior summary) — a WHAT-phrased
+       description competes with the skill body for attention. "Use when the user asks to triage,
+       sort, or summarize their inbox" beats "Triages incoming email" beats "helps with mail."
 
   The 5 sections below are the canonical OpenClaw SKILL.md structure. Order matters.
 -->

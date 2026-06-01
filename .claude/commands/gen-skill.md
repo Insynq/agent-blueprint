@@ -54,15 +54,22 @@ If `$ARGUMENTS.description` is provided, sanity-check it:
 
 - Length between 10 and 200 chars
 - Does NOT contain a newline (must be a single sentence)
-- Doesn't start with "does stuff" or "helps with" — the router needs a specific verb + domain noun
+- Doesn't start with "does stuff" or "helps with" — the router needs a specific verb + domain noun (hard reject these vague starts)
+
+**WHEN-not-WHAT check (advisory).** The router matches on the description, so it should answer *"when should the router pick this skill?"* — a trigger condition — not *"what does the skill do?"* — a behavior summary. A WHAT-phrased description competes with the skill body for the model's attention. Nudge the user toward WHEN-phrasing if the description reads as a behavior summary, but don't hard-reject (phrasing detection is too fuzzy for a clean regex; only the vague `"does stuff"`/`"helps with"` starts are hard-rejected).
+
+- Good (WHEN): `"Use when the user asks to triage, sort, or summarize their inbox."`
+- Weak (WHAT): `"Triages incoming email and summarizes urgent items."`
+- Bad (vague): `"Helps with mail."`
 
 If missing, prompt the user:
 
 ```
-What does this skill do? One sentence — the router uses this to decide when to activate the skill on every prompt.
+When should the router pick this skill? One sentence — phrase it as the trigger condition, not a description of what the skill does. The router scans this on every prompt to decide when to activate the skill.
 
-Good: "Triage incoming email and summarize urgent items."
-Bad:  "Helps with mail."
+Good (WHEN): "Use when the user asks to triage, sort, or summarize their inbox."
+Weak (WHAT): "Triages incoming email and summarizes urgent items."
+Bad (vague): "Helps with mail."
 ```
 
 Don't proceed until a real description is provided.
@@ -84,6 +91,8 @@ Write `workspace/skills/$ARGUMENTS.name/SKILL.md` with this content (substitutin
 ```markdown
 ---
 name: <name>
+# description states WHEN to invoke (trigger condition), not WHAT the skill does (behavior).
+# Good: "Use when the user asks to triage, sort, or summarize their inbox."
 description: <description>
 user-invokable: <user-invokable>
 ---
@@ -143,6 +152,8 @@ Next steps:
   4. If the skill calls new MCP tools, register them in workspace/config/mcporter.json
   5. Run /audit-code on the skill before shipping
   6. Add a manual smoke test to docs/smoke-tests-pending.md if behavior is hard to verify automatically
+
+Before considering the skill done, name the concrete task the agent fails at *without* this skill — that failure is the skill's reason to exist and its acceptance test.
 ```
 
 ## Important rules for this command

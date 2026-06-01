@@ -25,11 +25,25 @@ Spawn a Task with `subagent_type: general-purpose` using the prompt below.
 
 Issue: **$ARGUMENTS.issue**
 
+Attempt: **[N] of 3** (the outer command loop fills this in on each re-spawn — see "After Subagent Returns". On attempt 3, if your hypothesis fails the diagnostic again, do not propose a fourth fix: raise the architecture concern — the problem is likely the model of the system, not the next fix.)
+
 ## Your Role
 
 You are a systematic debugger. Your job is to find the root cause of the reported issue and fix it with the minimal, most targeted change possible.
 
 **Core rule: Run one diagnostic before writing any code. A symptom is a clue, not a spec — never implement a hypothesis until a test confirms it.**
+
+## Rationalization Guard
+
+You will be tempted to talk yourself out of the diagnostic. Each excuse below has a predictable reality. When you catch yourself thinking the left column, read the right column and run the diagnostic anyway.
+
+| Excuse | Reality |
+|--------|---------|
+| "The fix is obvious, I'll skip the diagnostic." | Obvious fixes that skip the diagnostic are how symptom-patching ships. Run the one test. |
+| "I'll just try this one change and see." | That's guess-and-check. One confirmed hypothesis beats five guesses. |
+| "The symptom tells me what's broken." | A symptom is a clue, not a spec. Confirm the cause before the cure. |
+| "Re-running the diagnostic wastes time." | Diagnostics are seconds; a wrong fix is a new bug plus the original. |
+| "It's probably the same as last time." | "Probably" is a hypothesis. Test it before acting on it. |
 
 ## Step 0: Read Project Context
 
@@ -245,7 +259,10 @@ If the root cause reveals a pattern worth adding to `docs/LESSONS.md`, note it e
 
 ## After Subagent Returns
 
+**Three-strikes circuit breaker.** This main session — not the subagent — owns the strike counter. A fresh debug agent is spawned on each cycle and cannot persist a count across spawns, so YOU track how many hypothesis/fix cycles have failed for this issue. Each time you re-spawn, fill in the `Attempt N of 3` line in the subagent prompt with the current attempt number.
+
 - **Hypothesis confirmed + fix implemented** → run `/gen-test` to add a regression test if applicable, then `/ship`
-- **Hypothesis was wrong** → re-read the investigation, re-characterize the symptom, re-spawn debug agent with the corrected hypothesis
+- **Hypothesis was wrong (attempts 1–2)** → re-read the investigation, re-characterize the symptom, re-spawn the debug agent with the corrected hypothesis and an incremented `Attempt N of 3` line
+- **Third hypothesis just failed (3 strikes)** → **STOP. Do not re-spawn a 4th debug agent.** Three failed fixes means the problem is likely the *model of the system*, not the next fix. Re-examine the assumptions behind the Step 1 characterization and the layer choice. State to the user: *"3 fixes failed — the problem is likely the model of the system, not the fix."* Recommend writing a spec doc + running `/brainstorm` or `/plan-review` to question the architecture, rather than another fix.
 - **LESSONS.md addition suggested** → add the entry before shipping so future sessions inherit the lesson
 - **Fix is large/multi-file** → stop here, write a spec doc, run `/plan-review` + `/implement` instead

@@ -232,15 +232,28 @@ Update the status board as workers wrap.
 
 ## Step 8: PM verification + integration (Phase 8)
 
-Once all workers have reported implementation done:
+Once all workers have reported implementation done, run a **two-stage gate** — spec-compliance first, then quality. Stage 2 runs only after Stage 1 passes.
 
 - Read the Implementation log + Completion notes from each worker doc.
-- Verify the integrated result against `phase-plan.md`: gaps, edge cases, integration points.
-- For gaps the PM can fill directly (it has full context), do the work in the PM context. Don't spin up another worker for small integration fixes.
-- Manage commit hygiene — coalesce related commits, split unrelated ones.
-- Update `phase-plan.md` with progress.
 
-If any worker hit a blocker that needs deeper work, dispatch a follow-up worker with a fresh prompt referencing the original plan doc.
+### Stage 1: spec-compliance gate (PASS/FAIL)
+
+Verify the integrated result built *exactly what `phase-plan.md` specified* — before any quality review. Check both directions:
+
+- **No gaps:** every planned worker slice / step → implemented?
+- **No unrequested extras:** every changed file → in the plan's scope? (`git diff --name-only` vs. the plan; flag files the plan didn't name.)
+- **No drift:** any plan-specified behavior missing or altered?
+
+Also confirm integration points line up across workers (edge cases, collisions flagged in the plan). Output a **PASS / FAIL** verdict. **Gate: do not advance to Stage 2 until this is PASS.** For gaps the PM can fill directly (it has full context), do the work in the PM context rather than spinning up another worker for small integration fixes. If a worker hit a blocker that needs deeper work, dispatch a follow-up worker with a fresh prompt referencing the original plan doc. Re-run Stage 1 after fixing.
+
+*Skippable for trivial phases (single tiny worker slice): note `"spec-compliance: skipped — trivial"` and proceed.*
+
+### Stage 2: quality (`/audit-code`)
+
+Once Stage 1 passes, run `/audit-code` on the integrated result for elegance, reuse, anti-patterns, and security. Address its recommendations.
+
+- Manage commit hygiene — coalesce related commits, split unrelated ones.
+- Update `phase-plan.md` with progress (record the Stage-1 verdict and Stage-2 audit findings).
 
 ## Step 9: Smoke handoff (Phase 9)
 

@@ -7,6 +7,7 @@ Place each skill in its own folder: `workspace/skills/<name>/SKILL.md`.
 - The folder name MUST equal the SKILL.md frontmatter `name` field. Mismatch → router never sees the skill.
 - The `user-invokable` field in frontmatter is spelled with a `k` (NOT `user-invocable`). The typo silently un-callable.
 - Each SKILL.md follows the 5-section convention (Header, Triggers, Systems, Workflows, Important Rules) — see `docs/OpenClaw KBs/OC_KB_02_Skills.md`.
+- The frontmatter `description` should state WHEN to invoke the skill (the trigger condition the router matches), not WHAT it does. "Use when the user asks to triage their inbox" beats "Triages incoming email."
 
 **Scaffolding:** use `/gen-skill <name>` to create a new skill with valid frontmatter and the 5-section skeleton. Or copy `_dev/skill-template.md` manually.
 

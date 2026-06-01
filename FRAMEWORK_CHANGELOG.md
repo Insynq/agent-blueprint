@@ -60,6 +60,27 @@ Only the canonical repo (this repo) maintains `FRAMEWORK_CHANGELOG.md`. Adopter 
 
 ---
 
+## [0.2.0] - 2026-05-27
+
+Adopts four discipline-enforcement techniques observed in `obra/superpowers` (Jesse Vincent, MIT) — patterns only, original wording. All changes are additive edits to existing authoring commands, templates, and reference docs; no new commands, no runtime/MCP/deploy changes. See `docs/superpowers-adoption-spec.md` for the full rationale.
+
+### Changed
+
+- **`/gen-skill`** (`.claude/commands/gen-skill.md`) — Step 2 description validation now teaches WHEN-not-WHAT (state the trigger condition the router matches, not a behavior summary) with contrasting good/weak/bad examples, kept advisory (only the existing vague `"does stuff"`/`"helps with"` starts hard-reject). The emitted skeleton frontmatter carries a WHEN-not-WHAT comment above `description`. The confirmation next-steps add a skill-as-test line: name the concrete task the agent fails at *without* the skill — that failure is its reason to exist and acceptance test.
+- **`_dev/skill-template.md`** — `description` framing (frontmatter line + frontmatter-rules comment) synced to WHEN-not-WHAT for consistency with `/gen-skill`.
+- **`docs/OpenClaw KBs/OC_KB_02_Skills.md`** — reframed the description guidance and the WHAT-phrased anonymous-skill example to WHEN-not-WHAT, and updated the validation checklist accordingly, so the skills KB no longer contradicts `/gen-skill`. (Canonical-only — uncategorized, does not propagate via `/update-framework`.)
+- **`/debug`** (`.claude/commands/debug.md`) — added a Rationalization Guard table (Excuse | Reality) after the core diagnostic-first rule inside the subagent prompt; added a three-strikes circuit breaker whose strike counter lives in the outer "After Subagent Returns" loop (a fresh subagent can't persist the count), with an `Attempt N of 3` line injected into each re-spawn. After 3 failed fixes the loop STOPs and escalates to questioning the system model (spec + `/brainstorm` or `/plan-review`) instead of a 4th fix.
+- **`/implement`** (`.claude/commands/implement.md`) — added a Scope-Creep Guard table to the parallel-worker prompt; added a Stage-1 spec-compliance gate (new Step 5b) after final verification that diffs the working tree against the plan (no gaps, no unrequested extras, no drift) and gates the Stage-2 quality review, skippable for trivial changes with a `"skipped — trivial"` note.
+- **`/audit-code`** (`.claude/commands/audit-code.md`) — added a one-line header framing it as the quality stage (Stage 2) that assumes the Stage-1 spec-compliance gate already passed; it does not re-check plan-conformance.
+- **`/orchestrate`** (`.claude/commands/orchestrate.md`) — Phase 8 restructured into a named two-stage gate: Stage 1 spec-compliance (PASS/FAIL) before Stage 2 quality (`/audit-code`), replacing the prior informal "verify against phase-plan.md" prose.
+- **`docs/MULTI_AGENT_WORKFLOW.md`** — Phase 8 documentation updated to describe the two-stage spec-compliance → quality gate.
+
+### Migration Notes
+
+- All edits are additive insertions at stable anchors. Unmodified adopter copies update via `overwrite-with-backup`; customized copies trigger a three-way merge. `_dev/skill-template.md` and `workspace/skills/README.md` are hybrid and arrive as `.framework` siblings requiring a small manual merge. The `OC_KB_02_Skills.md` edit is canonical-only and does not reach installed agents via `/update-framework`.
+
+---
+
 ## [0.1.0] - 2026-05-08
 
 Initial release of `@insynq/agent-blueprint`. Forked from `@insynq/app-blueprint` v0.1.3, reframed for OpenClaw agent dev. The two frameworks share the multi-agent workflow methodology and the slash-command structure but diverge in stack assumptions: this framework is opinionated for OpenClaw + Anthropic Claude + MCP via mcporter + GitOps deploy.

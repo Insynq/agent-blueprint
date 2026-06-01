@@ -29,7 +29,7 @@ A skill can call MCP tools. An MCP server can be invoked by a script. Mix as nee
 ```yaml
 ---
 name: skill-name-here              # lowercase-hyphenated; MUST equal folder name
-description: Single sentence — used by router to pick this skill
+description: Use when [trigger] — states WHEN to invoke (router-matched), not WHAT the skill does
 user-invokable: true               # boolean; SPELLING — "user-invocable" is a silent-failure typo
 ---
 ```
@@ -38,7 +38,7 @@ user-invokable: true               # boolean; SPELLING — "user-invocable" is a
 
 1. **Folder name = `name`.** If your folder is `workspace/skills/triage-mail/` then `name: triage-mail`. Mismatch → router never sees the skill. No error, no warning.
 2. **`user-invokable` spelling.** The string `user-invocable` (without the `k`) is a common typo. Parses as valid YAML, gateway treats it as missing, skill silently un-callable.
-3. **`description` quality matters.** This is what the router scans. "Does stuff" matches nothing. "Triage incoming email and summarize urgent items" matches a user asking about email triage.
+3. **`description` quality matters.** This is what the router scans. State WHEN to invoke (the trigger condition), not WHAT the skill does (a behavior summary) — a WHAT-phrased description competes with the skill body for the model's attention. "Does stuff" matches nothing. "Use when the user asks to triage, sort, or summarize their inbox" matches a user asking about email triage; "Triages incoming email" (WHAT-phrased) is weaker.
 
 ## 5-section convention
 
@@ -93,7 +93,7 @@ The 5 sections aren't optional. They serve specific roles:
 ```markdown
 ---
 name: skill-name-here
-description: Does X for Y users when they ask about Z
+description: Use when the user asks to <do X with Z>  # WHEN to invoke, not WHAT it does
 user-invokable: true
 ---
 
@@ -144,7 +144,7 @@ The references/ files are NOT loaded automatically. The skill itself decides whe
 
 - **Folder/name drift.** You rename a folder but forget to update frontmatter. Skill silently disappears from the router. → fix: standardize one or the other; never edit just one.
 - **`user-invocable` spelling.** Typo bug. → fix: copy-paste the exact string `user-invokable` from the canonical scaffold.
-- **Vague description.** "Helps with stuff" matches nothing the router can act on. → fix: lead with a specific verb + domain noun, like "Triage incoming email and summarize urgent items".
+- **Vague description.** "Helps with stuff" matches nothing the router can act on. → fix: state WHEN to invoke (the trigger condition), not WHAT the skill does, like "Use when the user asks to triage, sort, or summarize their inbox".
 - **Missing Systems section.** The skill calls `mcp__foo__bar` but doesn't declare it in Systems. Audits fail; future you can't tell what the skill depends on. → fix: enumerate every MCP tool, every cross-referenced bootstrap file, every script.
 - **One giant Workflow.** Skills with a single 30-step workflow are unreadable and brittle. → fix: split into 2–4 named workflows; each one is one user-facing flow.
 - **Embedding secrets in SKILL.md.** Every conversation that touches this skill loads the file into context. Secrets there leak constantly. → fix: secrets live in MCP server env vars; the skill calls the tool, never the secret.
@@ -154,7 +154,7 @@ The references/ files are NOT loaded automatically. The skill itself decides whe
 - [ ] Folder name lowercase-hyphenated
 - [ ] Frontmatter `name` matches folder name exactly
 - [ ] `user-invokable` spelled correctly (NOT `user-invocable`)
-- [ ] `description` is specific (verb + domain noun, not "does stuff")
+- [ ] `description` states WHEN to invoke (trigger condition), not WHAT the skill does — and is specific (not "does stuff")
 - [ ] Has all 5 sections in order: Header, Triggers, Systems, Workflows, Important Rules
 - [ ] Every MCP tool used in Workflows is listed in Systems
 - [ ] Each Workflow ends with a Report convention
