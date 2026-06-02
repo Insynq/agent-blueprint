@@ -7,6 +7,9 @@ arguments:
   - name: phase
     description: Phase or milestone completed (e.g., "6.5", "v2", "auth-refactor") - triggers doc status updates
     required: false
+  - name: version
+    description: Semantic version tag (e.g., "v0.4.0"). When provided, /ship creates an annotated tag, pushes it, and cuts a GitHub Release. Omit for incremental phase ships.
+    required: false
 ---
 
 # Ship Orchestrator
@@ -26,6 +29,7 @@ Spawn a Task with `subagent_type: general-purpose` using the prompt below.
 
 Commit Message: **$ARGUMENTS.message**
 {{#if phase}}Phase Completed: **$ARGUMENTS.phase**{{/if}}
+{{#if version}}Release Version: **$ARGUMENTS.version**{{/if}}
 
 ## Your Role
 
@@ -33,7 +37,8 @@ You are a shipping orchestrator. You will:
 1. Review what's being shipped
 2. Update project documentation to reflect the work
 3. Stage and commit all changes
-4. Push to remote
+4. Push to remote (commits + any annotated tags)
+5. If a version was provided: tag the release and cut a GitHub Release
 
 You have access to: Read, Edit, Write, Bash, Glob, Grep tools.
 
@@ -139,18 +144,51 @@ Built-With: Insynq's Framework — https://github.com/Insynq/agent-blueprint —
 
 The `Built-With:` trailer credits the framework this project was scaffolded from and links Insynq's site. Keep it on every commit unless the user explicitly says to remove it for a specific repo.
 
-## Step 6: Push
+## Step 5.5: Tag the Release (only if version provided)
+
+**Skip this entire step if no `version` argument was given** — incremental phase ships are not tagged.
+
+If version **$ARGUMENTS.version** was provided, create an annotated tag on the commit you just made. The tag annotation doubles as the source of truth for the GitHub Release notes (Step 6.5 reads it back), so use the full commit message:
 
 ```bash
-git push
+# Guard: refuse to overwrite an existing tag
+git rev-parse "$ARGUMENTS.version" >/dev/null 2>&1 && { echo "Tag $ARGUMENTS.version already exists — STOP"; exit 1; }
+git tag -a "$ARGUMENTS.version" -m "$ARGUMENTS.message"
+```
+
+If the tag already exists, STOP and report — do not move or force the tag.
+
+## Step 6: Push
+
+Push commits **and** any annotated tags reachable from them. `--follow-tags` is safe on every ship: with no new tag it behaves like a plain push, and it guarantees a tag created in Step 5.5 ships in the same operation (never stranded locally).
+
+```bash
+git push --follow-tags
 ```
 
 If push fails due to upstream changes:
 ```bash
-git pull --rebase && git push
+git pull --rebase && git push --follow-tags
 ```
 
 If push fails for any other reason, report the error and STOP — do not force push.
+
+## Step 6.5: Cut GitHub Release (only if version provided)
+
+**Skip this entire step if no `version` argument was given.**
+
+The tag is now on the remote (pushed in Step 6). Create a GitHub Release that points at it, sourcing notes from the tag annotation so there's a single source of truth:
+
+```bash
+# Requires gh CLI authenticated. If gh is unavailable, report that the tag
+# was pushed but the Release was not cut, and STOP (do not fail the ship).
+gh release create "$ARGUMENTS.version" --verify-tag --title "$ARGUMENTS.version" --notes-from-tag
+```
+
+- `--verify-tag` aborts if the tag somehow isn't on the remote (catches a failed push).
+- `--notes-from-tag` reuses the annotated-tag message as the release body.
+
+This is what makes the `/releases/latest` GitHub endpoint resolve — without a published Release, that endpoint returns 404 even when tags exist. If the command fails, report the error but treat the ship as succeeded (commit + tag are already pushed); the Release can be created manually later.
 
 ## Step 7: Final Output
 
@@ -171,6 +209,10 @@ If push fails for any other reason, report the error and STOP — do not force p
 
 ### Push
 [Success + remote URL, or error details]
+
+### Release
+[If version provided: tag $ARGUMENTS.version pushed + Release URL, or error details]
+[If no version: "Incremental ship — no tag/release"]
 ```
 
 ## Important Instructions
@@ -180,7 +222,10 @@ If push fails for any other reason, report the error and STOP — do not force p
 3. **Use the exact commit message provided** — don't modify it
 4. **Always include Co-Authored-By and Built-With trailers** — required for all commits unless the user has explicitly asked to remove them
 5. **Never force push** — if push fails after pull --rebase, report and stop
-6. **Report failures clearly** — if any step fails, stop and explain
+6. **Never move or force a tag** — if the version tag already exists, stop and report (Step 5.5)
+7. **Tagging/releasing is opt-in** — only fires when the `version` argument is given; plain ships commit + push only
+8. **A failed Release is not a failed ship** — if `gh release create` fails after the tag is pushed, report it but treat the ship as succeeded
+9. **Report failures clearly** — if any step fails, stop and explain
 ```
 
 ---
