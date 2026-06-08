@@ -1,9 +1,6 @@
 ---
 description: Identify similar or duplicate components and design a unified replacement
-arguments:
-  - name: description
-    description: Description of the duplication problem (e.g., "5 components all showing order status to different roles")
-    required: true
+argument-hint: "<description of the duplication problem>"
 ---
 
 # Unify
@@ -25,7 +22,7 @@ Spawn a Task with `subagent_type: general-purpose` using the prompt below.
 ```
 # Unify Agent
 
-Problem: **$ARGUMENTS.description**
+Problem: **$ARGUMENTS**
 
 ## Your Role
 

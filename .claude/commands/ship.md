@@ -1,15 +1,6 @@
 ---
-description: Update project docs, commit changes, and push to remote
-arguments:
-  - name: message
-    description: Commit message describing the changes
-    required: true
-  - name: phase
-    description: Phase or milestone completed (e.g., "6.5", "v2", "auth-refactor") - triggers doc status updates
-    required: false
-  - name: version
-    description: Semantic version tag (e.g., "v0.4.0"). When provided, /ship creates an annotated tag, pushes it, and cuts a GitHub Release. Omit for incremental phase ships.
-    required: false
+description: Update project docs, compose a commit, and push to remote (optional tag + release, or gated merge to main)
+argument-hint: "<free-text ship summary — may name a phase/wave, a version like v0.4.0 to tag+release, and/or 'merge to main'>"
 ---
 
 # Ship Orchestrator
@@ -27,18 +18,24 @@ Spawn a Task with `subagent_type: general-purpose` using the prompt below.
 ```
 # Ship Orchestrator
 
-Commit Message: **$ARGUMENTS.message**
-{{#if phase}}Phase Completed: **$ARGUMENTS.phase**{{/if}}
-{{#if version}}Release Version: **$ARGUMENTS.version**{{/if}}
+Ship summary (free-text): **$ARGUMENTS**
+
+This summary is a loose brief, NOT a paste-ready commit message — you will COMPOSE a clean commit message from it in Step 5. Parse it for three optional signals:
+- **Phase/wave** named (e.g. "phase 6.5", "auth wave") → drives the doc updates in Step 3.
+- **Version** named (e.g. "v0.4.0", "release v0.4.0") → triggers tag + GitHub Release (Steps 5.5 / 6.5).
+- **Merge intent** ("ship and merge", "land it", "merge to main") → triggers the gated merge-to-main in Step 6.7.
+
+Never echo template tokens (`$ARGUMENTS`, `.message`, `{{…}}`) into the commit or your output.
 
 ## Your Role
 
 You are a shipping orchestrator. You will:
 1. Review what's being shipped
 2. Update project documentation to reflect the work
-3. Stage and commit all changes
+3. Compose a clean commit message from the summary, then stage and commit
 4. Push to remote (commits + any annotated tags)
-5. If a version was provided: tag the release and cut a GitHub Release
+5. If the summary names a version: tag the release and cut a GitHub Release
+6. If the summary asks to merge/land: merge to main and clean up the branch
 
 You have access to: Read, Edit, Write, Bash, Glob, Grep tools.
 
@@ -73,11 +70,11 @@ If no `docs/` folder exists, check for `README.md` or `.claude/*.md` files.
 
 ## Step 3: Update Documentation
 
-### If phase argument is provided
+### If the ship summary names a phase/wave
 
-Phase **$ARGUMENTS.phase** is complete. Find and update:
+If the summary names a completed phase/wave, treat that phase as complete. Find and update:
 
-1. **CLAUDE.md** — Mark phase $ARGUMENTS.phase as ✅ complete. Update "Current Phase" or equivalent section to advance to the next item.
+1. **CLAUDE.md** — Mark the named phase as ✅ complete. Update "Current Phase" or equivalent section to advance to the next item.
 
 2. **Current state doc** — The doc that tracks active work (highest-traffic KB, STATUS.md, etc.).
    Add a one-liner completion entry and clear any resolved session notes for this phase.
@@ -87,7 +84,7 @@ Phase **$ARGUMENTS.phase** is complete. Find and update:
    - Key deviations from plan (if any)
    - Reference git history for full details
 
-### Always (regardless of phase argument)
+### Always (regardless of whether a phase is named)
 
 Review the git diff. If the changes introduce new features, patterns, or conventions not yet reflected in docs:
 - Add a one-liner changelog entry to the relevant docs
@@ -133,27 +130,42 @@ Review what's staged:
 git diff --cached --stat
 ```
 
-## Step 5: Commit
+## Step 5: Compose the Commit Message, then Commit
+
+The ship summary is a loose brief, not a commit message. **Compose** a clean message from it — do not paste the summary verbatim:
+
+- **Subject:** ≤72 chars, imperative mood, no trailing punctuation. Distill what shipped (not how it was requested).
+- **Blank line**, then **1–3 short body paragraphs** distilling: what changed and why, quality gates / smoke tests run, and any migration or follow-up note. Drop meta-instructions aimed at the agent (e.g. "make sure to…", "don't forget…").
+- **Two trailers** (see below).
+
+Write the composed message to a temp file and commit from it (avoids shell-quoting issues with multi-paragraph bodies):
 
 ```bash
-git commit -m "$ARGUMENTS.message
+cat > /tmp/ship-commit-msg.txt <<'EOF'
+<composed subject line>
 
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
-Built-With: Insynq's Framework — https://github.com/Insynq/agent-blueprint — https://insynqk.com"
+<composed body paragraph(s)>
+
+Co-Authored-By: Claude <MODEL> <noreply@anthropic.com>
+Built-With: Insynq's Framework — https://github.com/Insynq/agent-blueprint — https://insynqk.com
+EOF
+git commit -F /tmp/ship-commit-msg.txt
 ```
 
-The `Built-With:` trailer credits the framework this project was scaffolded from and links Insynq's site. Keep it on every commit unless the user explicitly says to remove it for a specific repo.
+- Replace `<MODEL>` with the model you are executing as (e.g. `Opus 4.8`). Do **not** leave the placeholder literal, and do **not** hardcode a fixed version into the template — it drifts every model release.
+- The `Built-With:` trailer credits the framework this project was scaffolded from and links Insynq's site. Keep it on every commit unless the user explicitly says to remove it for a specific repo.
 
-## Step 5.5: Tag the Release (only if version provided)
+## Step 5.5: Tag the Release (only if the summary names a version)
 
-**Skip this entire step if no `version` argument was given** — incremental phase ships are not tagged.
+**Skip this entire step if the summary names no version** — incremental phase ships are not tagged.
 
-If version **$ARGUMENTS.version** was provided, create an annotated tag on the commit you just made. The tag annotation doubles as the source of truth for the GitHub Release notes (Step 6.5 reads it back), so use the full commit message:
+If the summary names a version (call it `$VERSION`, e.g. `v0.4.0`), create an annotated tag on the commit you just made. Reuse the composed commit message as the tag annotation — it becomes the source of truth for the GitHub Release notes (Step 6.5 reads it back):
 
 ```bash
+VERSION="v0.4.0"   # <- the version parsed from the ship summary
 # Guard: refuse to overwrite an existing tag
-git rev-parse "$ARGUMENTS.version" >/dev/null 2>&1 && { echo "Tag $ARGUMENTS.version already exists — STOP"; exit 1; }
-git tag -a "$ARGUMENTS.version" -m "$ARGUMENTS.message"
+git rev-parse "$VERSION" >/dev/null 2>&1 && { echo "Tag $VERSION already exists — STOP"; exit 1; }
+git tag -a "$VERSION" -F /tmp/ship-commit-msg.txt
 ```
 
 If the tag already exists, STOP and report — do not move or force the tag.
@@ -173,22 +185,49 @@ git pull --rebase && git push --follow-tags
 
 If push fails for any other reason, report the error and STOP — do not force push.
 
-## Step 6.5: Cut GitHub Release (only if version provided)
+## Step 6.5: Cut GitHub Release (only if the summary names a version)
 
-**Skip this entire step if no `version` argument was given.**
+**Skip this entire step if the summary names no version.**
 
 The tag is now on the remote (pushed in Step 6). Create a GitHub Release that points at it, sourcing notes from the tag annotation so there's a single source of truth:
 
 ```bash
 # Requires gh CLI authenticated. If gh is unavailable, report that the tag
 # was pushed but the Release was not cut, and STOP (do not fail the ship).
-gh release create "$ARGUMENTS.version" --verify-tag --title "$ARGUMENTS.version" --notes-from-tag
+gh release create "$VERSION" --verify-tag --title "$VERSION" --notes-from-tag
 ```
 
 - `--verify-tag` aborts if the tag somehow isn't on the remote (catches a failed push).
 - `--notes-from-tag` reuses the annotated-tag message as the release body.
 
 This is what makes the `/releases/latest` GitHub endpoint resolve — without a published Release, that endpoint returns 404 even when tags exist. If the command fails, report the error but treat the ship as succeeded (commit + tag are already pushed); the Release can be created manually later.
+
+## Step 6.7: Merge to main + clean up branch (only if the summary asks to land/merge)
+
+**Skip this entire step unless the ship summary explicitly asks to land or merge** (e.g. "ship and merge", "land it", "merge to main"). Default behavior is unchanged: the feature branch is pushed (Step 6) and you remind the user to open a PR.
+
+`/ship` commits and pushes the *current branch* — it does not merge. Merged feature branches otherwise accumulate, so cleanup hooks here, to the merge.
+
+When merge IS requested and you are on a feature branch (not already on main):
+
+```bash
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+git checkout main
+git pull --ff-only                        # STOP if this fails — do not rebase/merge to force it
+git merge --no-ff "$BRANCH"               # STOP on any conflict — never auto-resolve
+git log --oneline -3                      # verify the merge looks right before pushing
+git push origin main
+# cleanup — only after a clean push
+git branch -d "$BRANCH"                    # -d (safe), NEVER -D (force)
+git push origin --delete "$BRANCH" 2>/dev/null || true   # tolerate an already-auto-deleted remote branch
+git remote prune origin
+```
+
+Safety rails:
+- **Stop on any merge conflict** — report and let the user resolve; never auto-resolve.
+- **Never force-push, never force-delete** (`-d`, not `-D`). If `git branch -d` refuses (branch not fully merged), STOP — something is wrong.
+- **Stacked branches:** merging a stacked child also lands its parent's commits. If this branch was stacked on another unmerged branch, call that out rather than silently landing it.
+- A release tagged in Step 5.5 sits on the feature commit, which a `--no-ff` merge brings into main's history — so the tag stays reachable from main. No retag needed.
 
 ## Step 7: Final Output
 
@@ -205,27 +244,32 @@ This is what makes the `/releases/latest` GitHub endpoint resolve — without a 
 
 ### Commit
 **Hash:** [short hash]
-**Message:** $ARGUMENTS.message
+**Message:** [the composed commit subject line]
 
 ### Push
 [Success + remote URL, or error details]
 
 ### Release
-[If version provided: tag $ARGUMENTS.version pushed + Release URL, or error details]
+[If a version was named: tag $VERSION pushed + Release URL, or error details]
 [If no version: "Incremental ship — no tag/release"]
+
+### Merge
+[If merge was requested: "[branch] merged to main (--no-ff), deleted local + remote"]
+[If not requested: "Branch pushed — open a PR to land"]
 ```
 
 ## Important Instructions
 
 1. **Don't skip git status** — always verify there are changes first
 2. **Update docs before staging** — doc changes should be part of the same commit
-3. **Use the exact commit message provided** — don't modify it
-4. **Always include Co-Authored-By and Built-With trailers** — required for all commits unless the user has explicitly asked to remove them
+3. **Compose the commit message from the ship summary** — never paste the summary verbatim, and NEVER emit template tokens (`$ARGUMENTS`, `.message`, `{{…}}`) into the commit or output
+4. **Always include Co-Authored-By and Built-With trailers** — required for all commits unless the user has explicitly asked to remove them; set the Co-Authored-By model to the model you are executing as (no stale hardcoded version)
 5. **Never force push** — if push fails after pull --rebase, report and stop
 6. **Never move or force a tag** — if the version tag already exists, stop and report (Step 5.5)
-7. **Tagging/releasing is opt-in** — only fires when the `version` argument is given; plain ships commit + push only
+7. **Tagging/releasing is opt-in** — only fires when the summary names a version; plain ships commit + push only
 8. **A failed Release is not a failed ship** — if `gh release create` fails after the tag is pushed, report it but treat the ship as succeeded
-9. **Report failures clearly** — if any step fails, stop and explain
+9. **Merging is opt-in and gated** — only merge to main when the summary explicitly asks; stop on conflicts, never force-push, never force-delete a branch
+10. **Report failures clearly** — if any step fails, stop and explain
 ```
 
 ---

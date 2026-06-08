@@ -1,12 +1,6 @@
 ---
 description: Generate tests following the project's testing patterns and conventions
-arguments:
-  - name: file
-    description: Source file to test (e.g., "src/hooks/useOrders.ts")
-    required: true
-  - name: type
-    description: Test type - "unit", "integration", "component" (auto-detected if not specified)
-    required: false
+argument-hint: "<source file to test> [— optional test type: unit | integration | component (auto-detected if omitted)]"
 ---
 
 # Test Generator
@@ -27,7 +21,7 @@ Also read `docs/LESSONS.md` if it exists — skim for entries relevant to testin
 
 ### Step 2: Read the Source File
 
-Read `$ARGUMENTS.file` completely. Understand:
+Read the source file named in `$ARGUMENTS` completely. Understand:
 - What the code does
 - What it depends on (imports, external calls)
 - What behaviors are worth testing

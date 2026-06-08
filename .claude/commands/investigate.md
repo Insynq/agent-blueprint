@@ -1,12 +1,6 @@
 ---
 description: Deep codebase investigation — trace data flows, find all usages, identify root causes
-arguments:
-  - name: issue
-    description: Description of the issue or feature area to investigate
-    required: true
-  - name: component
-    description: Specific component, hook, function, or file to start from (optional)
-    required: false
+argument-hint: "<issue or feature area to investigate> [— optional: component/file to start from]"
 ---
 
 # Investigation Subagent

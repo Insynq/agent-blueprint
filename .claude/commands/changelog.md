@@ -1,9 +1,6 @@
 ---
 description: Generate or update CHANGELOG.md from git history
-arguments:
-  - name: since
-    description: Only include commits since this ref or date (e.g., "v1.0.0", "2026-01-01"). Defaults to all history.
-    required: false
+argument-hint: "[since-ref — optional, e.g. v1.0.0 or 2026-01-01; defaults to full history]"
 ---
 
 # Changelog Generator
@@ -20,13 +17,16 @@ If `docs/CHANGELOG.md` exists, read it. Note the most recent entry's date and/or
 
 ### Step 2: Get Commit History
 
+`$ARGUMENTS` is an optional since-ref (tag, hash, or date). If present, scope the log to `<ref>..HEAD`; if absent, include all history. Set the range once, then reuse it:
+
 ```bash
-git log {{#if since}}$ARGUMENTS.since..HEAD {{/if}}--format="%H|%ad|%s" --date=short --no-merges
+RANGE="HEAD"          # if a since-ref was passed in $ARGUMENTS, set RANGE="<ref>..HEAD" (e.g. RANGE="v1.0.0..HEAD")
+git log "$RANGE" --format="%H|%ad|%s" --date=short --no-merges
 ```
 
 Also get file-change stats per commit to inform bullet points:
 ```bash
-git log {{#if since}}$ARGUMENTS.since..HEAD {{/if}}--stat --no-merges --format="COMMIT|%H|%ad|%s" --date=short | head -200
+git log "$RANGE" --stat --no-merges --format="COMMIT|%H|%ad|%s" --date=short | head -200
 ```
 
 If `git log` returns no output (empty result):
@@ -47,7 +47,7 @@ Skip: dependency bumps, formatting-only commits, merge commits, "fix typo" commi
 For each group, write:
 
 ```markdown
-## YYYY-MM-DD{{#if phase}} — Phase X.X:{{/if}} Short descriptive title
+## YYYY-MM-DD[ — Phase X.X:] Short descriptive title
 - [What was added — specific, not vague]
 - [What was changed or fixed]
 - [What was removed, if notable]

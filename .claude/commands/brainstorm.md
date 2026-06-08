@@ -1,9 +1,6 @@
 ---
 description: Deep-research brainstorm with codebase-grounded options and trade-offs
-arguments:
-  - name: topic
-    description: The feature, problem, or architectural decision to brainstorm
-    required: true
+argument-hint: "<the feature, problem, or architectural decision to brainstorm>"
 ---
 
 # Brainstorm Orchestrator
@@ -21,7 +18,7 @@ Spawn a Task with `subagent_type: general-purpose` using the prompt below. The o
 ```
 # Brainstorm Orchestrator
 
-Topic: **$ARGUMENTS.topic**
+Topic: **$ARGUMENTS**
 
 > **Role in the phase loop:** `/brainstorm` is the PM's primary pre-dispatch tool. When invoked from `/orchestrate` Phase 2, it produces the option-comparison that feeds the decisions table in `phase-plan.md`. See [MULTI_AGENT_WORKFLOW.md → PM Pre-Dispatch Responsibilities](../../docs/MULTI_AGENT_WORKFLOW.md#pm-pre-dispatch-responsibilities-phases-13).
 

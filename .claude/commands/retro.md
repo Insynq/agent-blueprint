@@ -1,9 +1,6 @@
 ---
 description: Phase-closure retro — read phase artifacts (best-effort) and write a structured retro doc capturing what worked, what was harder, close-calls, and candidate LESSONS.md entries
-arguments:
-  - name: phase-slug
-    description: The phase slug to retro (e.g., "auth-rework"). Defaults to the most recent shipped phase if omitted.
-    required: false
+argument-hint: "[phase-slug — optional, e.g. auth-rework; defaults to the most recent shipped phase]"
 ---
 
 # Phase Retro
@@ -14,7 +11,7 @@ arguments:
 
 ## Action Required
 
-1. Resolve `[phase-slug]` from `$ARGUMENTS.phase-slug` if provided; otherwise scan `docs/CHANGELOG.md` and `docs/plans/` for the most recently shipped phase.
+1. Resolve `[phase-slug]` from `$ARGUMENTS` if provided; otherwise scan `docs/CHANGELOG.md` and `docs/plans/` for the most recently shipped phase.
 2. Pre-flight: `mkdir -p docs/retros/` (self-heal — no canonical `.gitkeep` needed).
 3. Spawn one `Explore` subagent with the prompt below. It reads the available artifacts and returns a structured digest. **Do not** edit project files from `/retro` directly — `/retro` only writes the retro doc.
 4. Write the structured retro to `docs/retros/[phase-slug]-retro.md` following the 7-section template at `_dev/phase-retro-template.md`.

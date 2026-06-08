@@ -1,9 +1,6 @@
 ---
 description: Audit infrastructure security - mcporter config, env vars, deploy script, runtime host, MCP server deps
-arguments:
-  - name: focus
-    description: Focus area - "mcporter", "env", "deploy", "deps", or "all" (default)
-    required: false
+argument-hint: "[focus — optional: mcporter | env | deploy | deps | all (default)]"
 ---
 
 # Infrastructure Security Audit Subagent
@@ -21,7 +18,7 @@ Spawn a Task with `subagent_type: Explore` using the prompt below. The subagent 
 ```
 # Infrastructure Security Auditor
 
-{{#if focus}}Focus: **$ARGUMENTS.focus**{{/if}}
+Focus: **$ARGUMENTS** (one of: mcporter | env | deploy | deps; default to "all" if empty)
 
 ## Core Question
 

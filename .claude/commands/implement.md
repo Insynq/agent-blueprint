@@ -1,12 +1,6 @@
 ---
 description: Implement a validated plan by spawning parallel implementer agents
-arguments:
-  - name: plan
-    description: Description of the plan to implement (references the orchestrator output)
-    required: true
-  - name: scope
-    description: "Which steps to implement: 'all', step numbers like '1-3', or 'next' for the next unfinished step"
-    required: false
+argument-hint: "<plan path> [scope: all | next | 1-3 | <step#> (default all)]"
 ---
 
 # Implementation Orchestrator

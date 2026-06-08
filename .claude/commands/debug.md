@@ -1,9 +1,6 @@
 ---
 description: Diagnose and fix a bug using root-cause investigation before any code changes
-arguments:
-  - name: issue
-    description: Description of the bug or unexpected behavior
-    required: true
+argument-hint: "<description of the bug or unexpected behavior>"
 ---
 
 # Debug
@@ -23,7 +20,7 @@ Spawn a Task with `subagent_type: general-purpose` using the prompt below.
 ```
 # Debug Agent
 
-Issue: **$ARGUMENTS.issue**
+Issue: **$ARGUMENTS**
 
 Attempt: **[N] of 3** (the outer command loop fills this in on each re-spawn — see "After Subagent Returns". On attempt 3, if your hypothesis fails the diagnostic again, do not propose a fourth fix: raise the architecture concern — the problem is likely the model of the system, not the next fix.)
 

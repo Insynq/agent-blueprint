@@ -1,12 +1,6 @@
 ---
 description: Update knowledge base documents to reflect current project state
-arguments:
-  - name: phase
-    description: Phase that just completed (e.g., "1.2") — triggers phase-specific updates
-    required: false
-  - name: focus
-    description: Specific KB to update - "architecture", "current-state", "ui-patterns", or "all" (default)
-    required: false
+argument-hint: "[phase e.g. 1.2] [focus: architecture | current-state | ui-patterns | all (default)]"
 ---
 
 # Update Knowledge Base

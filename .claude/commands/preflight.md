@@ -111,6 +111,20 @@ workspace content on a separate dev machine, you can ignore this.
 
 Don't auto-run anything that mutates state — preflight is read-only.
 
+**5d. GitHub branch-cleanup hygiene (advisory)** — if `origin` is a GitHub remote and `gh` is authenticated, check whether merged PR head branches are auto-deleted:
+
+```bash
+gh repo view --json deleteBranchOnMerge -q .deleteBranchOnMerge 2>/dev/null || echo "n/a"
+```
+
+If it returns `false`, **recommend** (don't auto-enable — preflight is read-only) that the user turn it on so merged PR branches clean up automatically:
+
+```
+gh repo edit --delete-branch-on-merge
+```
+
+This pairs with `/ship`'s gated merge-to-main step (which cleans up the in-session-merge path): the GitHub setting covers the PR-merge path. If `origin` isn't GitHub or `gh` is unavailable, skip silently.
+
 ### Step 6 — Confirm and hand off
 
 Print a single short summary:
@@ -124,6 +138,7 @@ Preflight complete.
 - mcporter.json: <OK | MISSING_KEY | not present yet>
 - Required env vars: <list from 5b, or "none referenced">
 - openclaw CLI: <found vN.N.N | not on PATH (warn-only)>
+- Auto-delete merged branches: <on | recommend enabling | n/a>
 
 Next:
 - Claude Code → run /kickoff

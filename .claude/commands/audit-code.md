@@ -1,12 +1,6 @@
 ---
 description: Review proposed code/plans to check if the solution is the most elegant option
-arguments:
-  - name: file
-    description: Specific file to audit (optional - defaults to current plan/changes)
-    required: false
-  - name: focus
-    description: Focus area - "reuse", "patterns", "antipatterns", "security", or "all" (default)
-    required: false
+argument-hint: "[file to audit (default: pending changes)] [focus: reuse | patterns | antipatterns | security | all (default)]"
 ---
 
 # Code Audit Subagent

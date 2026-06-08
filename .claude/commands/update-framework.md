@@ -1,23 +1,17 @@
 ---
 description: Pull canonical agent-blueprint updates into this project, with per-file review and assisted merge for customizations.
-arguments:
-  - name: target-version
-    description: Specific version tag to update to (e.g., "0.2.0", no leading "v"). Default — latest published release.
-    required: false
-  - name: dry-run
-    description: Preview the four-category report without writing anything. Pass "true" or "1".
-    required: false
-  - name: yes
-    description: Auto-accept manifest defaults (skip on conflict, apply safe categories). For non-TTY use.
-    required: false
-  - name: allow-downgrade
-    description: Permit updating to a target version older than the installed version. Default refuses to downgrade.
-    required: false
+argument-hint: "[target-version e.g. 0.2.0] [--dry-run] [--yes] [--allow-downgrade]"
 ---
 
 # Update Framework — Pull Canonical Updates Into This Project
 
 **This is a conversation command.** It runs inline in your session, not as a subagent. The reason: per-file approve / skip / merge prompts can't be shuttled through a one-shot subagent return — you need to see diffs and make decisions interactively.
+
+**Argument parsing.** `$ARGUMENTS` is free text, not named fields. Parse these optional signals from it:
+- A **target version** (e.g. `0.2.0` or `v0.2.0`) — the version to update to; default is the latest published release.
+- **`--dry-run`** (truthy: `dry-run`, `true`, `1`) — preview only, write nothing.
+- **`--yes`** (or `-y`) — auto-accept manifest defaults; for non-TTY use.
+- **`--allow-downgrade`** — permit a target older than the installed version.
 
 `/update-framework` fetches the latest (or a specified) release of the **agent-blueprint** framework from the canonical GitHub repo, compares it against your installed version, and walks you through a four-category report with explicit per-file resolution. Customizations are never overwritten silently. Backups are made before any write.
 
@@ -212,9 +206,9 @@ Don't block.
 
 ### 2a. Resolve the target version
 
-If the user supplied `$ARGUMENTS.target-version`, use that string verbatim. Strip any leading `v` (so `v0.2.0` and `0.2.0` both work).
+If the arguments supplied a target version, use that string verbatim. Strip any leading `v` (so `v0.2.0` and `0.2.0` both work).
 
-If `$ARGUMENTS.target-version` was not supplied:
+If no target version was supplied:
 
 1. Fetch `https://api.github.com/repos/<owner>/<repo>/releases/latest` via Bash + `curl`. Capture HTTP status and body.
 
@@ -289,7 +283,7 @@ Compute semver comparison between `install-version` and `target-version`.
   ```
   Stop. (This is the most likely first-invocation case in early dogfood. Detect it BEFORE fetching the install-version tarball — saves a network round-trip.)
 
-- **Target < install** (downgrade): if `$ARGUMENTS.allow-downgrade` is not set:
+- **Target < install** (downgrade): if `--allow-downgrade` is not set:
   ```
   Refusing to downgrade from v<install-version> to v<target-version>.
   Downgrade UX is a separate concern (un-applying customizations cleanly
@@ -634,7 +628,7 @@ Continue to per-file decisions? [y/N]
 
 ### 6b. Dry-run exit point
 
-If `$ARGUMENTS.dry-run` is set (truthy: `true`, `1`, `yes`):
+If `--dry-run` is set (truthy: `true`, `1`, `yes`):
 
 ```
 --dry-run set; exiting without writing.
@@ -647,7 +641,7 @@ Otherwise, wait for user approval. If user declines, exit cleanly: "Cancelled. N
 
 ### 6c. Non-TTY / `--yes` mode
 
-If `$ARGUMENTS.yes` is set (truthy):
+If `--yes` is set (truthy):
 
 - Skip the per-file walkthrough.
 - For each 🟥 file, apply the per-file `default_action_on_conflict` from Step 5d. Default for `framework-managed` is `overwrite-with-backup`; for `hybrid` is `sibling`.
@@ -655,7 +649,7 @@ If `$ARGUMENTS.yes` is set (truthy):
 - For 🔵, default to `[k]eep` (don't auto-remove without explicit consent — exception: expired shims still auto-remove since they were already announced).
 - For 🔁 renames, apply the rename.
 
-If non-TTY AND `$ARGUMENTS.yes` is NOT set:
+If non-TTY AND `--yes` is NOT set:
 
 ```
 Non-interactive run without --yes. Cannot prompt for per-file decisions.

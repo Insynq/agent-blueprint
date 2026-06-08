@@ -1,24 +1,24 @@
 ---
 description: Scaffold a new SKILL.md at workspace/skills/<name>/ with correct frontmatter and 5-section skeleton
-arguments:
-  - name: name
-    description: Skill name (lowercase-hyphenated). Will be the folder name AND the frontmatter `name`.
-    required: true
-  - name: description
-    description: One-sentence description of what the skill does. Used by the router on every prompt.
-    required: false
-  - name: user-invokable
-    description: '"true" or "false" — whether the user can invoke this skill explicitly. Default true.'
-    required: false
+argument-hint: "<skill-name (lowercase-hyphenated)> [— optional: one-sentence WHEN description, and user-invokable true|false (default true)]"
 ---
 
 # Generate Skill — scaffold a new workspace/skills/<name>/SKILL.md
 
-Creates a new skill at `workspace/skills/$ARGUMENTS.name/SKILL.md` with valid frontmatter and the canonical 5-section skeleton (Header, Triggers, Systems, Workflows, Important Rules).
+Creates a new skill at `workspace/skills/<name>/SKILL.md` with valid frontmatter and the canonical 5-section skeleton (Header, Triggers, Systems, Workflows, Important Rules).
 
 ## Action Required
 
 Read this entire file, then perform the validation + write inline. **Do not spawn a subagent** — this is a deterministic scaffold.
+
+## Step 0: Parse the arguments
+
+`$ARGUMENTS` is free text, not named fields. Extract:
+- **name** (required) — the first token; becomes the folder name AND the frontmatter `name`. Referred to below as `<name>`.
+- **description** (optional) — a one-sentence WHEN-phrased trigger description. Referred to below as `<description>`.
+- **user-invokable** (optional) — `true` or `false`; default `true`. Referred to below as `<user-invokable>`.
+
+If only a name was given, that's fine — Steps 2 and 3 handle the missing pieces.
 
 ## Step 1: Validate the name
 
@@ -32,7 +32,7 @@ The `name` argument MUST be:
 Refuse with a clear error if any check fails:
 
 ```
-Invalid skill name: "$ARGUMENTS.name"
+Invalid skill name: "<name>"
 
 Skill names MUST be lowercase-hyphenated (e.g., "triage-mail", "summarize-day").
 The name will be both the folder name AND the SKILL.md frontmatter `name` field.
@@ -40,17 +40,17 @@ The name will be both the folder name AND the SKILL.md frontmatter `name` field.
 If you typed a name with capitals or underscores, lowercase-hyphenate and retry.
 ```
 
-Check for collision via `Glob("workspace/skills/$ARGUMENTS.name/SKILL.md")`. If exists, refuse:
+Check for collision via `Glob("workspace/skills/<name>/SKILL.md")`. If exists, refuse:
 
 ```
-Skill "$ARGUMENTS.name" already exists at workspace/skills/$ARGUMENTS.name/SKILL.md.
+Skill "<name>" already exists at workspace/skills/<name>/SKILL.md.
 
 Use a different name, or edit the existing file directly.
 ```
 
 ## Step 2: Validate description
 
-If `$ARGUMENTS.description` is provided, sanity-check it:
+If a description was provided, sanity-check it:
 
 - Length between 10 and 200 chars
 - Does NOT contain a newline (must be a single sentence)
@@ -76,17 +76,17 @@ Don't proceed until a real description is provided.
 
 ## Step 3: Determine user-invokable value
 
-If `$ARGUMENTS.user-invokable` is provided, check it's exactly the string `"true"` or `"false"`. Otherwise default to `true`.
+If a user-invokable value was provided, check it's exactly the string `"true"` or `"false"`. Otherwise default to `true`.
 
 **Spelling note:** the field name is `user-invokable` with a `k`. The framework refuses to write `user-invocable` even if the user typos in the argument — that's a known silent-failure trap.
 
 ## Step 4: Create the skill folder and SKILL.md
 
 ```
-mkdir -p workspace/skills/$ARGUMENTS.name
+mkdir -p workspace/skills/<name>
 ```
 
-Write `workspace/skills/$ARGUMENTS.name/SKILL.md` with this content (substituting `<name>`, `<description>`, `<user-invokable>` from the validated arguments):
+Write `workspace/skills/<name>/SKILL.md` with this content (substituting `<name>`, `<description>`, `<user-invokable>` from the validated arguments):
 
 ```markdown
 ---

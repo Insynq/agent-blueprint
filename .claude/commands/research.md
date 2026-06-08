@@ -1,18 +1,6 @@
 ---
 description: Deep web research agent — thorough, multi-source, synthesized reports saved to file
-arguments:
-  - name: topic
-    description: The topic, question, or problem to research
-    required: true
-  - name: depth
-    description: "Research depth: quick (3-5 sources), standard (8-12 sources), exhaustive (15+ sources). Default: standard"
-    required: false
-  - name: focus
-    description: "Optional focus area to weight results: legal, business, ui-design, database, performance, architecture, security, or general"
-    required: false
-  - name: region
-    description: "Geographic scope for research. Default: US. Use 'global' for international coverage."
-    required: false
+argument-hint: "<topic/question> [— optional: depth quick|standard|exhaustive, a focus area, region (default US, or global)]"
 ---
 
 # Research Agent
@@ -30,10 +18,13 @@ Spawn a Task with `subagent_type: general-purpose` and `model: sonnet` using the
 ```
 # Research Agent
 
-Topic: **$ARGUMENTS.topic**
-Depth: **{{depth | default: "standard"}}**
-{{#if focus}}Focus Area: **$ARGUMENTS.focus**{{/if}}
-Region: **{{region | default: "US"}}**
+Research request (free-text): **$ARGUMENTS**
+
+Parse the request for these signals (use the default when a signal is absent):
+- **Topic / question** — the core thing to research (required).
+- **Depth** — quick (3–5 sources), standard (8–12), or exhaustive (15+). Default: standard.
+- **Focus area** to weight results — e.g. legal, business, ui-design, database, performance, architecture, security. Default: general.
+- **Region** — geographic scope. Default: US; honor "global" for international coverage.
 
 ## Your Role
 

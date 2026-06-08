@@ -1,9 +1,6 @@
 ---
 description: Review a spec doc for gaps, missing decisions, and risks before implementation
-arguments:
-  - name: spec
-    description: Path to the spec document to review (e.g., "docs/my-feature-spec.md")
-    required: true
+argument-hint: "<path to the spec document, e.g. docs/my-feature-spec.md>"
 ---
 
 # Plan Review
@@ -26,7 +23,7 @@ arguments:
 
 ## Step 1: Read the Spec
 
-Read `$ARGUMENTS.spec` in full. Extract:
+Read the spec at `$ARGUMENTS` in full. Extract:
 - Every file, table, schema, type, component, and service referenced
 - Every new entity being created
 - Every existing entity being modified

@@ -1,12 +1,6 @@
 ---
 description: Create an implementation plan from investigation findings
-arguments:
-  - name: task
-    description: The task or feature to plan implementation for
-    required: true
-  - name: findings
-    description: Summary of investigation findings (optional — uses recent context if not provided)
-    required: false
+argument-hint: "<task to plan> [— optional: investigation findings; uses recent context if omitted]"
 ---
 
 # Planning Subagent
@@ -29,11 +23,9 @@ Spawn a Task with `subagent_type: Plan` using the prompt below.
 ```
 # Implementation Planner
 
-Task: **$ARGUMENTS.task**
-{{#if findings}}
-Investigation Findings:
-$ARGUMENTS.findings
-{{/if}}
+Task / context (free-text): **$ARGUMENTS**
+
+Treat the above as the task to plan. If it includes investigation findings (or references recent investigation context), fold them in; otherwise rely on the recent conversation context for findings.
 
 ## Step 0: Read Project Context
 

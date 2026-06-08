@@ -1,9 +1,6 @@
 ---
 description: Run the PM phase loop — pivot review → brainstorm → plan + audit → worker dispatch → reconciliation → implementation → verification → smoke → ship
-arguments:
-  - name: phase
-    description: Phase slug (e.g., "auth-rework"). Optional — if omitted, infer from current state or ask the user.
-    required: false
+argument-hint: "[phase slug e.g. auth-rework — inferred from state if omitted]"
 ---
 
 # PM Phase Loop

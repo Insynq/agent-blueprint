@@ -1,9 +1,6 @@
 ---
 description: Full review (code + infrastructure) in parallel
-arguments:
-  - name: baseline
-    description: Path to previous audit report to check for regressions (optional)
-    required: false
+argument-hint: "[baseline — optional path to a previous audit report to check for regressions]"
 ---
 
 # Full Audit Orchestrator
@@ -63,13 +60,13 @@ Merge findings from both audits:
 
 ### 2. Cross-Reference Baseline (if provided)
 
-{{#if baseline}}
-Read `$ARGUMENTS.baseline` and for EACH previous finding:
+If `$ARGUMENTS` names a baseline report path, read it and classify EACH previous finding:
 - **Fixed** — issue no longer exists
 - **Regression** — previously fixed issue has reappeared
 - **Outstanding** — was never addressed
 - **New** — not in the baseline
-{{/if}}
+
+(Skip this section if no baseline path was provided.)
 
 ### 3. Deduplicate
 
