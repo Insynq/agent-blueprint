@@ -8,6 +8,8 @@ The taxonomy from `OC_KB_10` is useful here: most of these primitives target **E
 
 A "safety primitive" is not a confirmation prompt slapped on top of a destructive op. Confirmation is one primitive among eight, and the weakest. The point of the broader set is that the agent's behavior is auditable, reversible, and pre-checked **before** the user has to say yes — so when confirmation does come, it's meaningful.
 
+The strongest move, though, comes *before* the eight: don't put a destructive operation on the agent's surface at all. See **Primitive 0** below.
+
 ## When to use / when to skip
 
 **Use the full set when:**
@@ -22,6 +24,22 @@ A "safety primitive" is not a confirmation prompt slapped on top of a destructiv
 **Skip when:**
 - Single-user dev agent on disposable state, no shared system of record involved.
 - Prototype phase where the friction would slow learning.
+
+## Primitive 0 — Don't expose the operation (close the capability)
+
+Primitive zero precedes the other eight. The strongest way to make a destructive operation safe is to **not put it on the agent's surface at all.** Before guarding an irreversible action with dry-runs, sanity gates, and undo, ask whether the agent needs the capability in the first place. If a destructive operation is a rare, outlier need, leave it out of `mcporter.json` and route the few legitimate cases to a human UI — even when a user asks for it.
+
+```text
+Anonymized example:
+
+  Request: "It'd be nice if the agent could delete <records> from this."
+  Decision: don't register a `delete_<records>` MCP tool. The rare real
+            deletion happens in the existing admin UI; the agent never holds
+            the capability, so no prompt-injected or fat-fingered instruction
+            can trigger it.
+```
+
+Prevention-by-class beats per-call guarding: a capability the agent doesn't have cannot be misused — not by a confidently-wrong model, and not by an injected "someone-else-told-it-to" instruction (the agent's real threat model is instruction-following, not rogue invention). Scale the cut to context: a disposable single-user toy can expose more; a shared or enterprise system of record should default to **closed**, granting a destructive tool only when a concrete, recurring need justifies the standing risk. The eight primitives below bound the blast radius of the operations you *do* expose; Primitive 0 removes operations from the blast radius entirely.
 
 ## The eight primitives
 

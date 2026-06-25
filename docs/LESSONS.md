@@ -22,6 +22,18 @@ Commands that reference this file: `/debug`, `/implement`, `/audit-code`.
 
 ---
 
+## PROCESS
+
+### [PROCESS-1] A prose change is unproven until a live run
+
+**Rule:** A markdown/prose edit to a skill, command, or KB is **unproven until you have observed it change behavior in a live run.** "Installed and verified by read-back on disk" proves the text exists — not that it changed what the agent does. Prompt and context tweaks are non-deterministic, so it is easy to convince yourself a technique works when it did nothing (placebo). When you ship a prose change, carry the verbatim flag `Installed, not yet proven in a live run` in the changelog/commit, and downgrade any effectiveness claim that rests on inspection rather than observation. Treat externally-sourced or viral techniques as unproven until they survive a live run *here*.
+
+**Why:** The v0.4.0 / v0.4.1 verification agenda (the independent Refutation Pass, the ground-first anchor, the done-vs-true gate) shipped with every CHANGELOG entry self-flagged "Installed, not yet proven in a live run," and `KB_8_Current_State.md` deliberately separates "verified by read-back on disk" from "exercised in a live run" — the team already practiced this discipline but had never named it as a lesson. The trigger to codify it came from reviewing the *Insecure Agents* (Sentry) talk: "there's a lot of placebo — you convince yourself something's working and then realize it didn't do anything at all... it's so random, so non-predictable." Pointedly, nine of fourteen candidate improvements from that same review were themselves prose additions — so the rule polices the very act of adopting it.
+
+**How to apply:** The trigger is catching yourself about to call a prose change "works" / "done" on the strength of reading the file back. Reframe to: *have I observed this change behavior in a live run, or do I only believe it?* This is the verification-side twin of `[SKILL-1]`: where `[SKILL-1]` keeps must-happen *mechanics* out of skippable prose, `[PROCESS-1]` keeps *claims about prose's effect* honest until observed.
+
+---
+
 ## Suggested categories
 
 For OpenClaw agent projects, the natural categories are:
