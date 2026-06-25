@@ -222,6 +222,27 @@ Flag any server-side handler that processes these WITHOUT rate limiting:
 
 ## After Subagent Returns
 
-1. **If APPROVED** → proceed with implementation
-2. **If NEEDS CHANGES** → address recommendations, then re-audit or proceed with fixes
-3. **If major concerns** → consider running `/plan` to redesign approach
+### Refutation Pass (independent — supersedes the provisional verdict)
+
+The audit above came from a single Explore subagent; its `APPROVED`/`NEEDS CHANGES` checkbox is that subagent's **self-report**. Before acting on it, the **main session** (a separate context that did NOT produce the findings) runs an independent refutation on the load-bearing findings.
+
+**Load-bearing set** (the only findings refuted — keeps cost bounded; typically 0–3):
+- every **Critical/High** finding, **and**
+- every finding touching a CLAUDE.md DO-NOT canonical trap (mcporter `mcpServers` key · `${ENV_VAR}`→`process.env` · `user-invokable` spelling · skill folder = `name` · `bootstrapMaxChars` · plural-`models` cache · unexcluded rsync path) — **regardless of the severity the auditor assigned** (a fixed allowlist the producing auditor cannot shrink).
+
+Medium/Low/style/over-engineering rows are NOT refuted — they ride the auditor's self-report.
+
+For each load-bearing finding, **spawn one fresh `Explore` agent** (a context that never saw the audit's reasoning), given ONLY the finding claim + its `file:line`, with the inverted mandate:
+
+> "Finding: [claim] at [file:line]. Your job is to **KILL** it. Read the primary source yourself and find the strongest evidence it is wrong, overstated, or already mitigated elsewhere — quote the contradicting lines. If you cannot refute it after a real search, say so and state what observation *would* have falsified it. Default to skepticism; do not assume the finding is correct."
+
+Each refuter returns **CONFIRMED** (tried and failed to kill it — quote the empty/contrary search) · **OVERSTATED** (real but narrower/lower-severity — cite the narrowing evidence) · **REFUTED** (contradicted — cite the killing `file:line`), with a confidence. Record a **Refutation Ledger** (ID | Finding | Refuter verdict | Confidence | Refuting/weakening evidence) that supersedes the binary checkbox.
+
+**Mechanical tally** (so a bad ledger can't be laundered into a pass):
+- Treat the result as `APPROVED` only if **every** load-bearing finding came back `REFUTED`. Any `CONFIRMED` or `OVERSTATED`-still-High → `NEEDS CHANGES`. A finding leaves the must-fix list only if its refuter graded it `REFUTED` with cited contradicting evidence.
+- **Blind-spot honesty:** if the load-bearing set was empty, state verbatim — *"Refutation pass: no-op — no load-bearing findings surfaced. A clean verdict here means the audit found nothing, NOT that an independent skeptic verified the code is clean."* Refutation tests findings that exist; it cannot surface one the auditor missed.
+
+### Then act on the ledger
+1. **All load-bearing findings `REFUTED` (or none surfaced)** → proceed (carry the no-op caveat if it applies)
+2. **Any `CONFIRMED`/`OVERSTATED`-still-High** → address those recommendations, then re-audit or proceed with fixes
+3. **Major confirmed concerns** → consider running `/plan` to redesign approach

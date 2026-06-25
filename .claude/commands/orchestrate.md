@@ -253,7 +253,7 @@ Also confirm integration points line up across workers (edge cases, collisions f
 
 ### Stage 2: quality (`/audit-code`)
 
-Once Stage 1 passes, run `/audit-code` on the integrated result for elegance, reuse, anti-patterns, and security. Address its recommendations.
+Once Stage 1 passes, run `/audit-code` on the integrated result for elegance, reuse, anti-patterns, and security. `/audit-code` now returns a **Refutation Ledger** (independent skeptics graded each load-bearing finding confirmed/overstated/refuted), not a bare `APPROVED`: act on `confirmed` and `overstated`-still-High findings, **drop** `refuted` ones (record the refuting evidence), and treat a clean pass as valid only under the mechanical tally. A **no-op** refutation pass (zero load-bearing findings) is not evidence the result is correct — it only means the audit surfaced nothing.
 
 - Manage commit hygiene — coalesce related commits, split unrelated ones.
 - Update `phase-plan.md` with progress (record the Stage-1 verdict and Stage-2 audit findings).

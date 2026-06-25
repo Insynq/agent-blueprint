@@ -72,6 +72,20 @@ If `$ARGUMENTS` names a baseline report path, read it and classify EACH previous
 
 Remove duplicate findings that appear in multiple domain audits. Keep the most detailed version.
 
-### 4. Save Report
+### 4. Refutation Pass (independent — runs on the merged findings)
 
-Write the compiled report to `docs/SECURITY_AUDIT_[DATE].md`.
+Subagents 1 & 2 produced the findings; this orchestrating context (separate from both) now runs an independent refutation on the load-bearing set of the **merged, deduplicated** table.
+
+**Load-bearing set** (keeps cost bounded; typically 0–5): every **Critical/High** finding, **plus** every finding touching a CLAUDE.md DO-NOT canonical trap (mcporter `mcpServers` key · `${ENV_VAR}`→`process.env` · `user-invokable` spelling · skill folder = `name` · `bootstrapMaxChars` · plural-`models` cache · unexcluded rsync path) — **regardless of the severity the producing auditor assigned**. Medium/Low rows are not refuted.
+
+For each load-bearing finding, **spawn one fresh `Explore` agent** (neither Subagent 1 nor 2), given ONLY the finding claim + its `file:line`, mandate:
+
+> "Finding: [claim] at [file:line]. Your job is to **KILL** it against primary source — quote the lines that prove it wrong, overstated, or already mitigated. If you can't refute it after a real search, say so and state what would have falsified it. Default to skepticism."
+
+Replace the implicit "these are the findings" framing with a **Refutation Ledger** column on the Critical & High table: `Refuter verdict (confirmed/overstated/refuted) | Confidence | Refuting evidence (file:line)`.
+
+**Mechanical tally:** the audit is clean only if every load-bearing finding came back `REFUTED`; a finding is dropped only if graded `REFUTED` with cited evidence. **Blind-spot note:** if the load-bearing set was empty, state — *"Refutation pass: no-op — no load-bearing findings surfaced; a clean result means nothing was found, NOT that an independent skeptic verified the system."*
+
+### 5. Save Report
+
+Write the compiled report (including the Refutation Ledger) to `docs/SECURITY_AUDIT_[DATE].md`.

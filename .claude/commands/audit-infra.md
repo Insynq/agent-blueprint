@@ -234,7 +234,28 @@ For each `workspace/skills/<name>/SKILL.md`:
 
 ## After Subagent Returns
 
-1. **If Critical issues** → fix immediately (especially: secrets in bootstrap, secrets in `.env` in git, missing HMAC verify, mcporter.json wrong key)
-2. **If High issues** → schedule for next deploy window
-3. **If Medium / Low** → backlog
-4. **If all clear** → note audit complete in project docs
+### Refutation Pass (independent — supersedes the provisional verdict)
+
+The audit above came from a single Explore subagent; its `PASSED`/`NEEDS CHANGES` checkbox is that subagent's **self-report**. Before acting on it, the **main session** (a separate context that did NOT produce the findings) runs an independent refutation on the load-bearing findings.
+
+**Load-bearing set** (the only findings refuted — keeps cost bounded; typically 0–3):
+- every **Critical/High** finding, **and**
+- every finding touching a CLAUDE.md DO-NOT canonical trap (mcporter `mcpServers` key · `${ENV_VAR}`→`process.env` · `user-invokable` spelling · skill folder = `name` · `bootstrapMaxChars` · plural-`models` cache · unexcluded rsync path) — **regardless of the severity the auditor assigned** (a fixed allowlist the producing auditor cannot shrink).
+
+Medium/Low rows are NOT refuted — they ride the auditor's self-report.
+
+For each load-bearing finding, **spawn one fresh `Explore` agent** (a context that never saw the audit's reasoning), given ONLY the finding claim + its `file:line`, with the inverted mandate:
+
+> "Finding: [claim] at [file:line]. Your job is to **KILL** it. Read the primary source (mcporter.json, the plist template, deploy.sh, the MCP server source) yourself and find the strongest evidence it is wrong, overstated, or already mitigated elsewhere — quote the contradicting lines. If you cannot refute it after a real search, say so and state what observation *would* have falsified it. Default to skepticism."
+
+Each refuter returns **CONFIRMED** (tried and failed to kill it — quote the empty/contrary search) · **OVERSTATED** (real but narrower/lower-severity — cite the narrowing evidence) · **REFUTED** (contradicted — cite the killing `file:line`), with a confidence. Record a **Refutation Ledger** (ID | Finding | Refuter verdict | Confidence | Refuting/weakening evidence) that supersedes the binary checkbox.
+
+**Mechanical tally** (so a bad ledger can't be laundered into a pass):
+- Treat the result as `PASSED` only if **every** load-bearing finding came back `REFUTED`. Any `CONFIRMED` or `OVERSTATED`-still-High → `NEEDS CHANGES`. A finding leaves the must-fix list only if its refuter graded it `REFUTED` with cited contradicting evidence.
+- **Blind-spot honesty:** if the load-bearing set was empty, state verbatim — *"Refutation pass: no-op — no load-bearing findings surfaced. A clean verdict here means the audit found nothing, NOT that an independent skeptic verified the infra is secure."* Refutation tests findings that exist; it cannot surface one the auditor missed.
+
+### Then act on the ledger
+1. **Confirmed Critical** → fix immediately (especially: secrets in bootstrap, secrets in `.env` in git, missing HMAC verify, mcporter.json wrong key)
+2. **Confirmed/overstated-still-High** → schedule for next deploy window
+3. **Refuted** → drop, recording the refuting evidence; **Medium/Low** → backlog
+4. **All load-bearing findings refuted (or none surfaced)** → note audit complete in project docs, carrying the no-op caveat if it applies
