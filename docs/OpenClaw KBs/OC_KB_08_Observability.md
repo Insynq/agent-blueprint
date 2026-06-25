@@ -49,6 +49,16 @@ When a user reports "the agent did X wrong yesterday at 3pm":
 
 The `--session isolated` flag is the equivalent of "incognito mode" for debugging. If the bug repros in isolated mode, it's in the agent config (bootstrap, skills, tools). If it doesn't repro, it's in the conversation state (some prior turn pushed the agent into a weird place).
 
+### Context-at-turn extraction (shipped framework tool)
+
+When an output is *wrong*, the first question is: **what was actually in context when it was produced?** `_dev/tools/context-at-turn.mjs` reconstructs that from a transcript — every file loaded (via `Read`/`Edit`/`Write`) up to a chosen turn, and a `claimedButNeverInContext` discrepancy list (sources the output cites authoritatively that were never in context — the "trusted a self-report" signal made testable).
+
+```bash
+node _dev/tools/context-at-turn.mjs <transcript.jsonl> [--turn N | --match "substr"] [--json]
+```
+
+Verified format: Claude Code `.jsonl`. The OpenClaw gateway `transcript.json` reader is a deliberate stub — implement it against a real `~/.openclaw/sessions/<id>/transcript.json` on the runtime host (do not guess the schema). See `docs/context-instrumentation-spec.md`.
+
 ## Anthropic Console (cost)
 
 There is no in-product cost dashboard. Cost lives in Anthropic Console:
