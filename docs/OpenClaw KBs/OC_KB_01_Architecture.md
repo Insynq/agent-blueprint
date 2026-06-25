@@ -19,6 +19,10 @@ The agent project is a **content/config repo, not a JS app.** There is no root `
 - You need horizontal scaling beyond a single host (OpenClaw is single-host today)
 - You can't accept the operational burden of a long-lived process (gateway crashes, plist drift, rsync excludes)
 
+## Build vs buy: anchor on the data, not the harness
+
+When you weigh an off-the-shelf agent, reviewer, or tool against building your own, the durable value is usually the underlying **data/signal**, not the **harness** around it. A capable specialized agent is often a thin shim that loads a skill as a container and coerces the output into a structured shape (the audit commands in this framework are exactly that pattern) — cheap to own, and the harness layer tends to commoditize as open-source dev tooling matures. So anchor build-vs-buy on the data you cannot easily reproduce: buy for the data, and build the harness yourself when the *shaping* (skill + references + output coercion) is what makes the model reliable.
+
 ## Workspace tree (mandated by OpenClaw)
 
 ```

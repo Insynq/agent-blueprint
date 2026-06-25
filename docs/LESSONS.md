@@ -32,6 +32,14 @@ Commands that reference this file: `/debug`, `/implement`, `/audit-code`.
 
 **How to apply:** The trigger is catching yourself about to call a prose change "works" / "done" on the strength of reading the file back. Reframe to: *have I observed this change behavior in a live run, or do I only believe it?* This is the verification-side twin of `[SKILL-1]`: where `[SKILL-1]` keeps must-happen *mechanics* out of skippable prose, `[PROCESS-1]` keeps *claims about prose's effect* honest until observed.
 
+### [PROCESS-2] Augment the deterministic baseline; don't replace it
+
+**Rule:** When designing any verification or quality mechanism, start from the pre-LLM **deterministic** check (a golden-trace compare, an external-artifact gate, a manual smoke, a diagnostic run) and use the LLM to *augment* it — judge ambiguity, synthesize, route — never to *be* the check. The pre-LLM problems (synthetic testing, infra, reproduction) are still the real work, and an LLM does not make them easier. The things that were true before are still true.
+
+**Why:** Every verification mechanism the framework already ships augments-rather-than-replaces a deterministic check: `/ship` gates on the literal smoke-catalog state, not a self-report; evals use a deterministic `compare.js`, with LLM-as-judge flagged as a worse default (`OC_KB_09`); the Refutation Pass re-reads primary source. But the heuristic was never named, so it had to be re-derived each time. Surfaced from the *Insecure Agents* (Sentry) review: "we're over-rotating on LLMs — how do I do this WITH an LLM versus how can I augment the thing I was trying to do, not just replace it. That's especially true in verification."
+
+**How to apply:** The trigger is catching yourself asking "how do I do this *with* an LLM?" for a check — reframe to "what was the deterministic check before LLMs, and how do I augment it?" This is the verification-side twin of `[SKILL-1]` (which keeps deterministic *mechanics* in a script); `[PROCESS-2]` keeps deterministic *verification* as the baseline the LLM augments.
+
 ---
 
 ## Suggested categories

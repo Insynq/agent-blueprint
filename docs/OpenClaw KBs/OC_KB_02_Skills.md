@@ -17,6 +17,8 @@ Skills can be **user-invokable** (callable explicitly via `/skill-name`-style in
 - The capability is a deterministic operation on an external system (read email, query DB, post to Slack)
 - You need the same operation invokable by multiple skills
 
+**Boundary note (beyond capability shape):** prefer an MCP server when an external integration needs an enforceable auth/network boundary. MCP bakes authentication into the protocol — a per-server `${ENV_VAR}` credential that is scoped and swappable — and gives one place to insert a security boundary. Reaching the same system by shelling out to a vendor CLI tends toward a single shared static credential reused by every caller, which you cannot scope or rotate per-use. (For how MCP auth is wired, see `OC_KB_03`'s `${ENV_VAR}` / `headers` handling.)
+
 **Use a deterministic script when:**
 - The capability has no LLM reasoning (pure compute, transformation, pipe)
 - It's invoked by cron and the LLM cost would be wasteful
