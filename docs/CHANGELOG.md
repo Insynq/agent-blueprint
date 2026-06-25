@@ -12,4 +12,4 @@
 
 <!-- /ship prepends new entries below this line -->
 
-[Empty — populated as phases ship.]
+- 2026-06-24 — Add grounding-findings investigation doc capturing the kai verification-theory grounding pass (16-claim ledger, the synthesis-amplifies-hedges meta-finding) and the 3-thread framework "done-vs-true" agenda.
