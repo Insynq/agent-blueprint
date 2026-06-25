@@ -26,6 +26,10 @@ Be extremely thorough. Do NOT stop at the first potential issue. Follow ALL path
 
 ## Investigation Protocol
 
+### 0. Anchor on the Primary Artifact
+
+Before reading project context or tracing any code, locate the **literal primary artifact** this investigation is about — the actual error text, failing test output, log line, data row, transcript, or the user's verbatim claim in the request. **Quote it verbatim** in your output (the `### Primary Artifact` block below). Trace from what the artifact actually shows, not from what the issue description *implies* it shows — these often differ, and an entry point chosen from an unchecked premise is the classic ground-first failure. **Derive the §2 entry point from this artifact, not from a theory of what's wrong.** If you cannot retrieve the artifact (no log path, no repro, no quoted output), say so explicitly and mark every downstream root-cause claim as UNVERIFIED — built on the issue's framing, not on observed evidence. (This is `/debug` Step 1's discipline, moved to the front; `/investigate` needs it too.)
+
 ### 1. Read Project Context First
 
 Read `CLAUDE.md` to understand the project's patterns, conventions, and constraints before diving into code.
@@ -83,7 +87,11 @@ Before recommending new code:
 ```markdown
 ## Investigation: [Issue Description]
 
+### Primary Artifact
+[Verbatim quote of the literal artifact — error text / log line / data row / transcript / user's claim — or "UNAVAILABLE: downstream root-cause claims are UNVERIFIED"]
+
 ### Data Flow Trace
+**Entry point derived from:** [what in the quoted artifact points here — not a theory]
 [Entry Point] → [Handler] → [Service] → [Data Access]
 
 ### All Usages Found

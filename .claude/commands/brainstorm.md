@@ -38,6 +38,8 @@ You also have direct access to Read, Glob, and Grep tools for quick lookups.
 
 ## Phase 1: Context Gathering
 
+**Anchor first (if the topic names a specific artifact).** If the topic references a specific primary artifact — a failing output, a transcript, a data row, a prior decision doc, or a user's verbatim claim — open it and **quote the relevant lines verbatim before** reading the project KB or exploring related code. Ground options in what the artifact actually says, not the topic's paraphrase of it; tag the premise `[verified: read it]` or `[relayed: topic-said]` per the Phase 2 provenance discipline. If the topic names no specific artifact (a pure greenfield question), note "no primary artifact — exploratory" and proceed.
+
 ### 1a: Read Project Knowledge Base
 
 Read these files to understand the project's architecture, constraints, and current state:
