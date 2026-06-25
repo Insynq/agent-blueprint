@@ -105,6 +105,8 @@ Use the digest to populate `docs/retros/[phase-slug]-retro.md` following `_dev/p
 6. **TL;DR recipe** — 2–3 sentences distilling the phase. What was the shape? What's the durable takeaway?
 7. **Inputs available / inputs missing** — explicit listing from the subagent's "Inputs found" so the retro's depth is auditable.
 
+> **Provenance discipline.** For every claim you carry forward from a worker/sub-agent self-report into a candidate lesson, tag it `[verified: how]` or `[relayed: source-said]`; never harden a hedge ("appears to" stays "appears to," a grep-count stays a grep-count); re-read the source's own caveats and carry the strongest dissenting line forward so front-confidence never exceeds back-caveats. Failure this prevents: `docs/investigations/2026-06-24-kai-verification-grounding-findings.md`.
+
 After writing the doc, output to the user:
 
 ```

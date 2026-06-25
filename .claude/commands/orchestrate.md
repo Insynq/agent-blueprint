@@ -177,6 +177,8 @@ For each worker plan doc:
 
 Then, **edit each worker plan doc directly**: fill the "PM annotations" section with key decisions, reasoning, scope adjustments, integration constraints. Annotations live at the top of the section, prefixed `**PM annotation:**`.
 
+> **Provenance discipline.** For every claim you carry forward from a worker/sub-agent self-report, tag it `[verified: how]` or `[relayed: source-said]`; never harden a hedge ("appears to" stays "appears to," a grep-count stays a grep-count); re-read the source's own caveats and carry the strongest dissenting line forward so front-confidence never exceeds back-caveats. Failure this prevents: `docs/investigations/2026-06-24-kai-verification-grounding-findings.md`.
+
 **Pick dispatch mode** for each worker's implementation. Defaults shift by task type:
 
 | Implementation type | Default mode |
@@ -234,6 +236,8 @@ Update the status board as workers wrap.
 Once all workers have reported implementation done, run a **two-stage gate** — spec-compliance first, then quality. Stage 2 runs only after Stage 1 passes.
 
 - Read the Implementation log + Completion notes from each worker doc.
+
+  > **Provenance discipline.** A worker's "done"/"validated" is a self-report, not a fact. For every claim you carry forward from a worker doc, tag it `[verified: how]` or `[relayed: source-said]`; never harden a hedge ("appears to" stays "appears to," a grep-count stays a grep-count); re-read the worker's own caveats and carry the strongest dissenting line forward so front-confidence never exceeds back-caveats. Failure this prevents: `docs/investigations/2026-06-24-kai-verification-grounding-findings.md`.
 
 ### Stage 1: spec-compliance gate (PASS/FAIL)
 

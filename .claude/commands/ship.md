@@ -114,7 +114,7 @@ If `docs/smoke-tests-pending.md` exists:
 
 1. Read it. Look for sections where every test is `Passed (YYYY-MM-DD)` — collapse those sections in this commit to a one-liner (e.g., `Phase 2 — all 5 tests passed 2026-05-15. See git history for detail.`). Don't batch this across releases; do it now.
 2. Check if the diff introduces behavior that needs new manual verification (UI flows, OAuth, payments, third-party webhooks, migrations, browser-specific bugs, race conditions). If so, propose new entries to add — assign stable IDs following the `<SECTION>-<NUMBER>` or `<SECTION>-<TYPE><NUMBER>` convention, do NOT reuse retired IDs.
-3. If any test in the diff's scope is currently in `Failed` status, STOP and report — do not ship until the failing test is resolved or explicitly deferred.
+3. **Truth-in-world gate (not just `Failed`).** If any test in the diff's scope is in `Failed` status, STOP and report — do not ship until it is resolved or explicitly deferred. Additionally, if any test in the diff's scope is **not** `Passed` (never-run, `Pending`, or absent), it is **not** truth-checked: the composed commit/changelog body (Step 5) MUST name it verbatim as `Unverified at ship: <id>` rather than asserting it as validated/working. A never-run smoke must surface as an unverified claim — it may never launder into a bare "Ship Complete." (This gate reads the literal catalog state, an external artifact — not an agent self-report, so it can't be rubber-stamped.)
 
 If the file does not exist, skip this step (project hasn't adopted the catalog yet).
 
@@ -137,6 +137,8 @@ The ship summary is a loose brief, not a commit message. **Compose** a clean mes
 - **Subject:** ≤72 chars, imperative mood, no trailing punctuation. Distill what shipped (not how it was requested).
 - **Blank line**, then **1–3 short body paragraphs** distilling: what changed and why, quality gates / smoke tests run, and any migration or follow-up note. Drop meta-instructions aimed at the agent (e.g. "make sure to…", "don't forget…").
 - **Two trailers** (see below).
+
+> **Provenance discipline.** For every claim you carry forward from a worker/sub-agent self-report (smoke status, worker completion notes, the loose brief's quality-gate assertions), tag it `[verified: how]` or `[relayed: source-said]`; never harden a hedge ("appears to" stays "appears to," a grep-count stays a grep-count); re-read the source's own caveats and carry the strongest dissenting line forward so front-confidence never exceeds back-caveats. The body may not assert more completion than the smoke catalog (Step 3.5) actually verified — carry any `Unverified at ship: <id>` line through verbatim. Failure this prevents: `docs/investigations/2026-06-24-kai-verification-grounding-findings.md`.
 
 Write the composed message to a temp file and commit from it (avoids shell-quoting issues with multi-paragraph bodies):
 
