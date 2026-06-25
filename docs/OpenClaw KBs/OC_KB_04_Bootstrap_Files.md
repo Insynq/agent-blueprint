@@ -65,6 +65,10 @@ Bootstrap files cross-reference each other and the rest of the workspace. Conven
 - **NOTIFICATIONS.md routing without a channel handler.** Rule says "send to Slack" but no Slack MCP server is registered. Agent silently drops the notification. → fix: every notification channel referenced must have a corresponding MCP server in `mcporter.json`.
 - **HEARTBEAT.md drift from `openclaw cron list`.** Repo says "daily 9am summary"; runtime host actually has hourly summary. Operator added a cron without updating HEARTBEAT.md. → fix: include HEARTBEAT updates in the same PR as cron changes; periodic audit reconciles.
 
+## (Multi-user only) MEMORY.md is a single-operator store
+
+`MEMORY.md` (and the per-fact memory store generally) is designed for **one operator**: it loads into every conversation, so everything in it is visible to whoever the agent is talking to. An agent that serves multiple distinct users must **not** pool their facts in one shared MEMORY.md — that is how one user's data bleeds into another user's session. Per-operator (one store per user or per clone) or per-session scoping is the safe, tractable default; **shared cross-user memory is an unsolved security problem** you must own and bound yourself, not assume a standard solves it. The framework's default single-tenant agent is unaffected — this applies only if you deliberately serve multiple users.
+
 ## Worked example: minimal SOUL.md
 
 ```markdown

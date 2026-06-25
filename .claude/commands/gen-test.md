@@ -86,3 +86,11 @@ Write the complete test file. Then briefly explain:
 - What's covered
 - What's intentionally NOT covered and why
 - Any setup required (new mock, global config, etc.)
+
+### Before you trust these tests
+
+An agent wrote these tests, so a green run is an **unverified self-report** — hold it to the same standard the rest of the framework applies to agent output (audit findings get an independent refutation; relayed claims get tagged, not asserted).
+
+- **Mutation-check the load-bearing assertions by hand:** for each one that matters, confirm it would actually FAIL if the behavior broke. A test that passes no matter what verifies nothing.
+- **Watch the prime failure mode:** a test that mirrors the implementation, or asserts on a mock's own return value, passes while checking nothing real.
+- **Treat generated tests as an additive signal** layered on top of normal CI and manual smoke tests — never a replacement for them.

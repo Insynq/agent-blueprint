@@ -159,6 +159,8 @@ If a skill has detailed reference material (long tables, large code blocks, hist
 
 The references/ files are NOT loaded automatically. The skill itself decides when to load them.
 
+Beyond saving context budget, a `references/` pack is also a deliberate **accuracy lever.** A base model can only apply knowledge you actually give it, so synthesizing your prior art — worked examples, decision rules, known-good patterns, per-domain or per-class write-ups — into a reference the skill loads at the matching judgment step tends to raise its hit-rate on that task. Author references proactively for accuracy, not only reactively to evict overflow. The cost is honest: it is tedious authoring work, and a large pack earns its keep only because it loads on demand, not every fire. Reference packs are model-interpreted prose and examples — judgment-side content — so they stay on the right side of the skill/script boundary (see `[SKILL-1]` and "The mixed case").
+
 ## Anti-patterns
 
 - **Folder/name drift.** You rename a folder but forget to update frontmatter. Skill silently disappears from the router. → fix: standardize one or the other; never edit just one.

@@ -41,6 +41,14 @@ Anonymized example:
 
 Prevention-by-class beats per-call guarding: a capability the agent doesn't have cannot be misused — not by a confidently-wrong model, and not by an injected "someone-else-told-it-to" instruction (the agent's real threat model is instruction-following, not rogue invention). Scale the cut to context: a disposable single-user toy can expose more; a shared or enterprise system of record should default to **closed**, granting a destructive tool only when a concrete, recurring need justifies the standing risk. The eight primitives below bound the blast radius of the operations you *do* expose; Primitive 0 removes operations from the blast radius entirely.
 
+## Least privilege: no keys in context, default-deny in shared contexts
+
+Before the eight primitives, two prevention rules:
+
+**The model never holds credentials.** The LLM context itself carries no keys — secrets live only in the launchd plist (read into `process.env`) and are used by MCP **server processes**; the model invokes a tool by name and never sees the secret. A leaked or injected instruction can ask a tool to act, but cannot read a credential the model was never given. (This is why secrets belong in the plist / MCP server config, never in a bootstrap file or skill — see `OC_KB_07`, `OC_KB_03`.)
+
+**(Multi-user only) Default-deny query scoping.** When one agent serves multiple distinct users in a shared channel, default to deny: the agent queries only data everyone present can already see, or data the requesting user explicitly asked for and already has access to (treat anything broader as a rare anomaly needing explicit confirmation). Put this access-scope check in the MCP tool or script boundary, never in skill prose — the model can be wrong about who may see what; a scoped query against the system of record cannot. The threat model is instruction-following ("someone else told it to"), not rogue invention, so the control must be external and default-closed.
+
 ## The eight primitives
 
 ### 1. Dry-run before writes
