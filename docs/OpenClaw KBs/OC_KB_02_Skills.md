@@ -24,6 +24,25 @@ Skills can be **user-invokable** (callable explicitly via `/skill-name`-style in
 
 A skill can call MCP tools. An MCP server can be invoked by a script. Mix as needed.
 
+### The mixed case: split judgment from mechanics
+
+Real workflows rarely fit the clean either/or above — most **interleave** model judgment with deterministic operations. An intake skill *judges* which template applies (reasoning), then *writes* the rows (deterministic). When a workflow step is deterministic — an exact SQL write, CSV/PDF parsing, reconciliation math, hashing, a fixed API payload — **do not write it as prose inside the skill.** Extract it to a `workspace/scripts/<name>.js` script and call it via the **dry-run handoff**:
+
+1. The **skill** gathers inputs and makes the judgment calls (which records, which template, is-this-eligible).
+2. It builds a **JSON payload** and invokes the script with `--dry-run`.
+3. It **reviews** the preview (and surfaces it to the user if the write is irreversible).
+4. It invokes the script **for real**.
+
+The skill *orchestrates and judges*; the script *computes and writes*. The split matters because embedded deterministic prose carries three costs the script layer avoids:
+
+- **Skippable.** A workflow step is model-executed — the model decides whether and exactly how to run each block. A write you need *guaranteed* isn't guaranteed when it lives in prose.
+- **Context bloat.** The skill loads into context every time it fires; embedded SQL/parsing is paid for on every invocation (and pushes against the character cap).
+- **Untestable.** You can unit-test a `.js` script; you cannot test a paragraph of instructions.
+
+**When to reach for the split:** any time a step must be *exact* and *guaranteed* — especially money-touching or irreversible writes (payments, settlements, invoices). The trigger: if you catch yourself writing a *second* exact-SQL/parse/compute block into a skill workflow, extract it.
+
+Keep in the skill the *decision* (judgment, ambiguity resolution, edge-case handling) and the orchestration. A query *template* shown as part of a judgment step is fine inline — extract the deterministic *execution*, not the illustration.
+
 ## Required frontmatter
 
 ```yaml
@@ -147,6 +166,7 @@ The references/ files are NOT loaded automatically. The skill itself decides whe
 - **Vague description.** "Helps with stuff" matches nothing the router can act on. → fix: state WHEN to invoke (the trigger condition), not WHAT the skill does, like "Use when the user asks to triage, sort, or summarize their inbox".
 - **Missing Systems section.** The skill calls `mcp__foo__bar` but doesn't declare it in Systems. Audits fail; future you can't tell what the skill depends on. → fix: enumerate every MCP tool, every cross-referenced bootstrap file, every script.
 - **One giant Workflow.** Skills with a single 30-step workflow are unreadable and brittle. → fix: split into 2–4 named workflows; each one is one user-facing flow.
+- **Deterministic logic embedded in skill prose.** Exact SQL writes, parsing, reconciliation math, or hashing written as workflow steps instead of a script. The step *looks* deterministic but is model-executed (skippable), loads into context every fire (bloat), and can't be unit-tested. A skill that is mostly embedded command-blocks has the boundary in the wrong place. → fix: extract to `workspace/scripts/<name>.js` and call it via the dry-run handoff (see "The mixed case" above). Highest priority for guaranteed/irreversible writes.
 - **Embedding secrets in SKILL.md.** Every conversation that touches this skill loads the file into context. Secrets there leak constantly. → fix: secrets live in MCP server env vars; the skill calls the tool, never the secret.
 
 ## Validation checklist (use before committing)
@@ -160,5 +180,6 @@ The references/ files are NOT loaded automatically. The skill itself decides whe
 - [ ] Each Workflow ends with a Report convention
 - [ ] No embedded secrets, tokens, or API keys
 - [ ] Total file size under the bootstrap character cap (default ~20K) — though skills are loaded on demand, large skills delay routing
+- [ ] No deterministic block (exact SQL write, parsing, reconciliation math) embedded as workflow prose that should be a script — extract guaranteed/irreversible writes to `workspace/scripts/` and call via the dry-run handoff (see "The mixed case")
 
 [VERIFY BEFORE SHIPPING] Frontmatter field names — `user-invokable` and `name` and `description` are the documented OpenClaw runtime expectations. If the OpenClaw runtime adds more fields, update this KB.

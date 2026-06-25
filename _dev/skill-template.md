@@ -48,6 +48,13 @@ user-invokable: true
 
 ## Workflows
 
+<!-- Keep JUDGMENT here (decisions, ambiguity resolution, edge-case handling) and the orchestration.
+     If a step is DETERMINISTIC — an exact SQL write, parsing, reconciliation math, hashing, a fixed
+     payload — do NOT inline it as prose. Extract it to workspace/scripts/<name>.js and call it via the
+     dry-run handoff: build a JSON payload → invoke `<script> --dry-run` → review → invoke for real.
+     Embedded exact-command blocks are skippable (model-executed), bloat context every fire, and are
+     untestable. Highest priority for money-touching / irreversible writes. See OC_KB_02 "The mixed case". -->
+
 ### Workflow 1: [TODO workflow name]
 
 1. [TODO Step]

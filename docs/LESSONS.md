@@ -6,7 +6,19 @@ A running log of gotchas, hard-won lessons, and non-obvious behaviors discovered
 
 Commands that reference this file: `/debug`, `/implement`, `/audit-code`.
 
-> **Status: starter template.** The framework ships with this file empty so that lessons accumulate from your own incidents rather than carrying app-specific lessons from another project. Add entries as gotchas surface during development.
+> **Status: starter template.** This file ships nearly empty so that **app-specific** lessons accumulate from your own incidents rather than carrying another project's baggage. The exception is **framework-level architectural lessons** (like `[SKILL-1]` below) that apply to *every* OpenClaw agent — those ship with the framework and propagate via `/update-framework`. Add your own entries as gotchas surface during development.
+
+---
+
+## SKILL
+
+### [SKILL-1] Keep judgment in the skill, mechanics in a script
+
+**Rule:** When a skill workflow interleaves model judgment with deterministic operations (exact SQL writes, parsing, reconciliation math, hashing, fixed API payloads), keep the *judgment* in the SKILL.md and extract the *deterministic execution* to a `workspace/scripts/<name>.js` script, called via the dry-run handoff (build payload → invoke `--dry-run` → review → invoke for real). The skill orchestrates and judges; the script computes and writes. See `OC_KB_02` "The mixed case."
+
+**Why:** A read-only assessment of a production agent's six longest skills (2026-06-25) found all six over-reliant on embedded deterministic logic — e.g. one transaction skill at 956 lines with 48 embedded SQL/command blocks, and a billing skill that re-described in prose the exact CSV parsing a 68 KB script (`hd-reconcile.js`) already did. Embedded deterministic prose carries three costs the script layer avoids: it's **skippable** (model-executed, so a write you need guaranteed isn't), it **bloats context** (loads every fire, pushes the character cap), and it's **untestable**. The same project had already invented the right pattern elsewhere (`ctme-processor.js`'s dry-run handoff) — the lesson is to propagate that boundary, not rediscover it.
+
+**How to apply:** The trigger is writing a *second* exact-SQL/parse/compute block into a skill workflow — that's the signal to extract. Prioritize money-touching / irreversible writes (payments, settlements, invoices), where "skippable + untestable" is most dangerous. **Caveat — don't over-extract:** a query *template* shown inside a judgment step legitimately stays inline; extract the deterministic *execution*, not the illustration. (An independent refutation pass on the assessment confirmed one skill's queries were correctly inline and should NOT have been extracted — the smell is real, but verify per-block.)
 
 ---
 

@@ -81,6 +81,7 @@ Check that new code follows the patterns established in the codebase:
 | Missing error handling at system boundaries | Medium | Silent failures |
 | New hook/component for data already fetched elsewhere | Medium | Duplicates functionality |
 | String concatenation for class names | Low | Use project's class merging utility |
+| Deterministic logic (exact SQL writes, parsing, reconciliation math) embedded as prose in a SKILL.md workflow | Medium-High | Model-executed so skippable; bloats context every fire; untestable. Extract to `workspace/scripts/` + dry-run handoff (OC_KB_02 "The mixed case"). Critical for guaranteed/irreversible writes. Do NOT flag a query *template* inside a judgment step — only the deterministic *execution*. |
 
 ### 4. Over-Engineering Checks
 
