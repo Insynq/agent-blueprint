@@ -2,13 +2,13 @@
 
 ## Pattern
 
-Action-taking agents (those that send messages, write to systems of record, schedule jobs, mutate shared state) need primitives that bound the blast radius of mistakes. The eight primitives in this KB are the ones that pay back in production. None are runtime-enforced by OpenClaw — they are conventions that skills, MCP tools, and deterministic scripts opt into.
+Action-taking agents (those that send messages, write to systems of record, schedule jobs, mutate shared state) need primitives that bound the blast radius of mistakes. The nine primitives in this KB are the ones that pay back in production (the first eight govern the deliberate write path; the ninth governs the error path). None are runtime-enforced by OpenClaw — they are conventions that skills, MCP tools, and deterministic scripts opt into.
 
 The taxonomy from `OC_KB_10` is useful here: most of these primitives target **Extraction** (where false certainty originates) and **Action** (where blast radius lives).
 
 A "safety primitive" is not a confirmation prompt slapped on top of a destructive op. Confirmation is one primitive among eight, and the weakest. The point of the broader set is that the agent's behavior is auditable, reversible, and pre-checked **before** the user has to say yes — so when confirmation does come, it's meaningful.
 
-The strongest move, though, comes *before* the eight: don't put a destructive operation on the agent's surface at all. See **Primitive 0** below.
+The strongest move, though, comes *before* the nine: don't put a destructive operation on the agent's surface at all. See **Primitive 0** below.
 
 ## When to use / when to skip
 
@@ -39,17 +39,17 @@ Anonymized example:
             can trigger it.
 ```
 
-Prevention-by-class beats per-call guarding: a capability the agent doesn't have cannot be misused — not by a confidently-wrong model, and not by an injected "someone-else-told-it-to" instruction (the agent's real threat model is instruction-following, not rogue invention). Scale the cut to context: a disposable single-user toy can expose more; a shared or enterprise system of record should default to **closed**, granting a destructive tool only when a concrete, recurring need justifies the standing risk. The eight primitives below bound the blast radius of the operations you *do* expose; Primitive 0 removes operations from the blast radius entirely.
+Prevention-by-class beats per-call guarding: a capability the agent doesn't have cannot be misused — not by a confidently-wrong model, and not by an injected "someone-else-told-it-to" instruction (the agent's real threat model is instruction-following, not rogue invention). Scale the cut to context: a disposable single-user toy can expose more; a shared or enterprise system of record should default to **closed**, granting a destructive tool only when a concrete, recurring need justifies the standing risk. The nine primitives below bound the blast radius of the operations you *do* expose; Primitive 0 removes operations from the blast radius entirely.
 
 ## Least privilege: no keys in context, default-deny in shared contexts
 
-Before the eight primitives, two prevention rules:
+Before the nine primitives, two prevention rules:
 
 **The model never holds credentials.** The LLM context itself carries no keys — secrets live only in the launchd plist (read into `process.env`) and are used by MCP **server processes**; the model invokes a tool by name and never sees the secret. A leaked or injected instruction can ask a tool to act, but cannot read a credential the model was never given. (This is why secrets belong in the plist / MCP server config, never in a bootstrap file or skill — see `OC_KB_07`, `OC_KB_03`.)
 
 **(Multi-user only) Default-deny query scoping.** When one agent serves multiple distinct users in a shared channel, default to deny: the agent queries only data everyone present can already see, or data the requesting user explicitly asked for and already has access to (treat anything broader as a rare anomaly needing explicit confirmation). Put this access-scope check in the MCP tool or script boundary, never in skill prose — the model can be wrong about who may see what; a scoped query against the system of record cannot. The threat model is instruction-following ("someone else told it to"), not rogue invention, so the control must be external and default-closed.
 
-## The eight primitives
+## The nine primitives
 
 ### 1. Dry-run before writes
 
@@ -186,6 +186,27 @@ Anonymized example:
 
 The bad version is plausible-sounding noise that wastes the user's time. The good version surfaces the actual missing capability — usually a config gap (env var, plist entry, MCP server registration) the user can fix in a minute.
 
+### 9. Fail loud or fail closed — never fail silent-open
+
+Primitives 1–8 govern the *deliberate* write path — they assume a write either commits or visibly halts. Primitive 9 governs the *error* path. When a write to a system of record **can fail**, its failure handler must **fail loud** (re-surface the error into the run's own summary as a non-zero failure count) or **fail closed** (abort the protected operation) — never **fail silent-open** (log a Warning and continue as if nothing happened). A broad `catch → log → continue` inverts the intent of the write: a guard meant to *protect* rows skips protecting them; a sync meant to *persist* an audit row drops it — every run, with no surfaced signal, while the surrounding run still reports success.
+
+```text
+Anti-pattern (real incident):
+  try { await write('audit_runs', record) }
+  catch (e) { log(`Warning: failed to write audit row: ${e}`) }   // ← swallowed
+  // run continues; digest prints "9 synced, 0 flags" — but the audit row never
+  // landed (a column the writer expects was never migrated). Silent every run.
+
+Fix — scope the catch to the SPECIFIC expected error; surface everything else:
+  try { await write('audit_runs', record) }
+  catch (e) {
+    if (isExpectedDegrade(e)) summary.degraded = e.code   // fail-LOUD: counted in the run summary
+    else throw e                                          // fail-CLOSED: aborts the protected op
+  }
+```
+
+Two failure shapes, one rule. A **fail-silent** trap drops the write and a green digest lies. A **fail-open** trap — a catch broad enough to swallow a *transient* error (a 500 / network blip), not just the one expected condition — silently skips the protected operation on a fluke. Both are defeated the same way: scope the catch to the specific expected condition, and make every other path either counted in the run summary or fatal. The test: **the digest must not be able to assert a success the write never achieved.** This is the write-path sibling of the orchestration-path rule in `docs/LESSONS.md` `[PROCESS-3]` ("log the drop, don't let it pass silently") and the authoring-side complement of the `[PROCESS-1]` runtime corollary (which tells the *reviewer* not to trust that green digest).
+
 ## Composition: which primitives stack
 
 Most production skills use a layered subset:
@@ -216,6 +237,8 @@ The point of stacking is that confidence scoring catches some failures, sanity g
 
 - **Undo primitive only documented for the happy path.** The inverse is named for the success case; the partial-success case (write committed half-way) is undocumented. → fix: think through partial-success modes in the skill's Important Rules section; name the inverse for each.
 
+- **Fail-silent-open error trap.** A write wrapped in a broad `catch → log Warning → continue`: the write silently no-ops while the run reports success (a green "N done, 0 errors" digest sitting over a swallowed failure), or a *transient* blip trips the same broad catch and skips a guard's protection for that run. → fix: Primitive 9 — scope the catch to the *specific* expected error; make every other path fail-loud (counted in the run summary) or fail-closed (aborts). The digest must not be able to assert a success the write never achieved.
+
 ## Diagnosing "the agent did the wrong thing"
 
 In order, when a destructive action turns out to have been wrong:
@@ -225,6 +248,7 @@ In order, when a destructive action turns out to have been wrong:
 3. What was the confidence on the extracted fields that drove the action? If it was below threshold, why did the skill commit anyway? If it was above threshold, the threshold may be too low.
 4. Did the round-trip verify run? If yes, did it surface the inconsistency, and was the surfacing ignored?
 5. Was the undo primitive used? If not, why? (User didn't know it existed → discoverability bug. User couldn't run it → undo path is broken.)
+6. Did a write **error get trapped non-fatally**? A clean-looking digest can sit over a swallowed write failure — grep the run for caught-and-continued write errors the summary never counted (`Warning`, the `catch` blocks, the system's error codes). If found, the fix is Primitive 9 (scope the catch; fail loud or closed).
 
 Each step localizes the layer the safety failed at. The fix is in that layer, not in adding a new layer further up the stack.
 

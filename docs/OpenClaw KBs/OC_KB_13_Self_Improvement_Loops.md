@@ -54,6 +54,8 @@ correction:
 
 The classification step is the value. "User said the value was 1234 not 1244" is useless on its own. "Vendor X's template has the amount in a different column" is reusable.
 
+**Refinement — the class is only worth more than the case when it teaches behavior the agent *lacks*.** The classification is the value *when it changes future behavior*. If the agent already exhibits the corrected behavior from its existing instincts, the abstract class merely restates what it already does — `Installed, not yet proven` (`docs/LESSONS.md` `[PROCESS-1]`), and lower-ROI than it looks. In that case the higher-value artifact is the **concrete case** (the edge-case-library entry below) and, above all, the **specific defect** it exposed: a reproducible bug, a wrong stored value, a silently-dropped write is worth more captured-and-fixed than abstracted-into-a-maxim. (Observed downstream: a week of agent reviews produced its highest ROI from concrete defects — a silent 883-row drop, a per-run audit-row drop, several FATALs — while the abstract lessons mostly codified instincts the agent already had.) Weight the loop accordingly: a review's most valuable output is usually the concrete defect it catches, not the lesson it extracts — extract the lesson too, but don't mistake it for the payload.
+
 **Implementation shape:**
 - Skill `record-correction` is invoked when the user explicitly says "no, X is Y" or similar.
 - The skill writes the correction row to `workspace/logs/corrections.ndjson`.
@@ -205,6 +207,8 @@ Most adopters can't (and shouldn't) build all six loops at once. The practical o
 - **Treating correction memory as instance memory.** "User corrected X to Y" recorded literally — next time the same surface appears, the agent applies Y, but the same **class** of correction with a different surface goes unnoticed. → fix: invest in the classification step. The class is the unit of learning, not the instance.
 
 - **Telemetry without a baseline.** Counting invocations without a baseline doesn't tell you if "47 invocations this week" is up or down. → fix: track week-over-week deltas, not absolutes. Surface only when something changes meaningfully.
+
+- **Output metrics without a paired outcome metric.** Every metric in the telemetry table above — invocations, success rate (completed without override), override/escalation rate, tokens — is an *output/proxy*: it measures what the agent *did*, not whether the user's world got better. An agent can ship more, complete more, and override less while the human's actual manual-work surface (open items needing a decision, time-to-clear) doesn't move — or even grows, because shipping detectors and visibility *adds* surfaced items before the gated reducers shrink them. (Observed downstream: a four-phase rollout shipped 23 build artifacts and the operator's "needs-you" surface did not shrink, because the surface-reducers were still gated.) → fix: pair every output/throughput metric with **one lagging outcome metric** — did the human's surface shrink, did time-to-clear drop. "23 artifacts shipped" is not improvement; "the operator's open-decision count fell week-over-week" is.
 
 - **Retro that nobody reads.** The cron writes the retro; no one looks at it. → fix: route to a notification channel, OR feed retros as a reference into the next planning session, OR both. Solitary write-only retros decay to zero value.
 
