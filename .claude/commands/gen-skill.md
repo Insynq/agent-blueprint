@@ -62,6 +62,8 @@ If a description was provided, sanity-check it:
 - Weak (WHAT): `"Triages incoming email and summarizes urgent items."`
 - Bad (vague): `"Helps with mail."`
 
+**Description breadth is a routing lever.** Widening `"when the user asks to delegate X"` to `"when the user asks for X"` makes the skilled path the default for that task shape — widen deliberately; too-broad triggers compete with other skills for the router's attention.
+
 If missing, prompt the user:
 
 ```
@@ -122,7 +124,7 @@ user-invokable: <user-invokable>
 
 1. [TODO Step]
 2. [TODO Step]
-3. **Report:** [TODO format the output. For interactive: respond to user with X. For scheduled: log to stderr with `[<name>]` prefix; route notification per workspace/NOTIFICATIONS.md.]
+3. **Report:** [TODO format the output. For interactive: respond to user with X. For scheduled: log to stderr with `[<name>]` prefix; route notification per workspace/NOTIFICATIONS.md. If the workflow can legitimately find nothing, the Report MUST say so explicitly and name the inspected target — a silent empty return reads as an incomplete run.]
 
 ## Important Rules
 

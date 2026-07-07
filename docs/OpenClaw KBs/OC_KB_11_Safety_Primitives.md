@@ -41,6 +41,12 @@ Anonymized example:
 
 Prevention-by-class beats per-call guarding: a capability the agent doesn't have cannot be misused — not by a confidently-wrong model, and not by an injected "someone-else-told-it-to" instruction (the agent's real threat model is instruction-following, not rogue invention). Scale the cut to context: a disposable single-user toy can expose more; a shared or enterprise system of record should default to **closed**, granting a destructive tool only when a concrete, recurring need justifies the standing risk. The nine primitives below bound the blast radius of the operations you *do* expose; Primitive 0 removes operations from the blast radius entirely.
 
+## Autonomy budget — scale unsupervised runway to structural containment
+
+A long autonomous run is safe not because the model is trusted but because the downside is structurally bounded. Grant standing multi-step autonomy only when three properties hold: (1) **the reachable deploy target cannot touch prod** — the agent's merges land somewhere revertible, and prod promotion stays human-gated; the containment earns the runway, not the model's judgment. (2) **An automated approval gate precedes each irreversible step** — "do not merge until the automated reviewers approve" is an enforced precondition, not a request. (3) **The permission grant is explicit and enumerated up front** — name the exact verbs the agent may take autonomously, so scope is a closed set. Absent all three, autonomy stays turn-by-turn. This is the write-path complement to CLAUDE.md's prod-mutation gate: the gate says *stop at the prod boundary*; this says *how far you may run before it*. Verification disciplines (`[PROCESS-1]`, Refutation Pass) still run on the output — containment bounds damage, it does not certify quality. This grants a *bounded* runway, not "always autonomous": inside the run, the per-operation confidence-threshold and confirmation anti-patterns (§Anti-patterns below) still apply.
+
+**Supervision surface:** a bounded autonomous run writes its whole program as an in-repo checklist and commits each item's completion as it goes — the committed ledger lets a human watch progress land out-of-band without interrupting the run. Scoped to contained runs only: committing-as-you-go to a live deploying branch *without* the three properties above is the anti-pattern the deploy gate exists to stop.
+
 ## Least privilege: no keys in context, default-deny in shared contexts
 
 Before the nine primitives, two prevention rules:

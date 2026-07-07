@@ -93,6 +93,8 @@ Flag if code:
 - Creates a helper for a one-time operation
 - Creates two near-identical hooks/components when one parameterized version works
 
+A fix disproportionate to its request is a codebase signal, not only an over-engineering smell — see `LESSONS.md` [PROCESS-7].
+
 ### 5. Type Consistency
 
 Check types match project standards:
@@ -238,6 +240,8 @@ For each load-bearing finding, **spawn one fresh `Explore` agent** (a context th
 > "Finding: [claim] at [file:line]. Your job is to **KILL** it. Read the primary source yourself and find the strongest evidence it is wrong, overstated, or already mitigated elsewhere — quote the contradicting lines. If you cannot refute it after a real search, say so and state what observation *would* have falsified it. Default to skepticism; do not assume the finding is correct."
 
 Each refuter returns **CONFIRMED** (tried and failed to kill it — quote the empty/contrary search) · **OVERSTATED** (real but narrower/lower-severity — cite the narrowing evidence) · **REFUTED** (contradicted — cite the killing `file:line`), with a confidence. Record a **Refutation Ledger** (ID | Finding | Refuter verdict | Confidence | Refuting/weakening evidence) that supersedes the binary checkbox.
+
+**Split-verdict escalation:** when independent verifiers disagree on a finding, that split is a *positive* escalation trigger — route the contested finding to the orchestrator/human with both positions quoted. Unanimity earns nothing: correlated verifiers sharing a seed error produce worthless consensus (`[PROCESS-4]`; the F1 false-negative case). Escalate splits; never promote unanimity to "verified clean." (Today's pass runs one refuter per finding, so a split arises only when a finding accumulates multiple independent verdicts — re-runs, judge panels, or a multi-refuter configuration; this clause does not by itself mandate multi-refuter spend.)
 
 **Mechanical tally** (so a bad ledger can't be laundered into a pass):
 - Treat the result as `APPROVED` only if **every** load-bearing finding came back `REFUTED`. Any `CONFIRMED` or `OVERSTATED`-still-High → `NEEDS CHANGES`. A finding leaves the must-fix list only if its refuter graded it `REFUTED` with cited contradicting evidence.

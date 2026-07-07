@@ -31,6 +31,16 @@ The two keys differ by one letter and live in the same config file. Putting cach
 
 Per-cron and per-skill overrides also go in this config — see the OpenClaw runtime docs for the full schema.
 
+## Routing philosophy
+
+**Cost is not a gate on what ships.** Use the cheapest capable model to explore, gather information, and try approaches; escalate to a stronger model as the work moves toward something that ships. Escalating costs less than shipping mediocre work; cost breaks ties only when the quality axes are genuinely equal.
+
+**Configured routing is a default, not a ceiling.** A skill routed to a cheaper model has standing permission to redo the work on a stronger one when the output doesn't meet the bar — judge the output, not the price tag. Keep escalation visible via per-cron-key cost attribution (see §Per-cron API keys below). Record *which axes* matter for your agent in `KB_1_Architecture.md`, in prose — not a per-model score sheet that rots each release.
+
+**Task-shape tiers (per-skill overrides).** Bulk mechanical work (clear-spec implementation, data analysis, migrations, log-digging, large-document reading) → cheapest capable tier. Output the user judges directly (copy, API/UX surfaces) → highest-quality tier. Plan/implementation reviews → strongest reasoning tier, optionally plus one *independent, cheaper* perspective (the routing form of the Refutation Pass).
+
+**Anti-pattern:** blanket "never use model X" rules are lineup-and-pricing snapshots that rot each release — express routing as capability tiers, never named exclusions.
+
 ## Cache config (PLURAL `models`)
 
 ```json

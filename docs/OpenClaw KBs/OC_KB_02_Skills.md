@@ -45,6 +45,18 @@ The skill *orchestrates and judges*; the script *computes and writes*. The split
 
 Keep in the skill the *decision* (judgment, ambiguity resolution, edge-case handling) and the orchestration. A query *template* shown as part of a judgment step is fine inline — extract the deterministic *execution*, not the illustration.
 
+### Delegation skills — wrapping an external agent CLI or capability
+
+A skill may teach the agent to shell out to a **peer agent CLI** to (a) fill a capability gap (computer use, browser/simulator automation) or (b) offload token-heavy work (log spelunking, large-document reading, bulk screenshot analysis). Three canonical shapes: external-review (independent second-pass on a diff/branch/commit), external-implementation (bounded change on a throwaway worktree), external-verification.
+
+**Boundary reconciliation.** The Boundary note above prefers an MCP server when reaching a *credentialed system of record* — a vendor CLI erodes the auth boundary into one shared static credential. Delegation-for-capability is a different case: it borrows a *peer's compute*, with no per-user data-access boundary at stake. That difference is why it is permitted where CLI-to-system-of-record is discouraged — but the containment still applies. Default to read-only / worktree-scoped delegate invocations (`OC_KB_11` Primitive 0), and verify the delegate's important claims against primary source before relaying them upward: a delegate's summary is `relayed`, not verified, until checked (`[PROCESS-4]`). If the delegate is a non-Claude model, note how to prompt it — prompting conventions differ across model families.
+
+**Exact commands are the highest-value content** — not because the model usually errs, but because the rare miss is disproportionately costly. Capture the corrected invocation the moment a miss happens. Per `[SKILL-1]`, these command invocations are judgment-side pattern memory (query-template class, so they stay on the safe side of the skill/script boundary) — *illustrations*, not guaranteed mechanics; mark them a staleness / verify-before-relying surface, and graduate anything that must fire *exactly* to a `workspace/scripts/` wrapper.
+
+**Timeouts.** Delegated long tasks can time out; state the recovery (re-scope narrower, or re-dispatch per `orchestrate.md`'s dispatch-mode table) so a timeout doesn't read as a hard failure.
+
+**Lifecycle.** Grow these skills by field-failure accretion — get ~80% working fast, then on each live failure ask for a prevention, cut the suggested fix roughly in half (models over-correct and the character cap is real), and append. Capability-bridge skills are disposable: delete them when the base model closes the gap.
+
 ## Required frontmatter
 
 ```yaml
@@ -108,6 +120,8 @@ The 5 sections aren't optional. They serve specific roles:
 - **Systems** is the dependency manifest. Audits cross-check this against `mcporter.json`.
 - **Workflows** is the actual instruction. Each step ends with a reporting/logging convention.
 - **Important Rules** captures invariants that must hold across every workflow.
+
+**Empty-result contract (required for any skill that delegates or reviews).** A workflow that can legitimately return *nothing found* MUST say so explicitly and name the exact target it inspected — e.g., `[skill-name] no findings — inspected <diff/branch/target>`. A bare silent return reads to the caller as an incomplete run and triggers wasteful re-invocation. This is the delegation-scale twin of the Refutation Pass's blind-spot-honesty rule (`audit-code.md`) and the log-the-drop discipline (`[PROCESS-3]`).
 
 ## Anatomy: anonymous skill example
 
@@ -185,5 +199,6 @@ Beyond saving context budget, a `references/` pack is also a deliberate **accura
 - [ ] No embedded secrets, tokens, or API keys
 - [ ] Total file size under the bootstrap character cap (default ~20K) — though skills are loaded on demand, large skills delay routing
 - [ ] No deterministic block (exact SQL write, parsing, reconciliation math) embedded as workflow prose that should be a script — extract guaranteed/irreversible writes to `workspace/scripts/` and call via the dry-run handoff (see "The mixed case")
+- [ ] If the skill can return an empty result, it states that explicitly and names the inspected target (no silent empty return)
 
 [VERIFY BEFORE SHIPPING] Frontmatter field names — `user-invokable` and `name` and `description` are the documented OpenClaw runtime expectations. If the OpenClaw runtime adds more fields, update this KB.

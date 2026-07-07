@@ -41,6 +41,7 @@ You will be tempted to talk yourself out of the diagnostic. Each excuse below ha
 | "The symptom tells me what's broken." | A symptom is a clue, not a spec. Confirm the cause before the cure. |
 | "Re-running the diagnostic wastes time." | Diagnostics are seconds; a wrong fix is a new bug plus the original. |
 | "It's probably the same as last time." | "Probably" is a hypothesis. Test it before acting on it. |
+| "It merged clean and fast — ship it." | A fix disproportionate to its request (or suspiciously cheap while asserting unexpected entities) is a codebase/world-model signal — see `LESSONS.md` [PROCESS-7] and [PROCESS-1] Corollary 1. |
 
 ## Step 0: Read Project Context
 

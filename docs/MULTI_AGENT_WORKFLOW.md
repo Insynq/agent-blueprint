@@ -22,6 +22,8 @@ Three roles, one human:
 
 PM can dispatch a worker two ways. Both modes use the same worker plan doc — the doc is the durable artifact regardless of where the work runs.
 
+When workers run on different models, label each worker/artifact with the producing model — provenance and cost visible at a glance.
+
 ### Subagent dispatch (default)
 
 PM spawns the worker as a subagent via the Agent tool. The subagent runs to completion in its own ephemeral context, reads/writes the plan doc as a normal file, and returns a single summary message. PM reads the plan doc to see the full report.
@@ -73,6 +75,12 @@ PM/worker shines specifically when:
 - The work is **large enough** that one context window can't hold both strategic and tactical reasoning at once
 
 If a single window suffices, use one window. The relay overhead is real — only spend it when the strategic/tactical separation pays off.
+
+### Live orchestration vs. deterministic workflow
+
+*"Workflows are deterministic scripts that shine for fan-out and verify. But this program is checkpoint-driven. Each PR needs CI, your review, and a merge before the next rebase. Midstream you'll make product calls a script can't anticipate. One giant workflow would either barrel past those checkpoints or stall at the first one."*
+
+A scripted fan-out is the right tool for one shape only: **fan-out-and-verify** — N independent units processed in parallel, results reduced, with the `[PROCESS-3]` coverage-count guard. A **checkpoint-driven program** (CI, human review, or a merge between steps; midstream product calls) is the wrong shape for it: orchestrate those from the live PM session, and reach for a workflow only *inside* it, for the fan-out/verify passes (e.g., the multi-agent review before each merge).
 
 ---
 
@@ -142,6 +150,7 @@ Each worker (subagent or separate-window):
 
 - PM analyzes all worker audit reports against its holistic audit.
 - PM brainstorms gaps — what did the workers see that the holistic view missed? What did the holistic view see that workers can't?
+- When independent workers or verifiers disagree on the same finding, the split is a positive escalation trigger — resolve it at the PM/human layer with both positions quoted; never average it away.
 - For each worker plan doc, PM **edits the doc directly** with annotations: key decisions, reasoning, scope adjustments, integration constraints. The annotation lives at the top of the relevant section, prefixed `**PM annotation:**`.
 - For each worker, PM picks the implementation [dispatch mode](#dispatch-modes): subagent if the spec is clear and self-contained, separate-window if iterative debugging or live steering is expected.
 
@@ -165,6 +174,8 @@ Each worker (subagent or separate-window):
 Phase 8 is a **two-stage gate**: spec-compliance first, then quality. Stage 2 runs only after Stage 1 passes.
 
 - **Stage 1 — spec-compliance gate (PASS/FAIL):** PM verifies the integration built *exactly what the holistic plan specified*, checking both directions — no gaps (every planned slice implemented), no unrequested extras (every changed file is in the plan's scope; `git diff --name-only` vs. the plan), and no drift (no plan-specified behavior missing or altered). Also confirms cross-worker integration points and edge cases line up. Output a PASS/FAIL verdict; do not advance to Stage 2 until PASS. For gaps the PM can fill directly (it has full context), the PM does the work itself rather than spinning up another worker. Skippable for trivial phases with a `"skipped — trivial"` note.
+- **Risk-targeted verification:** after integration, diff the deployed baseline against the candidate (`git diff <deployed>..HEAD --stat`) and treat the changed surface as the risk map: spawn verification at the highest-delta / highest-blast-radius areas first, and re-exercise **old** behaviors adjacent to the change, not only the new feature. For a fully-autonomous multi-worker phase, verification spend routinely exceeding implementation spend is expected and correct. A clean verification is an honestly-clean result, not proof of under-testing (per `falsification-primitive-spec.md` §2).
+- **Worktree reconciliation (conditional):** when implementation ran across separate git worktrees, reconcile by pulling all worktree branches into one integration branch with conflicts resolved — one reviewable PR, not N overlapping ones.
 - **Stage 2 — quality (`/audit-code`):** once Stage 1 passes, PM runs `/audit-code` on the integrated result for elegance, reuse, anti-patterns, and security, and addresses its recommendations.
 - PM manages commit hygiene — coalesces or splits commits as needed.
 - PM updates `phase-plan.md` with progress (Stage-1 verdict + Stage-2 audit findings).

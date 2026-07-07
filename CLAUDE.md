@@ -64,10 +64,11 @@
 - PM owns architectural decisions before worker dispatch (Phases 1–3 of `/orchestrate`). Workers receive locked plans, not forks. See `docs/MULTI_AGENT_WORKFLOW.md` → PM Pre-Dispatch Responsibilities.
 - Spec docs become implementable once `/plan-review` writes a `Status: LOCKED YYYY-MM-DD` header. Drafts without the header are exploratory only — `/orchestrate` Phase 6 and `/implement` use the header to decide whether to dispatch workers. LOCKED certifies design completeness / dispatch-readiness, NOT user authorization to deploy — deploy stays gated at the Phase 9/10 checkpoints.
 - Spec docs and `KB_1_Architecture.md` record architectural decisions in `Decision | Choice | Reasoning | Date` table format (per `_dev/agent-improvement-spec-template.md` §1).
-- Scope graduation is separate authorization from design sign-off. A brief that declares design-only scope ("build nothing yet") is NOT upgraded to build+deploy authority by the user answering the design's open decisions — even build-scope ones. Before the first prod-mutating action (migration, prod write, push to a deploying branch), ask one explicit line ("Design ratified — proceed to build + deploy now?") and wait; announcing "proceeding to build" is not asking. Beware ratifying your own presupposition: if the phrase implying a built artifact originated in your question, the user's echo is not deploy authorization.
+- Scope graduation is separate authorization from design sign-off. A brief that declares design-only scope ("build nothing yet") is NOT upgraded to build+deploy authority by the user answering the design's open decisions — even build-scope ones. Before the first prod-mutating action (migration, prod write, push to a deploying branch), ask one explicit line ("Design ratified — proceed to build + deploy now?") and wait; announcing "proceeding to build" is not asking. Beware ratifying your own presupposition: if the phrase implying a built artifact originated in your question, the user's echo is not deploy authorization. For how much unsupervised runway may precede the gate, see OC_KB_11 §Autonomy budget.
 
 ## Preferences
 [TODO — populate during /kickoff with working style and communication preferences]
+- Glossary — evaluative terms and what they mean here (e.g., "done", "clean", "taste", "good enough"), so task descriptions and routing rules interpret consistently. [TODO — populate during /kickoff]
 
 ## Custom Commands
 All commands live in `.claude/commands/`. On a fresh clone, run `/preflight` then `/kickoff` (greenfield) or `/adopt` (existing repo) before anything else.
@@ -90,6 +91,7 @@ All commands live in `.claude/commands/`. On a fresh clone, run `/preflight` the
 | `/investigate` | Deep exploration — trace data flow, find all usages |
 | `/plan` | Create an implementation plan from investigation findings |
 | `/plan-review` | Gap analysis on a spec doc before implementing |
+| `/triage` | Triage a stale backlog (PRs/branches/work items) into action buckets with judge-verified verdicts and a fail-loud coverage tally |
 
 ### Implementation
 | Command | Purpose |

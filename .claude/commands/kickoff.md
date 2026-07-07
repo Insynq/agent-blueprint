@@ -241,6 +241,8 @@ Ask in sequence:
 
 5. "What should Claude always ask you before doing? For example: 'ask before adding a new MCP server', 'ask before changing model routing', 'ask before adding a new cron'. Or nothing — full autonomy is fine too."
 
+6. "Any evaluative words you use a lot that you'd want defined so the agent reads them the way you mean them? (e.g., what 'clean', 'taste', or 'good enough' means to you.) These sharpen task instructions and model-routing rules."
+
 **Phase 5 close:** Summarize preferences. Confirm before writing files.
 
 ---
@@ -530,6 +532,7 @@ type: user
 **Escalation threshold:** [What Claude must always ask before doing — e.g., "ask before adding a new MCP server", "ask before changing model routing", "ask before adding a new cron"]
 **Code opinions:** [Any strong preferences about style or approach]
 **Things to avoid:** [Specific patterns or behaviors the user doesn't want]
+**Glossary:** [Evaluative terms and what they mean here — e.g., "done", "clean", "taste", "good enough" — so task descriptions and routing rules interpret consistently]
 ```
 
 ---
