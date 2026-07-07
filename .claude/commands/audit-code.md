@@ -35,10 +35,12 @@ Before auditing, read the project to understand its established patterns.
    - Patterns section describing established conventions
    - Tech stack (framework, UI library, DB, auth system)
 
-2. Scan for existing utilities/hooks/contexts:
-   - `Glob("src/lib/**/*.ts")` — utility functions
-   - `Glob("src/hooks/**/*.ts")` — existing hooks
-   - `Glob("src/contexts/**/*.tsx")` — state contexts
+2. Scan for existing agent-repo surface:
+   - `Glob("workspace/skills/**/SKILL.md")` — existing skills
+   - `Glob("workspace/scripts/**/*")` — deterministic scripts
+   - `Glob("workspace/mcp-servers/**/*")` — in-repo MCP server source
+   - `Glob(".claude/commands/**/*.md")` — command surfaces
+   - `Glob("docs/**/*.md")` — KBs and reference docs
    - Read a sample of each to understand what's available
 
 3. Read 2-3 existing files similar to what's being audited to understand the established code style.
@@ -51,10 +53,10 @@ Document what you find — this informs every check below.
 
 Before approving new code, check if existing utilities solve the problem:
 
-- Search `src/lib/` for utility functions that do something similar
-- Search `src/hooks/` for hooks that already fetch or compute this data
-- Search `src/contexts/` for contexts that already provide this state
-- Search `src/components/` for UI components with similar patterns
+- Search `workspace/scripts/` for deterministic scripts that do something similar
+- Search `workspace/skills/` for skills that already handle this trigger or workflow
+- Search `workspace/mcp-servers/` for tools that already fetch or compute this data
+- Search `.claude/commands/` and `docs/` for command surfaces or KB patterns that already cover this
 
 **IMPORTANT: Actually read the source files of potential reuse candidates.**
 Don't just check if they exist — read the code to see if the implementation
@@ -133,6 +135,8 @@ Are there values in the plan (limits, fees, thresholds) that:
 Do any new columns or fields (especially tokens, keys, identifiers):
 - Get exposed to the frontend via existing broad queries?
 - Contain sensitive data that shouldn't be in the browser?
+
+> **Web-surface gate (6f–6j):** Apply 6f, 6g, 6h, and 6j only if the project ships a web surface — an in-repo HTTP MCP server, rendered user HTML/markdown/email, auth flows, or payment integrations. Skip them for pure stdio-agent repos. (6i, privilege/auth scope, is a general check and always applies.)
 
 **6f. XSS Prevention**
 - Flag any `dangerouslySetInnerHTML` — each usage must be justified and sanitized

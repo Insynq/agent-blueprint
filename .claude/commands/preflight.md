@@ -7,17 +7,11 @@ description: One-time setup — detect agent + OS, verify commands are project-l
 Run this on a freshly cloned `agent-blueprint` project, **before** `/kickoff`.
 
 It captures three things into `CLAUDE.md` so future sessions don't have to re-figure them out:
-1. **Which AI agent** is being used (Claude Code, Codex, Cursor, Aider, etc.)
-2. **Which operating system** the user is on (macOS, Windows, Linux)
-3. **Confirmation** that `.claude/commands/` is at the project root, not installed globally
+1. **Which AI agent** is being used (Claude Code, Codex, Cursor, Aider, etc.) — Codex, Cursor, and others don't auto-load `.claude/commands/` the way Claude Code does, so recording the agent lets future commands adapt their guidance.
+2. **Which operating system** the user is on (macOS, Windows, Linux) — build commands, paths, and shell syntax differ across platforms; capturing the OS once means future sessions don't ask or guess.
+3. **Confirmation** that `.claude/commands/` is at the project root, not installed globally — the framework only works if the `.md` files live at `<project-root>/.claude/commands/`, and some agents try to install them into a global directory.
 
 Should take well under a minute.
-
-## Why This Matters
-
-- **Cross-agent portability.** Codex, Cursor, and other agents don't auto-load `.claude/commands/` the way Claude Code does. Recording the agent name lets future commands adapt their guidance.
-- **OS-aware shell commands.** Build commands, paths, and shell syntax differ on Windows vs. macOS/Linux. Capturing the OS once means future sessions don't have to ask or guess.
-- **Project-level commands, not global.** Some agents try to install commands into a global directory. The framework only works if the `.md` files live at `<project-root>/.claude/commands/`. Preflight verifies this.
 
 ## Instructions for the Agent
 

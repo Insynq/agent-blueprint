@@ -46,9 +46,9 @@ Spawn 3–5 `Explore` agents (thoroughness: "very thorough") covering:
 
 This is a real failure mode: auditing one constraint while missing others on the same model. Always read the full model definition.
 
-**Agent 2 — Application layer**: Read every service, hook, context, and state management file the spec references. Report query shapes, transform functions, type interfaces. Identify gaps between what the spec expects and what's actually there.
+**Agent 2 — Skill & script layer**: Read every skill, deterministic script, and config file the spec references. Report tool invocations, transform functions, input/output shapes. Identify gaps between what the spec expects and what's actually there.
 
-**Agent 3 — UI components**: Read every component the spec touches. Report props, state, event handlers, rendering logic. Identify where new features need to integrate.
+**Agent 3 — Bootstrap & command surfaces**: Read every bootstrap file and command surface the spec touches. Report durable rules, query paths, and invocation points. Identify where new features need to integrate.
 
 **Agent 4 — API/integration layer**: Read every API endpoint, server function, webhook handler, or external integration the spec involves. Report the current contract, validation, error handling.
 
@@ -92,7 +92,7 @@ For every notification, email, webhook, audit log entry, or any other side effec
 - Search strategy: grep for every place that writes the triggering status value (client-side mutations, RPC calls, server-side triggers/functions)
 - Flag any side effect wired to only one callsite when multiple exist
 
-**Why this matters:** Missing a trigger path means the side effect silently never fires for certain code paths. The happy-path test usually exercises the obvious callsite and misses the rest. This is especially common with order status changes, payment completions, and approval flows — each often has both a manual admin path and an automated completion path.
+**Why this matters:** Missing a trigger path means the side effect silently never fires for certain code paths. The happy-path test usually exercises the obvious callsite and misses the rest. This is especially common with cron writes, MCP mutations, and deploy hooks — each often has both a manual (interactive) path and an automated (scheduled or programmatic) path that writes the same state.
 
 ### 3d: Architectural Gaps
 - Does the spec define a data model change without updating all consumers?
@@ -104,14 +104,14 @@ For every notification, email, webhook, audit log entry, or any other side effec
 - What happens with empty data (0 items, null values)?
 - What happens at boundaries (single item, maximum values)?
 - What happens with concurrent operations (race conditions)?
-- What happens when the user refreshes mid-flow?
+- What happens when a session is interrupted or compacted mid-flow?
 
 ### 3f: Decision Points
 - Where does the spec leave ambiguity that needs a choice?
 - Where are there multiple valid approaches and the spec picked one without justification?
 - Where might business requirements conflict with the technical approach?
 
-Examples of decision points worth flagging: component library choice for a new UI surface, API contract design for a new endpoint, error handling granularity (silent vs. user-visible), state management approach (local vs. global). These are cases where multiple approaches are valid and the spec should justify the choice — not leave it to implementation time.
+Examples of decision points worth flagging: skill-vs-script split for a new capability, MCP tool contract design for a new integration, error handling granularity (silent vs. user-visible), where state lives (bootstrap-file rule vs. system-of-record query). These are cases where multiple approaches are valid and the spec should justify the choice — not leave it to implementation time.
 
 ### 3g: Dependency Risks
 - Which phases have tight dependencies that could cascade failures?
@@ -199,9 +199,5 @@ The LOCKED header is the convention that downstream `/orchestrate` (Phase 6) and
 
 ## Important
 
-1. **Be thorough** — the whole point is to find what's missing BEFORE implementation
-2. **Be specific** — cite exact file paths, line numbers, and code snippets
-3. **Be practical** — focus on things that would actually break, not theoretical concerns
-4. **Group related findings** — 5 grouped items beats 20 individual ones
-5. **Lead with recommendations** — don't just list problems, suggest solutions
-6. **Don't implement anything** — this is analysis only
+- **Be specific** — cite exact file paths, line numbers, and code snippets
+- **Don't implement anything** — this is analysis only

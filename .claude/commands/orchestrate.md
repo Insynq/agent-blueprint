@@ -143,11 +143,7 @@ For each worker slice in the plan:
 
    Read the plan doc. Perform a granular audit on your slice — file:line specifics, edge cases, integration risks. Fill in the "Granular audit" and "Recommendations" sections.
 
-   When done, format your final reply with one of two headers:
-   - `Worker N | [task] - Response to PM:` (default — audit done or blocked on a PM decision)
-   - `Worker N | [task] - User action required:` (blocked on something only the user can do)
-
-   If the deliverable is a command, script, env var, or text-to-paste, output it as a fenced code block ready to paste — no narration unless I ask.
+   When done, format your reply with the standard headers from MULTI_AGENT_WORKFLOW.md.
    ```
 
 After dispatch:
@@ -177,7 +173,7 @@ For each worker plan doc:
 
 Then, **edit each worker plan doc directly**: fill the "PM annotations" section with key decisions, reasoning, scope adjustments, integration constraints. Annotations live at the top of the section, prefixed `**PM annotation:**`.
 
-> **Provenance discipline.** For every claim you carry forward from a worker/sub-agent self-report, tag it `[verified: how]` or `[relayed: source-said]`; never harden a hedge ("appears to" stays "appears to," a grep-count stays a grep-count); re-read the source's own caveats and carry the strongest dissenting line forward so front-confidence never exceeds back-caveats. Failure this prevents: `docs/investigations/2026-06-24-kai-verification-grounding-findings.md`.
+> **Provenance discipline** applies to everything workers report here — see the Step 8 block before promoting any claim.
 
 **Pick dispatch mode** for each worker's implementation. Defaults shift by task type:
 

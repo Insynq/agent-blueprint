@@ -1,6 +1,6 @@
 ---
 description: Deep codebase investigation — trace data flows, find all usages, identify root causes
-argument-hint: "<issue or feature area to investigate> [— optional: component/file to start from]"
+argument-hint: "<issue or feature area to investigate> [— optional: skill/file to start from]"
 ---
 
 # Investigation Subagent
@@ -38,10 +38,10 @@ Also read `docs/LESSONS.md` if it exists. Before diving into the investigation, 
 
 ### 2. Trace the Full Data Flow
 
-Start at the entry point (UI, API endpoint, event handler) and follow through each layer:
+Start at the entry point (router message, MCP tool call, cron trigger) and follow through each layer:
 
 ```
-Entry → Handler → Service/Hook → Data Access → Storage
+Entry → Handler → Service → Data Access → Storage
 ```
 
 For each step, identify:
@@ -49,37 +49,34 @@ For each step, identify:
 - What transformations occur?
 - Where could data be lost or modified incorrectly?
 
-### 3. Find All Usages
+### 3. Find All Usages and Consumers
 
-Search for ALL places the function/component/API is called:
+Search for ALL places the function / skill / tool / API is called, then map every consumer of each — do NOT stop at the first caller:
 - Use Grep to find all occurrences
 - Check for duplicate implementations (same logic in multiple places)
 - Look for dead code that looks correct but isn't connected (not routed, not imported)
-- Multiple components/modules that do similar things with different callbacks
+- Multiple skills or modules that do similar things with different callbacks
+
+For each usage, trace its consumers by kind (completeness check):
+- **Skills / handlers:** find everything that invokes them (router, calling skills, cron)
+- **Functions / MCP tools / services:** find every caller or client
+- **Shared state (DB, store, bootstrap files):** find ALL code that reads or writes that state
 
 ### 4. Verify Routing/Wiring
 
 Confirm which code is actually executing at the relevant path:
-- Which component renders at this route?
-- Which handler processes this event?
-- Which module is actually being imported?
+- Which skill or handler the router selects for this request
+- Which handler processes this event
+- Which module is actually being imported
 
 **This is critical** — the code you're reading might not be the code that's running.
 
-### 5. Trace All Parent/Consumer Relationships
-
-For EACH component, hook, or function involved:
-- **Components:** Find every parent that renders it
-- **Functions/hooks:** Find every caller
-- **APIs/services:** Find every client that calls them
-- **Shared state (DB, store, context):** Find ALL code that reads or writes that state
-
-### 6. Check for Reusable Patterns
+### 5. Check for Reusable Patterns
 
 Before recommending new code:
-- Search for existing utilities that solve a similar problem
-- Search for components with similar UI patterns
-- Search for services/hooks with similar data access patterns
+- Search for existing utilities or scripts that solve a similar problem
+- Search for skills with similar structure or triggers
+- Search for services or MCP tools with similar data-access patterns
 - Flag anything that already exists and could be extended vs. creating something new
 
 ## Output Format (Required)
@@ -103,7 +100,7 @@ Before recommending new code:
 ### Parent/Consumer Map
 | Code | Consumers | File:Line |
 |------|-----------|-----------|
-| MyComponent | PageA, PageB | pageA.tsx:45, pageB.tsx:123 |
+| digest skill | router, nightly cron | workspace/skills/digest/SKILL.md, workspace/scripts/nightly.js:45 |
 
 ### Routing/Wiring Verification
 - Active code path: [what is actually running]
@@ -130,7 +127,7 @@ Before recommending new code:
 |---------|-------------|
 | Expected logs don't appear | Wrong code path — find the actual file being run |
 | Fix doesn't take effect | Code you edited isn't the code being executed |
-| Multiple similar components | Check which one is actually mounted at the relevant route |
+| Multiple similar skills/modules | Check which one the router actually selects for this request |
 | Code looks correct but behavior is wrong | May be dead code — verify imports and routing |
 ```
 

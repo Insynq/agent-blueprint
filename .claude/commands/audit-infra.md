@@ -196,29 +196,12 @@ For each `workspace/skills/<name>/SKILL.md`:
 - [ ] Bootstrap files within character cap, no embedded secrets
 - [ ] Skill folder names match frontmatter `name`; `user-invokable` spelled correctly
 
-### mcporter.json Issues
-| Issue | Location | Severity |
-|-------|----------|----------|
+### Issues
 
-### Env Var Issues
-| Issue | Location | Severity |
-|-------|----------|----------|
+One table for all sections. `Section` is one of: `mcporter.json` · `Env Var` · `Deploy Script` · `MCP Server Deps` · `Bootstrap-File` · `Skill Hygiene`. `Location` carries the identifying ref for that section (file · server/package · skill).
 
-### Deploy Script Issues
-| Issue | Location | Severity |
-|-------|----------|----------|
-
-### MCP Server Dependency Issues
-| Server | Package | Issue | Severity |
-|--------|---------|-------|----------|
-
-### Bootstrap-File Issues
-| File | Issue | Severity |
-|------|-------|----------|
-
-### Skill Hygiene Issues
-| Skill | Issue | Severity |
-|-------|-------|----------|
+| Section | Issue | Location | Severity |
+|---------|-------|----------|----------|
 
 ### Recommendations
 1. [Specific fix with file and line]

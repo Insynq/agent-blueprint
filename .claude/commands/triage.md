@@ -96,6 +96,3 @@ Any plan that grows out of a triage bucket (typically a `good-idea-but-rewrite` 
 ## Important rules
 
 - **The tally is the one mechanical must; the buckets are judgment.** Bucket names and criteria are operator-adjustable and evidence-driven — do not freeze them into a decision tree (`[SKILL-1]` spirit: don't over-embed deterministic logic in a judgment workflow). The coverage reconciliation (Steps 1 and 5) is the single line that must fire exactly, every run.
-- **Reuse the Refutation Ledger — do not reinvent it.** Step 3 is the `/audit-code` mechanic applied to bucket verdicts, not a new panel format.
-- **Escalate splits; never promote unanimity to "verified."** (`[PROCESS-4]`.)
-- **Never silently drop an item.** A dropped subagent becomes a loud `UNVERIFIED` row, never an omission (`[PROCESS-3]`).

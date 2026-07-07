@@ -184,10 +184,7 @@ Wait for ALL parallel agents to complete before moving to the next batch.
 After each batch completes, run the appropriate validation:
 
 - **For batches that touched in-repo MCP servers:** run that package's build (`npm run build` inside `workspace/mcp-servers/<name>/`).
-- **For batches that touched `mcporter.json`:** validate JSON shape and `mcpServers` key:
-  ```bash
-  python3 -c "import json,sys; d=json.load(open('workspace/config/mcporter.json')); sys.exit(0 if 'mcpServers' in d else 1)"
-  ```
+- **For batches that touched `mcporter.json`:** run the mcporter shape check (Step 5) — it validates JSON shape and the top-level `mcpServers` key.
 - **For batches that touched skills:** confirm folder name = frontmatter `name`, and frontmatter spells `user-invokable` correctly. See `_dev/validation-checklist.md`.
 - **For batches that touched bootstrap files:** check character cap (`wc -c workspace/*.md`).
 
@@ -277,12 +274,8 @@ Output a `PASS / NEEDS-CHANGES` verdict. **Gate: do not hand off to the Stage-2 
 
 1. **Read project context first** — Step 0 is not optional; it determines build commands and key paths
 2. **Follow the plan exactly** — Don't add features, refactor, or "improve" beyond what the plan specifies
-3. **Read before editing** — Always read the full file before making changes
-4. **Verify after each batch** — Run type check to catch errors early
-5. **Report, don't guess** — If something doesn't match the plan, report it rather than improvising
-6. **Respect dependencies** — Never implement a step before its dependencies
-7. **Use Edit, not Write** — For existing files, always use Edit tool to make targeted changes
-8. **Preserve existing code** — Don't accidentally delete or modify code the plan doesn't touch
+3. **Verify after each batch** — Run type check to catch errors early
+4. **Report, don't guess** — If something doesn't match the plan, report it rather than improvising
 
 ## Error Recovery
 

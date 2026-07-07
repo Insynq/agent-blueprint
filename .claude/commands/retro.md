@@ -125,8 +125,5 @@ Review the doc; commit the lessons you want to keep to docs/LESSONS.md.
 
 ## Important
 
-1. **Best-effort, not blocking.** If artifacts are missing, the retro is lighter — that's fine. Note what was missing in section 7 and ship the doc anyway.
-2. **Never auto-commit to `LESSONS.md`.** Always surface candidates and let the PM decide.
-3. **Do not edit the spec doc, phase-plan.md, or worker docs.** `/retro` is read-only against historical artifacts. The only thing it writes is the retro doc itself.
-4. **Run after `/ship`, not before.** Retros are retroactive — pre-ship capture is what `/plan-review` and `/audit-code` are for.
-5. **If `docs/retros/[phase-slug]-retro.md` already exists**, do not overwrite. Suffix with a date (`[phase-slug]-retro-YYYY-MM-DD.md`) or ask the user how to proceed.
+1. **Never auto-commit to `LESSONS.md`.** Always surface candidates and let the PM decide.
+2. **If `docs/retros/[phase-slug]-retro.md` already exists**, do not overwrite. Suffix with a date (`[phase-slug]-retro-YYYY-MM-DD.md`) or ask the user how to proceed.

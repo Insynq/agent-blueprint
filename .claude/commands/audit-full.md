@@ -19,6 +19,8 @@ Run `/audit-code --focus all` across the agent project's source. For an OpenClaw
 ### Subagent 2: Infrastructure Audit
 Run `/audit-infra --focus all`. Check the OpenClaw runtime config — `workspace/config/mcporter.json` shape and env-var resolution, launchd plist `EnvironmentVariables` exposure, deploy script (HMAC verify, rsync excludes), per-MCP-server `package.json` dependency vulnerabilities, and `.env.example` vs runtime-required vars.
 
+> **Each subagent runs only the audit prompt BODY (Step-0 → Verdict) of its sub-command — NOT the sub-command's own refutation pass.** Refutation runs once, here at the orchestrator, on the merged set (Step 4). This avoids the same finding being refuted 2–3 times.
+
 ---
 
 ## After All Subagents Return

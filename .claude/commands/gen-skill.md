@@ -56,11 +56,7 @@ If a description was provided, sanity-check it:
 - Does NOT contain a newline (must be a single sentence)
 - Doesn't start with "does stuff" or "helps with" — the router needs a specific verb + domain noun (hard reject these vague starts)
 
-**WHEN-not-WHAT check (advisory).** The router matches on the description, so it should answer *"when should the router pick this skill?"* — a trigger condition — not *"what does the skill do?"* — a behavior summary. A WHAT-phrased description competes with the skill body for the model's attention. Nudge the user toward WHEN-phrasing if the description reads as a behavior summary, but don't hard-reject (phrasing detection is too fuzzy for a clean regex; only the vague `"does stuff"`/`"helps with"` starts are hard-rejected).
-
-- Good (WHEN): `"Use when the user asks to triage, sort, or summarize their inbox."`
-- Weak (WHAT): `"Triages incoming email and summarizes urgent items."`
-- Bad (vague): `"Helps with mail."`
+**WHEN-not-WHAT check (advisory).** The description should read as a trigger condition ("when should the router pick this?"), not a behavior summary — a WHAT-phrased description competes with the skill body for attention. Nudge toward WHEN-phrasing, but don't hard-reject (only the vague `"does stuff"`/`"helps with"` starts are hard-rejected). Canonical rules live in `OC_KB_02` §description; the prompt below carries the Good/Weak/Bad triad.
 
 **Description breadth is a routing lever.** Widening `"when the user asks to delegate X"` to `"when the user asks for X"` makes the skilled path the default for that task shape — widen deliberately; too-broad triggers compete with other skills for the router's attention.
 
@@ -172,5 +168,3 @@ The skill exists with a valid skeleton. Continue with:
 - `/brainstorm` if you need to explore the workflow before writing it
 - Manual editing of the SKILL.md to fill in the 5 sections
 - `/audit-code` once the skill is filled in
-
-Future framework versions are likely to add `/gen-mcp-server` (scaffold an in-repo MCP server), `/audit-skills` (validate folder=name and frontmatter spelling across all skills), and `/audit-mcporter` (validate the registry shape and env-var resolution). See `FRAMEWORK_CHANGELOG.md` for status.

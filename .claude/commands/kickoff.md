@@ -328,101 +328,27 @@ After confirmation, write every file below.
 
 #### `CLAUDE.md`
 
-**Before writing:** Read the existing `CLAUDE.md`. If it contains an `## Environment` section with real values (populated by `/preflight`), copy those exact lines and place them in the new file directly under `# Project: [Agent Name]`, above `## Overview`. Do not overwrite or regenerate the Environment block — it belongs to preflight, not kickoff.
+**Do not write a fresh `CLAUDE.md` — edit the one already on disk.** It ships with the canonical framework structure, footer, and `[TODO]` markers. Read it, then replace each `[TODO]` in place from the discovery answers. Preserve every section you're not explicitly told to fill.
 
-Populate the rest of this structure with the project's specifics from the discovery session:
+**Leave these blocks exactly as they sit on disk — do NOT regenerate or re-type them:** `## Reference Documents`, `## Custom Commands`, `## KB Maintenance`, and `## DO NOT`. They're canonical framework content; re-typing them here is how they drift out of sync (this template used to carry its own copy of the DO NOT list and fell a trap behind). Fetch them from disk, never from this file.
 
-```markdown
-# Project: [Agent Name]
+**`## Environment`** belongs to `/preflight` — leave it untouched (already populated if preflight ran).
 
-[Preserved `## Environment` block from preflight goes here, if present]
+Fill each `[TODO]` from discovery:
 
-## Overview
-[1–2 sentences: what this agent does and for whom]
+| Section / marker | Fill from |
+|---|---|
+| `# Project: [TODO ...]` | The agent name |
+| `## Overview` | 1–2 sentences: what this agent does and for whom (Phase 1 + Phase 2) |
+| `## Tech Stack` — LLM line | Primary / fallback model ids (Phase 4 Q1) |
+| `## Tech Stack` — MCP + deploy `[TODO]`s | In-repo MCP servers, external MCP integrations, deploy story (Phase 4 Q3, Q6) |
+| `## Build Commands` — per-MCP-server `[TODO]` | Build command for each in-repo MCP server (delete the line if none) |
+| `## Roles` | Personas / capability clusters (Phase 2 Q4); if single capability, note that and skip |
+| `## Core Entities` | Main domain concepts the agent manages — concepts, not table names |
+| `## Current Phase` | `Phase 1 — [name] (Not Started)` |
+| `## Preferences` | Response style, autonomy level, trade-off preference, escalation rules, things to avoid, and the Glossary line (Phase 5) |
 
-## Tech Stack
-- Runtime: OpenClaw gateway (CLI: `openclaw`)
-- Agent format: markdown skills + bootstrap files
-- Tools: MCP via mcporter (`workspace/config/mcporter.json`)
-- LLM: Anthropic Claude — primary [model id], fallback [model id]
-- [Any in-repo MCP servers you'll build]
-- [External MCP integrations you'll use]
-- Deploy: [GitOps webhook+rsync to <runtime host> / manual / dev-only]
-
-## Build Commands
-- Gateway restart: `openclaw gateway restart`
-- Doctor / repair: `openclaw doctor --repair`
-- Session cleanup: `openclaw session cleanup`
-- Deploy (push to canonical): `git push origin main`
-- [Per-MCP-server build, if applicable: `cd workspace/mcp-servers/<name> && npm run build`]
-
-## Roles
-[Agent capabilities and personas — populated from Phase 2's persona answer. Skip if single capability.]
-
-## Core Entities
-[Main domain concepts the agent manages — not table names, just concepts]
-Examples:
-- **Tasks** — items in TASK-QUEUE.md the agent processes
-- **Threads** — conversation contexts the agent maintains
-
-## Reference Documents
-
-**Primary workflow** — `docs/MULTI_AGENT_WORKFLOW.md` is the canonical pattern for shipping any non-trivial chunk of work. PM context drives a phase loop; workers execute focused slices in their own sessions. Entry point: `/orchestrate`.
-
-**Project state** (populated during development) — see `/docs` folder:
-- `APP_CONCEPT.md`: Problem statement, users, use cases, success criteria
-- `SCOPE.md`: V1 scope, out-of-scope, known unknowns
-- `KB_1_Architecture.md`: Architecture decisions: skills, MCP integrations, model routing, deploy target
-- `KB_8_Current_State.md`: Current phase and active tracking
-- `CHANGELOG.md`: Running log of what was shipped and when — maintained by `/ship`
-- `LESSONS.md`: Running log of gotchas and hard-won lessons
-- `smoke-tests-pending.md`: **Single source of truth** for outstanding manual smoke tests with stable IDs.
-
-**OpenClaw stack-reference KBs** (vetted patterns — consult the index, then read only the relevant KB):
-- `docs/OpenClaw KBs/OC_KB_00_Index.md` — start here. Routes you to the right OC_KB for the task.
-
-## Current Phase
-Phase 1 — [Name TBD] (Not Started)
-
-## Patterns
-[Leave empty — patterns emerge during development and get documented here]
-
-## Preferences
-[Populate from Phase 5: response style, autonomy level, things to avoid, escalation rules]
-
-## Custom Commands
-All commands live in `.claude/commands/`.
-
-| Command | Purpose |
-|---------|---------|
-| `/preflight` | One-time per clone — captures agent + OS into CLAUDE.md |
-| `/kickoff` | Discovery session — greenfield agent projects |
-| `/adopt` | Discovery session — existing agent repos |
-| `/update-framework` | Pull canonical framework updates with per-file review |
-| `/orchestrate` | PM phase loop (see `docs/MULTI_AGENT_WORKFLOW.md`) |
-| `/audit-full` | Code + infrastructure audit in parallel |
-| `/brainstorm` | Deep research before committing to an approach |
-| `/plan` | Create implementation plan from investigation |
-| `/implement` | Execute a validated plan |
-| `/ship` | Update KBs, commit, push (deploy fires via webhook) |
-| `/audit-code` | Review code/plans for elegance and reuse |
-| `/audit-infra` | Infrastructure review — mcporter, env vars, deploy script |
-| `/gen-skill` | Scaffold a new SKILL.md with correct frontmatter and 5-section skeleton |
-| `/gen-test` | Generate tests following project patterns |
-| `/visualize` | Generate ASCII diagrams |
-
-## DO NOT
-- `mcporter.json` top-level key is `mcpServers`, not `servers` (silent failure)
-- `${ENV_VAR}` substitution reads `process.env`, not `.env` files (set in launchd plist)
-- Skill frontmatter: `user-invokable` not `user-invocable` (silent un-callable)
-- Skill folder name MUST match frontmatter `name` (silent invisibility to router)
-- Bootstrap files have a per-file character cap (default ~20K); long-running content silently truncates
-- Prompt cache config goes under PLURAL `models`, not singular `model` (silent cache disable)
-- Adding a new runtime-mutable path requires updating rsync excludes in `deploy/deploy.sh` (otherwise next deploy wipes it)
-
----
-*Built with [Insynq's Framework](https://github.com/Insynq/agent-blueprint) — a methodology-first project template for building OpenClaw agents with AI coding agents. Learn more at [insynqk.com](https://insynqk.com).*
-```
+Leave `## Patterns` empty — patterns emerge during development.
 
 ---
 

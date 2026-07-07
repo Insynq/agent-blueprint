@@ -111,7 +111,6 @@ Client          API         Database
 ### State Machine (`type=state-machine`)
 Shows all states an entity can be in and the transitions between them.
 Use when: modelling order status, user account lifecycle, modal open/close flow, async operation states.
-Format hint: nodes are states, edges are transitions with trigger labels (e.g., `submit → processing`, `error → idle`).
 
 ```
          submit
@@ -128,7 +127,6 @@ Format hint: nodes are states, edges are transitions with trigger labels (e.g., 
 ### User Journey (`type=journey`)
 Shows the steps a user takes through a flow, with the actor, action, and system response at each step.
 Use when: documenting onboarding flows, checkout sequences, or any multi-step user interaction.
-Format hint: columns are stages; rows can be User action / System response / Emotional state (optional).
 
 ```
 Stage:        1. Land          2. Sign Up        3. Onboard        4. First Action
@@ -141,7 +139,6 @@ Emotion:      Curious          Cautious          Focused           Satisfied
 ### Deployment Diagram (`type=deployment`)
 Shows infrastructure topology — services, where they run, and how they connect.
 Use when: documenting hosting setup, microservice relationships, CDN + origin + DB layout.
-Format hint: boxes are services/machines; lines are network connections with protocol labels (HTTP, WebSocket, SQL, etc.).
 
 ```
 ┌────────────────────────────────────────────────┐

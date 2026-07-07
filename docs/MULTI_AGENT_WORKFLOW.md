@@ -123,15 +123,7 @@ Phase 6 (PM reconciliation) is a gray zone — workers have been dispatched and 
 
 ### Phase 4: Initial worker dispatch (audit round)
 
-For each worker slice:
-
-1. PM creates `docs/plans/[phase-slug]/worker-N-[task-slug].md` with the [worker plan doc structure](#worker-plan-docs) below — task description, files involved, constraints, and stub sections for the worker to fill in.
-2. PM picks a [dispatch mode](#dispatch-modes): subagent (default) or separate window (escalation). For the audit round, almost always subagent.
-3. PM either:
-   - **Subagent dispatch:** spawns the worker via the Agent tool with a prompt that identifies Worker N, points to the plan doc, and asks for granular audit. PM tells the user *"dispatching Worker 2 as subagent for granular audit, will report when done."*
-   - **Separate-window dispatch:** drafts a fenced code-block prompt and outputs to user: *"Open Worker N tab, paste this prompt: ..."*
-
-If multiple workers can run in parallel (≤2 cap) and both are subagent-dispatched, PM spawns them in parallel via the Agent tool.
+For each worker slice, PM creates the [worker plan doc](#worker-plan-docs) (task, files, constraints + stub sections the worker fills in), then dispatches in a [chosen mode](#dispatch-modes) — subagent by default for the audit round, separate window only on escalation, capped at 2 in parallel. The dispatch mechanics — prompt templates, parallel spawning — live in `/orchestrate` Step 4.
 
 ### Phase 5: Worker granular audit
 
@@ -164,10 +156,7 @@ Each worker (subagent or separate-window):
 - Implements the changes
 - Edits the **same plan doc** to mark off completed items, log blockers hit, capture lessons learned
 
-**Reporting back depends on mode:**
-
-- **Subagent dispatch:** worker returns a single summary message to PM. PM reads the plan doc for full implementation log. If the subagent reports a blocker, PM may follow up by re-dispatching, escalating to separate-window, or fixing directly.
-- **Separate-window dispatch:** worker ends reply with `Worker N | [task] - Response to PM:` header. User pastes back.
+**Reporting back** follows the same mode split as Phase 5 (subagent returns a summary → PM reads the doc; separate-window worker ends with the `Worker N | [task] - Response to PM:` header). If a subagent reports a blocker, PM may follow up by re-dispatching, escalating to separate-window, or fixing directly.
 
 ### Phase 8: PM verification + integration
 

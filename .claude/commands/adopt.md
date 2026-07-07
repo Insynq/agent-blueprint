@@ -164,7 +164,7 @@ If git is unavailable (no `.git` directory or git command fails), skip this chec
 
 ### 1f. Global command shadow re-detection (warn — non-blocking)
 
-Glob `$HOME/.claude/commands/*.md`. For each match whose basename matches a framework command (`audit-code`, `audit-full`, `audit-infra`, `brainstorm`, `changelog`, `debug`, `gen-skill`, `gen-test`, `implement`, `investigate`, `kickoff`, `orchestrate`, `plan`, `plan-review`, `preflight`, `research`, `ship`, `unify`, `update-kb`, `visualize`, `adopt`, `update-framework`), warn:
+Glob `$HOME/.claude/commands/*.md`. For each match whose basename matches a framework command — any `.md` under this project's framework-managed `.claude/commands/` directory (the set declared in `.framework-manifest.json`; don't hardcode a roster, it drifts as commands are added) — warn:
 
 ```
 Found user-global command shadow(s) at ~/.claude/commands/:
@@ -363,49 +363,7 @@ Default skip. If [d]raft, build the draft below and show side-by-side. If [a]ppe
 
 If `KB_1_Architecture.md` is the framework template (mostly `[TODO]` markers), proceed straight to drafting.
 
-**Draft structure** (populated from Step 3's approved draft):
-
-```markdown
-# KB 1 — Architecture
-
-## Overview
-[TODO — confirm during /adopt]
-
-## Tech Stack
-- Runtime: OpenClaw gateway (CLI: `openclaw`)
-- Agent format: markdown skills + bootstrap files
-- Tools: MCP via mcporter
-- LLM: Anthropic Claude — primary [TODO confirm], fallback [TODO confirm]
-
-## Skills
-[Auto-derived from workspace/skills/. List each with description from frontmatter.]
-- `skill-name-here` — description (user-invokable: true)
-- ...
-
-## MCP Integrations
-[Auto-derived from workspace/config/mcporter.json. Classify each.]
-- `server-name` — stdio — in-repo
-- ...
-
-## Cron / Proactive Behavior
-[Scripts found at workspace/scripts/ — confirm which are cron-driven and what schedule]
-- `script-name.js` — [TODO confirm schedule + purpose]
-- ...
-
-## Notification Routing
-[TODO — confirm during /adopt; populate from workspace/NOTIFICATIONS.md if present]
-
-## Deploy & Infrastructure
-- Deploy: [GitOps webhook+rsync | manual | dev-only]
-- Required env vars (set in launchd plist EnvironmentVariables, NOT .env):
-  - [list from Step 3c]
-
-## Architecture Decisions
-[TODO — leave empty unless user surfaces decisions during /adopt]
-
-## Open Questions
-[TODO]
-```
+**Draft structure:** use the `docs/KB_1_Architecture.md` structure from `kickoff.md` Step 2 (the `#### docs/KB_1_Architecture.md` block) — same headings, same order. The difference is the fill source: populate from Step 3's approved auto-derived draft rather than kickoff discovery answers — Skills from `workspace/skills/` frontmatter, MCP Integrations from `mcporter.json`, Cron from `workspace/scripts/`, Deploy + required env vars from Step 3c/3e. Where a slot has no observable repo signal (Overview, model routing, notification routing, architecture decisions), leave a `[TODO — confirm during /adopt]` marker rather than inferring.
 
 Show the draft and ask:
 
@@ -938,66 +896,35 @@ After all sections are decided:
 
 ## Step 7 — Final Summary & Handoff
 
-Print a single summary that names the artifacts created and the recommended next steps.
-
-**If full mode:**
+Print one summary, then stop. Lines tagged `[full]` appear only in full mode; lines tagged `[min]` only in `--minimal` mode; untagged lines always appear. (Re-running /adopt is already refused up front at Step 1a — don't restate that here.)
 
 ```
-/adopt complete.
+/adopt[ --minimal] complete.
 
-Files written:
-  - CLAUDE.md (merged — backup at CLAUDE.md.pre-adopt-backup)
-  - docs/KB_1_Architecture.md (auto-derived draft, approved)
-  - docs/adopt-audit-YYYY-MM-DD.md (durable record of all decisions)
+[min] Verified:
+[min]   ✓ .framework-version present (v<version>)
+[min]   ✓ .claude/commands/ has N framework commands
+[min]   ✓ docs/OpenClaw KBs/ has the OC_KB collection
 
-KB triage:
-  - N kept | N updated | N archived | N merged | N skipped
+Written / updated:
+  - CLAUDE.md — [full] merged section-by-section [min] Reference Documents + Custom Commands + DO NOT inserted, your other content preserved
+                (backup at CLAUDE.md.pre-adopt-backup)
+[full]   - docs/KB_1_Architecture.md (auto-derived draft, approved)
+[full]   - docs/adopt-audit-YYYY-MM-DD.md (durable record of all decisions)
 
-Silent-failure traps surfaced:
-  - <list, or "none">
+[full] KB triage: N kept | N updated | N archived | N merged | N skipped
+[full] Silent-failure traps surfaced: <list, or "none">
+[min] Skipped (--minimal): KB_1 draft + existing-KB audit (run /adopt without --minimal to populate)
 
 Cleanup:
-  - Removed CLAUDE.md.framework (no longer needed; installer's sibling file)
+  - Removed CLAUDE.md.framework (installer's sibling file; no longer needed)
 
 Recommended next steps:
-  1. Review CLAUDE.md and KB_1_Architecture — correct anything that
-     doesn't feel right.
-  2. If silent-failure traps were surfaced, fix them now (folder/name
-     mismatches, user-invokable typos, mcpServers/servers wrong key).
-  3. If you skipped APP_CONCEPT.md / SCOPE.md, fill them in when ready
-     (kickoff-style discovery, ~10 minutes each).
-  4. Run /preflight in a fresh session if you haven't already (writes the
-     ## Environment block to CLAUDE.md).
-  5. /brainstorm or /plan when you're ready to start your next feature.
-
-Re-running /adopt:
-  V1 doesn't support re-running /adopt on an already-adopted project. If
-  the framework releases a new version with structural changes, /update-framework
-  (separate command) handles that.
-```
-
-**If `--minimal` mode:**
-
-```
-/adopt --minimal complete.
-
-Verified:
-  ✓ .framework-version present (v<version>)
-  ✓ .claude/commands/ has N framework commands
-  ✓ docs/OpenClaw KBs/ has the OC_KB collection
-
-Updated:
-  ✓ CLAUDE.md — inserted Reference Documents + Custom Commands + DO NOT sections
-                (your other content preserved; backup at CLAUDE.md.pre-adopt-backup)
-
-Skipped (--minimal):
-  - KB_1 draft (run /adopt without --minimal to populate)
-  - Existing-KB audit (run /adopt without --minimal or audit manually)
-
-Cleanup:
-  - Removed CLAUDE.md.framework (no longer needed)
-
-Run /preflight if you haven't already (Environment block missing in CLAUDE.md).
+[full]   - Review CLAUDE.md and KB_1_Architecture — correct anything that doesn't feel right.
+[full]   - If silent-failure traps were surfaced, fix them now (folder/name mismatches, user-invokable typos, mcpServers/servers wrong key).
+[full]   - If you skipped APP_CONCEPT.md / SCOPE.md, fill them in when ready (kickoff-style discovery, ~10 min each).
+  - Run /preflight in a fresh session if you haven't already (writes the ## Environment block to CLAUDE.md).
+[full]   - /brainstorm or /plan when you're ready to start your next feature.
 ```
 
 Then stop. Don't proceed into `/kickoff` or any other command — those are separate user-initiated commands.

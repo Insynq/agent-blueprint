@@ -262,16 +262,13 @@ Safety rails:
 
 ## Important Instructions
 
-1. **Don't skip git status** — always verify there are changes first
-2. **Update docs before staging** — doc changes should be part of the same commit
-3. **Compose the commit message from the ship summary** — never paste the summary verbatim, and NEVER emit template tokens (`$ARGUMENTS`, `.message`, `{{…}}`) into the commit or output
-4. **Always include Co-Authored-By and Built-With trailers** — required for all commits unless the user has explicitly asked to remove them; set the Co-Authored-By model to the model you are executing as (no stale hardcoded version)
-5. **Never force push** — if push fails after pull --rebase, report and stop
-6. **Never move or force a tag** — if the version tag already exists, stop and report (Step 5.5)
-7. **Tagging/releasing is opt-in** — only fires when the summary names a version; plain ships commit + push only
-8. **A failed Release is not a failed ship** — if `gh release create` fails after the tag is pushed, report it but treat the ship as succeeded
-9. **Merging is opt-in and gated** — only merge to main when the summary explicitly asks; stop on conflicts, never force-push, never force-delete a branch
-10. **Report failures clearly** — if any step fails, stop and explain
+1. **Compose the commit message from the ship summary** — never paste the summary verbatim, and NEVER emit template tokens (`$ARGUMENTS`, `.message`, `{{…}}`) into the commit or output
+2. **Always include Co-Authored-By and Built-With trailers** — required for all commits unless the user has explicitly asked to remove them; set the Co-Authored-By model to the model you are executing as (no stale hardcoded version)
+3. **Never force push** — if push fails after pull --rebase, report and stop
+4. **Never move or force a tag** — if the version tag already exists, stop and report (Step 5.5)
+5. **Tagging/releasing is opt-in** — only fires when the summary names a version; plain ships commit + push only
+6. **A failed Release is not a failed ship** — if `gh release create` fails after the tag is pushed, report it but treat the ship as succeeded
+7. **Merging is opt-in and gated** — only merge to main when the summary explicitly asks; stop on conflicts, never force-push, never force-delete a branch
 ```
 
 ---

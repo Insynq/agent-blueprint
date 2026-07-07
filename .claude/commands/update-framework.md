@@ -184,7 +184,7 @@ If user says no, exit cleanly. If git is unavailable (no `.git` directory or `gi
 
 ### 1g. User-global command shadow re-detection (warn — non-blocking)
 
-Glob `$HOME/.claude/commands/*.md`. For each match whose basename matches a framework command (`audit-code`, `audit-full`, `audit-infra`, `brainstorm`, `changelog`, `debug`, `gen-skill`, `gen-test`, `implement`, `investigate`, `kickoff`, `orchestrate`, `plan`, `plan-review`, `preflight`, `research`, `ship`, `unify`, `update-kb`, `visualize`, `adopt`, `update-framework`), warn:
+Glob `$HOME/.claude/commands/*.md`. For each match whose basename matches a framework command — any `.md` under this project's framework-managed `.claude/commands/` directory (the set declared in `.framework-manifest.json`; don't hardcode a roster, it drifts as commands are added) — warn:
 
 ```
 Found user-global command shadow(s) at ~/.claude/commands/:
@@ -346,7 +346,7 @@ If we're in resume mode (`.framework-update-staging/canonical-install/` already 
 
 1. Fetch `https://api.github.com/repos/<owner>/<repo>/releases/tags/v<install-version>`. If 200, extract `tarball_url`.
 
-2. Download the tarball with retry (3x exponential backoff, 1s/3s/9s):
+2. Download the tarball into staging (same fetch discipline as Step 2 — 3× retry with 1s/3s/9s backoff, surface-and-exit on final failure):
    ```
    curl -sS -L \
      ${GITHUB_TOKEN:+-H "Authorization: Bearer $GITHUB_TOKEN"} \
@@ -605,7 +605,7 @@ Target-version tarball SHA256:  <fresh>
 
 🟥 FILES YOU CUSTOMIZED — M files (require your decision)
    CLAUDE.md                 — 23 lines diff (you), 14 lines diff (canonical)
-   docs/KB_7_UI_Patterns.md  — 6 lines diff (you), 4 lines diff (canonical)
+   docs/KB_1_Architecture.md — 6 lines diff (you), 4 lines diff (canonical)
    .claude/settings.json     — 8 lines diff (you), 0 lines diff (canonical)
 
 🟡 NEW FROM CANONICAL — K files (added in target version)

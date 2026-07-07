@@ -39,10 +39,9 @@ If no phase specified:
 - Architecture decisions were made
 - New services or integrations were added
 
-**Update `docs/KB_7_UI_Patterns.md` if:**
-- New UI patterns were established
-- Component conventions were documented
-- Design decisions were recorded
+**Update the project-defined KBs (`docs/KB_2`–`KB_7`, if populated) if:**
+- New patterns or conventions were established in their domain (skills, MCP servers, integrations, etc.)
+- Domain-specific decisions were recorded
 
 ### Step 3: KB Maintenance Rules
 

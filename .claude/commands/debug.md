@@ -48,13 +48,7 @@ You will be tempted to talk yourself out of the diagnostic. Each excuse below ha
 Read `CLAUDE.md` and `docs/LESSONS.md` (if it exists). Extract:
 - Agent shape and runtime (typically OpenClaw gateway + bootstrap files + on-demand skills + MCP via mcporter)
 - Established patterns for the area being debugged
-- Any known gotchas in LESSONS.md that match the symptom category — particularly the canonical silent-failure traps:
-  - `mcporter.json` top-level key is `mcpServers`, not `servers`
-  - Skill folder name MUST equal frontmatter `name`
-  - Skill frontmatter spelling: `user-invokable` not `user-invocable`
-  - `${ENV_VAR}` substitution reads `process.env`, not `.env` files
-  - Bootstrap files have a per-file character cap; long-running content silently truncates
-  - Prompt cache config goes under PLURAL `models`, not singular `model`
+- Any known gotchas in LESSONS.md that match the symptom category, and the canonical silent-failure traps in CLAUDE.md's DO NOT section (read above) — each parses cleanly and fails silently, so match the symptom against them first.
 
 ## Step 1: Characterize the Symptom
 

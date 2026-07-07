@@ -89,8 +89,8 @@ Each step should be:
 ### Affected Files
 | File | Change Type | Description |
 |------|-------------|-------------|
-| src/hooks/useX.ts | Modify | Add parameter |
-| src/components/X.tsx | Modify | Pass new prop |
+| workspace/skills/x/SKILL.md | Modify | Add trigger condition |
+| workspace/scripts/y.js | Modify | Pass new argument |
 
 ### Implementation Steps
 

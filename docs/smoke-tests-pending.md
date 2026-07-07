@@ -4,7 +4,21 @@ Tests that shipped code requires before it can be considered verified. Each entr
 
 This is the single source of truth for outstanding manual verification work. Don't re-list these tests in commits, PR bodies, `CLAUDE.md`, chat threads, or release notes — link to test IDs instead (e.g., "see `PW-H1` in `docs/smoke-tests-pending.md`").
 
-> **Status: 12 pending tests** (sections `T3V`, `WG`). Ship-readiness for the T3 goal-mode video intake and the wargame-planning intake is gated on these — each behavioral claim ships `Installed, not yet proven in a live run` and its flag clears only on an observed live firing.
+> **Status: 13 pending tests** (sections `SA`, `T3V`, `WG`). Ship-readiness for the skill-audit cleanup, the T3 goal-mode video intake, and the wargame-planning intake is gated on these — each behavioral claim ships `Installed, not yet proven in a live run` and its flag clears only on an observed live firing.
+
+---
+
+## Skill-audit cleanup
+
+**Source:** [CHANGELOG.md](CHANGELOG.md) v0.6.3 (release 2026-07-07). The one behavior-adjacent change in an otherwise doc-only cleanup: the `/kickoff` CLAUDE.md fill-don't-regenerate rewrite (drift-vector closure).
+
+### SA-1 — Fresh `/kickoff` fills CLAUDE.md `[TODO]`s in place, does not regenerate guardrail blocks
+
+| | |
+|---|---|
+| **Status** | Pending |
+
+A fresh `/kickoff` run fills the on-disk `CLAUDE.md` `[TODO]`s in place and does NOT regenerate the DO NOT / Custom Commands / Reference Documents blocks (drift-vector closure, v0.6.3).
 
 ---
 

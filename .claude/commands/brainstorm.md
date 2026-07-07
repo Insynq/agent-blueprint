@@ -71,23 +71,17 @@ Search for anything related to this topic:
 - Deploy and runtime config in `deploy/` (webhook receiver, rsync excludes, plist template)
 
 ### 2. Map Existing Patterns
-For each related file found:
-- Read it and understand the approach used
-- Note the pattern (state management, data flow, UI structure)
-- Identify what could be reused vs what would need new code
+For each related file: read it, note the pattern (data flow, skill/tool structure, state handling), and identify what's reusable vs. net-new.
 
 ### 3. Identify Constraints
 - What auth/access controls affect this area?
 - What role hierarchy applies (if any)?
 - What feature flags or tier gates apply (if any)?
 - What existing contracts (MCP tool shapes, skill frontmatter, scheduled cron behavior, deploy script excludes) can't change?
-- What parent components render the affected areas?
+- What invokes the affected skills/scripts (router triggers, cron schedules, calling skills)?
 
 ### 4. Find Similar Implementations
-Search for features that solved a similar problem:
-- How was the closest analogy implemented?
-- What patterns did it establish?
-- What worked well? What was awkward?
+Find the closest analogous feature: how was it implemented, what patterns did it establish, what worked and what was awkward?
 
 ### 5. Check for Blockers
 - Are there missing DB tables or columns needed?
@@ -218,19 +212,13 @@ When any option introduces or modifies a contract that other parts of the agent 
 
 ## Important Instructions
 
-1. **Research FIRST, options SECOND** — Never generate options before Phase 1 completes
-2. **Lead with the recommendation** — Don't make the user read everything to find the answer
-3. **Be specific** — "Modify useOrders.ts" not "create a hook"
-4. **Reference real files** — Every option must cite actual codebase files
-5. **Include ASCII mockups** for any option with UI changes
-6. **Keep each option to 1 paragraph + metadata** — No multi-paragraph descriptions
-7. **UX impact is required** — Every option must state how it affects the end user
-8. **Acknowledge project docs** — If a KB or doc already has a plan for this, reference it
-9. **Don't over-option** — If there's really only one good approach, say so (2 options minimum still)
-10. **Flag if already exists** — If the feature is already built, say so immediately
-11. **Don't implement** — Research and synthesize only
-12. **Audit explicit selects** — When adding DB columns, find all queries that need updating
-13. **Earned vs. assumed scope-out** — For any option that says "builds on existing X" or treats a foundation as given, verify X actually behaves the way the option assumes. If you couldn't verify it, flag the option as depending on an unverified foundation rather than recommending it as solid ground. "I couldn't find evidence it's broken" is not the same as "I confirmed it works." See `docs/LESSONS.md` `[PROCESS-1]`.
+1. **Reference real files** — Every option must cite actual codebase files
+2. **Acknowledge project docs** — If a KB or doc already has a plan for this, reference it
+3. **Don't over-option** — If there's really only one good approach, say so (2 options minimum still)
+4. **Flag if already exists** — If the feature is already built, say so immediately
+5. **Don't implement** — Research and synthesize only
+6. **Audit explicit selects** — When adding DB columns, find all queries that need updating
+7. **Earned vs. assumed scope-out** — For any option that says "builds on existing X" or treats a foundation as given, verify X actually behaves the way the option assumes. If you couldn't verify it, flag the option as depending on an unverified foundation rather than recommending it as solid ground. "I couldn't find evidence it's broken" is not the same as "I confirmed it works." See `docs/LESSONS.md` `[PROCESS-1]`.
 ```
 
 ---
