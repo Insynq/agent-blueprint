@@ -100,7 +100,7 @@ Pseudocode:
     surface_to_user("write may have partially committed")
 ```
 
-The check is on **invariants that should be true after the write**, not byte-equality. Some fields will differ (timestamps, server-assigned IDs); the invariant is that the user-visible content the agent meant to write is now actually there.
+The check is on **invariants that should be true after the write**, not byte-equality. Some fields will differ (timestamps, server-assigned IDs); the invariant is that the user-visible content the agent meant to write is now actually there. Read-back scope explicitly includes the **side-effect rows** a write is supposed to *also* emit — the audit / log / provenance record, not just the primary row: a primary write that succeeds while its audit row silently drops is the Primitive 9 failure, and reading back only the primary misses it.
 
 ### 4. Confidence scoring
 
@@ -186,6 +186,25 @@ Anonymized example:
 
 The bad version is plausible-sounding noise that wastes the user's time. The good version surfaces the actual missing capability — usually a config gap (env var, plist entry, MCP server registration) the user can fix in a minute.
 
+**Sharpen — a "blocked" / "skipped" / "unavailable" verdict is a capability claim too, held to the same bar.** The primitive is symmetric: before you *report or persist* that a lane is blocked, execute-verify every candidate your **own** probes already surfaced — open the file, run `--help`, invoke the smallest call. The set to try is bounded and self-defining: it is your own search hits, not an open-ended hunt. An MCP-auth banner (`needsAuthMcpServers`, "unauthorized") rules out only *that one MCP path* — never the capability, which may have a working CLI or script sitting in the same grep. And do **not** treat runbook- or skill-named tools as ground truth: in the incident below the in-repo prose pointed at a dead MCP while the grep surfaced the live tool, and the agent believed the prose. Verify by attempt, not by banner, prose, or assumption — and make the negative claim evidence-carrying: name the exact commands attempted and their verbatim errors (the negative twin of "state the counts you read").
+
+```text
+Blocked-side example (real incident):
+
+  Task: pull settlement emails. Harness banner: "claude.ai Gmail — unauthorized."
+  In-repo prose: a SKILL says "pull-via-MCP"; a parser header says "via the Gmail MCP".
+
+  Bad: digest declares Gmail "blocked", persists blocked=true to a durable row,
+       skips the reconcile step predicated on the lane, recommends the forbidden
+       connector as the only fix. (The agent's own grep had surfaced
+       gmail-attachment.js — a working CLI whose usage header documents `search` —
+       as a top hit; it discounted the hit WITHOUT opening the file.)
+
+  Good: before writing "blocked", open gmail-attachment.js / run its --help.
+        The banner rules out the MCP path only; the CLI path works. No blockage —
+        and the reconcile step that depended on the lane still runs.
+```
+
 ### 9. Fail loud or fail closed — never fail silent-open
 
 Primitives 1–8 govern the *deliberate* write path — they assume a write either commits or visibly halts. Primitive 9 governs the *error* path. When a write to a system of record **can fail**, its failure handler must **fail loud** (re-surface the error into the run's own summary as a non-zero failure count) or **fail closed** (abort the protected operation) — never **fail silent-open** (log a Warning and continue as if nothing happened). A broad `catch → log → continue` inverts the intent of the write: a guard meant to *protect* rows skips protecting them; a sync meant to *persist* an audit row drops it — every run, with no surfaced signal, while the surrounding run still reports success.
@@ -205,7 +224,9 @@ Fix — scope the catch to the SPECIFIC expected error; surface everything else:
   }
 ```
 
-Two failure shapes, one rule. A **fail-silent** trap drops the write and a green digest lies. A **fail-open** trap — a catch broad enough to swallow a *transient* error (a 500 / network blip), not just the one expected condition — silently skips the protected operation on a fluke. Both are defeated the same way: scope the catch to the specific expected condition, and make every other path either counted in the run summary or fatal. The test: **the digest must not be able to assert a success the write never achieved.** This is the write-path sibling of the orchestration-path rule in `docs/LESSONS.md` `[PROCESS-3]` ("log the drop, don't let it pass silently") and the authoring-side complement of the `[PROCESS-1]` runtime corollary (which tells the *reviewer* not to trust that green digest).
+Two failure shapes, one rule. A **fail-silent** trap drops the write and a green digest lies. A **fail-open** trap — a catch broad enough to swallow a *transient* error (a 500 / network blip), not just the one expected condition — silently skips the protected operation on a fluke. Both are defeated the same way: scope the catch to the specific expected condition, and make every other path either counted in the run summary or fatal. The test: **the digest (or any persisted status) must not be able to assert a success the write never achieved — nor a blockage no attempt verified.** This is the write-path sibling of the orchestration-path rule in `docs/LESSONS.md` `[PROCESS-3]` ("log the drop, don't let it pass silently") and the authoring-side complement of the `[PROCESS-1]` runtime corollary (which tells the *reviewer* not to trust that green digest).
+
+**Field closure (2026-07-02):** the "real incident" this primitive was authored from (2026-06-26) is fixed downstream — the column the audit writer expected was migrated and prod-verified, and the audit row wrote for the first time since the drop began (6/25). Field-attested end to end: the drop itself was surfaced only by the `[PROCESS-1]` Corollary 2 adversarial re-verification against the raw tool-results, never by the run's own green digest — which is exactly the reviewer/authoring pairing this primitive names.
 
 ## Composition: which primitives stack
 
@@ -237,7 +258,11 @@ The point of stacking is that confidence scoring catches some failures, sanity g
 
 - **Undo primitive only documented for the happy path.** The inverse is named for the success case; the partial-success case (write committed half-way) is undocumented. → fix: think through partial-success modes in the skill's Important Rules section; name the inverse for each.
 
+- **Declaring a lane "blocked" on a banner or a stale runbook, without attempting it.** An MCP-auth banner (or in-repo prose naming a dead tool) gets read as the *capability* being unavailable; the agent persists a false "blocked" and skips the downstream steps that depended on the lane — even though its own grep surfaced a working CLI it never opened. → fix: Primitive 8's blocked-side — before reporting or persisting blocked/skipped, execute-verify every candidate your own probes surfaced (open the file, run `--help`); the banner rules out one MCP path, never the capability. Enumerate the exact commands attempted + verbatim errors so "blocked" carries evidence.
+
 - **Fail-silent-open error trap.** A write wrapped in a broad `catch → log Warning → continue`: the write silently no-ops while the run reports success (a green "N done, 0 errors" digest sitting over a swallowed failure), or a *transient* blip trips the same broad catch and skips a guard's protection for that run. → fix: Primitive 9 — scope the catch to the *specific* expected error; make every other path fail-loud (counted in the run summary) or fail-closed (aborts). The digest must not be able to assert a success the write never achieved.
+
+- **Semantic defaults on attribution/financial columns.** A column `DEFAULT` — or a view's `COALESCE(...)` fallback — set to a *business-rule value* instead of an inert one silently stamps its assertion on every row whose writer omitted the field. This is a two-headed trap: the write-side `DEFAULT` and the read-side `COALESCE` each assert the same business rule and can be introduced (or dropped) independently, so fixing one head leaves the other live. → fix: defaults and `COALESCE` fallbacks on attribution/financial columns must be inert (`NULL` / `0` / `'unknown'`), never a business meaning — force the omission to be visible so a real value has to be supplied, and audit both heads together. (Real incident: a `parsons_split_pct DEFAULT 75` plus a view `COALESCE(..., 75)` put ~$97,156 of mis-credit at risk across 13 settlements; hardening migration `20260625000001` (2026-06-25) dropped both heads, and the ruling session cleared the flags 2026-07-03.)
 
 ## Diagnosing "the agent did the wrong thing"
 

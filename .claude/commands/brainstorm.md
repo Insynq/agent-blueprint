@@ -202,6 +202,10 @@ Distill findings into the concise format below.
 ### When to pick a different option
 - Pick [B] if: [specific scenario]
 - Pick [C] if: [specific scenario]
+
+---
+
+> **Scope note:** Answering these decisions resolves the design; it does not by itself authorize implementation or deploy — scope graduation is a separate explicit confirmation.
 ```
 
 ## Phase 4: Cross-Cutting Audit

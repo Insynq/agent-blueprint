@@ -128,6 +128,8 @@ The hierarchy is per-field, not global. `vendor.name` and `due_date` may have di
 
 **Key property:** when the agent picks source A over source B, the decision log row contains the alternative that lost. Future-you can audit "we picked A; was that right?" — the alternative is right there.
 
+**Field-proven (real incident):** on 2026-07-02 a user quoted rates from memory; the agent overwrote the canonical rate table to match; the user reversed it — *"We have a table for this… I probably told you the wrong amounts. Return the table back."* The rate table (system of record) outranks both user-curated memory and the user message for this field, and the user-message loss is exactly the case the hierarchy says to surface. This is the documented mechanism firing in production — not a new rule.
+
 ## Audit trail conventions
 
 Where do all these logs land, and how are they queried?
@@ -142,6 +144,8 @@ Where do all these logs land, and how are they queried?
 **Indexing:** for small projects, `grep` over NDJSON is enough. For larger, schedule a deterministic cron that ingests the NDJSON into a queryable store (DuckDB file, SQLite, etc.). Either way, the **canonical** form is the NDJSON; the indexed form is derived.
 
 **Retention:** decisions for at least one full audit cycle (often 90 days, sometimes longer for regulated domains). Document the retention policy in `KB_1_Architecture.md` and enforce via a deterministic cron that prunes old rows.
+
+**Timestamp source:** audit and status timestamps (`executed_at`, `approved_at`, `resolved_at`, and the like) come from `now()` or a column `DEFAULT` — never a hand-typed literal. A typed literal parses fine and silently corrupts event ordering across timezones: the agent's local sense of "today" is not the DB clock. (Real incident: a kai session on 2026-07-04 UTC — the evening of 07-03 local — wrote `executed_at: "2026-07-03T00:00:00Z"` onto flags whose `first_detected_at` was `2026-07-04T02:13Z`, inverting the true event order. The typed midnight literal, not the database clock, produced the inversion.)
 
 ## Anti-patterns
 

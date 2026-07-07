@@ -62,8 +62,9 @@
 - Spec docs: Live in `/docs/` with `*-spec.md` naming (e.g., `docs/feature-name-spec.md`). Created by `/brainstorm` or `/unify` output, consumed by `/plan-review` and `/implement`.
 - Agent-improvement spec template: `_dev/agent-improvement-spec-template.md` is the structural skeleton for non-trivial agent-improvement initiatives. Section 5 (Capability Fixes) is organized by the `OC_KB_10` capability layers; Section 6 (Capability Enhancements) is organized by the `OC_KB_11–14` enhancement axes.
 - PM owns architectural decisions before worker dispatch (Phases 1–3 of `/orchestrate`). Workers receive locked plans, not forks. See `docs/MULTI_AGENT_WORKFLOW.md` → PM Pre-Dispatch Responsibilities.
-- Spec docs become implementable once `/plan-review` writes a `Status: LOCKED YYYY-MM-DD` header. Drafts without the header are exploratory only — `/orchestrate` Phase 6 and `/implement` use the header to decide whether to dispatch workers.
+- Spec docs become implementable once `/plan-review` writes a `Status: LOCKED YYYY-MM-DD` header. Drafts without the header are exploratory only — `/orchestrate` Phase 6 and `/implement` use the header to decide whether to dispatch workers. LOCKED certifies design completeness / dispatch-readiness, NOT user authorization to deploy — deploy stays gated at the Phase 9/10 checkpoints.
 - Spec docs and `KB_1_Architecture.md` record architectural decisions in `Decision | Choice | Reasoning | Date` table format (per `_dev/agent-improvement-spec-template.md` §1).
+- Scope graduation is separate authorization from design sign-off. A brief that declares design-only scope ("build nothing yet") is NOT upgraded to build+deploy authority by the user answering the design's open decisions — even build-scope ones. Before the first prod-mutating action (migration, prod write, push to a deploying branch), ask one explicit line ("Design ratified — proceed to build + deploy now?") and wait; announcing "proceeding to build" is not asking. Beware ratifying your own presupposition: if the phrase implying a built artifact originated in your question, the user's echo is not deploy authorization.
 
 ## Preferences
 [TODO — populate during /kickoff with working style and communication preferences]
@@ -129,5 +130,6 @@ The following are canonical OpenClaw silent-failure traps. Each one parses as va
 - Bootstrap files have a per-file character cap (default ~20K, `bootstrapMaxChars` in `~/.openclaw/openclaw.json`). Long-running content silently truncates when it outgrows the cap.
 - Prompt cache config goes under PLURAL `models`, NOT singular `model`. Singular `model` is the routing config; cache misplaced there silently disables caching.
 - Adding a new runtime-mutable path (where the agent writes at runtime) requires updating the rsync excludes in `deploy/deploy.sh` BEFORE next deploy. Otherwise `rsync --delete` wipes the path.
+- Memory/bootstrap files hold durable rules and query paths, NOT copies of system-of-record facts. A duplicated fact parses fine, then silently diverges from the source — the agent then defends the stale copy against the live system. Store the rule and the query path; fetch the facts fresh.
 
 [TODO — add additional project-specific hard constraints during development]

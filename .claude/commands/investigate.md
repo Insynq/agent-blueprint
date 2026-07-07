@@ -120,6 +120,8 @@ Before recommending new code:
 
 ### Recommended Fix/Approach
 [Specific change needed — file and line if known]
+
+> **Scope note:** Answering any open decisions here resolves the design; it does not by itself authorize implementation or deploy — scope graduation is a separate explicit confirmation.
 ```
 
 ## Red Flags to Report

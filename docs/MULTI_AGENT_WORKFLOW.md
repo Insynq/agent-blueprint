@@ -145,7 +145,7 @@ Each worker (subagent or separate-window):
 - For each worker plan doc, PM **edits the doc directly** with annotations: key decisions, reasoning, scope adjustments, integration constraints. The annotation lives at the top of the relevant section, prefixed `**PM annotation:**`.
 - For each worker, PM picks the implementation [dispatch mode](#dispatch-modes): subagent if the spec is clear and self-contained, separate-window if iterative debugging or live steering is expected.
 
-**Lockdown convention.** Worker plan docs that descend from a spec carrying the `> **Status: LOCKED YYYY-MM-DD**` header (written by `/plan-review` Step 6) are clear to dispatch into Phase 7 implementation. Specs without the LOCKED header are exploratory only — do not dispatch implementation workers against them.
+**Lockdown convention.** Worker plan docs that descend from a spec carrying the `> **Status: LOCKED YYYY-MM-DD**` header (written by `/plan-review` Step 6) are clear to dispatch into Phase 7 implementation. Specs without the LOCKED header are exploratory only — do not dispatch implementation workers against them. LOCKED certifies design completeness and dispatch-readiness, not authorization to deploy — deploy stays gated at Phase 9 (smoke pause) and Phase 10 (ship approval).
 
 ### Phase 7: Worker implementation
 
