@@ -21,13 +21,13 @@ For per-file detail, open the OC_KB. This file does **not** repeat each KB's con
 | `OC_KB_02_Skills.md` | SKILL.md format, frontmatter, 5-section convention, name=folder rule | Runtime-required |
 | `OC_KB_03_MCP_Tools.md` | mcporter.json schema, stdio + HTTP entries, ${ENV_VAR} resolution, in-repo MCP server skeleton | Runtime-required |
 | `OC_KB_04_Bootstrap_Files.md` | Purpose of the 9 bootstrap docs, character cap, cross-reference patterns | Runtime-required |
-| `OC_KB_05_Models_and_Prompts.md` | Routing config (singular `model`), cache config (PLURAL `models`), per-cron keys | Runtime-required |
+| `OC_KB_05_Models_and_Prompts.md` | Routing config (singular `model`), cache config (PLURAL `models`), per-cron keys, tier-role executor briefs | Runtime-required |
 | `OC_KB_06_Cron_and_Scripts.md` | `openclaw cron` ops, deterministic vs LLM-driven crons, JSON-stdout convention | Runtime-required |
 | `OC_KB_07_Deploy_and_Ops.md` | GitOps webhook+rsync, plist EnvironmentVariables, gateway restart / doctor / session cleanup | Runtime-required |
 | `OC_KB_08_Observability.md` | Log locations, JSON-stdout convention, session transcript replay, cost via Anthropic Console | Runtime-required |
 | `OC_KB_09_Evals.md` | **Aspirational** — golden-trace replay + diff-based regression. Framework gap; recommended pattern. | Aspirational |
 | `OC_KB_10_Capability_Layers.md` | Five-layer diagnostic taxonomy (Perception, Extraction, Reasoning, Action, Data) for organizing skills and localizing failures | Convention |
-| `OC_KB_11_Safety_Primitives.md` | Defensive write patterns: dry-run, sanity gate, round-trip verify, confidence scoring, undo, capability self-assessment | Convention |
+| `OC_KB_11_Safety_Primitives.md` | Defensive write patterns: dry-run, sanity gate, round-trip verify, confidence scoring, undo, capability self-assessment, BLOCKED-never-invent gate | Convention |
 | `OC_KB_12_Trust_and_Provenance.md` | Decision log, rationale storage, provenance flags, reconciliation hierarchy, audit trail conventions | Convention |
 | `OC_KB_13_Self_Improvement_Loops.md` | **Aspirational** — correction memory, telemetry, edge-case library, self-retro, deviation reporting, template evolution | Aspirational |
 | `OC_KB_14_Operational_Excellence.md` | SLOs per skill, canary, cost visibility, dashboards, rollback paths | Convention |

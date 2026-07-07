@@ -41,6 +41,30 @@ Per-cron and per-skill overrides also go in this config — see the OpenClaw run
 
 **Anti-pattern:** blanket "never use model X" rules are lineup-and-pricing snapshots that rot each release — express routing as capability tiers, never named exclusions.
 
+## Executor briefs by tier role
+
+When a plan will be executed "blind" — handed to an executor that runs it end-to-end without stopping to ask — brief for that tier's failure profile, not for a generic "smart assistant." Executor reliability is tier-specific in citable ways. The durable guidance below is keyed to **tier role** (who authors the plan vs who runs it), never to a named model — same discipline as the routing anti-pattern above. Named-model specifics decay each release and live only in the dated exhibit; keep no `[VERSIONED]` detail in the principles.
+
+**Executor-tier briefing guards (durable).**
+- State every prohibition with EXPLICIT SCOPE. The executor tier neither generalizes a broad principle on its own (Anthropic Sonnet 5 prompting guide) nor reliably honors narrow literal wording it can game (Sonnet 5 card p.72) — neither vague-broad nor literal-narrow is safe, so bound the scope yourself.
+- Never trust self-reported completion. Require independent, structured checkpoints — an observed artifact, not a parse of the executor's own chain-of-thought. Define "done" as a verified observation plus its named verification source.
+- Avoid grading-flavored framing. Rubric/scoring cues make the tier speculate about the grader (Opus 4.8 card p.128) and "only report high-severity"-style framing suppresses real findings (Anthropic Opus 4.8 prompting guide) — doubly grounded. Ask for coverage first, filter second.
+- Distinguish push-through from halt explicitly, and budget turns/effort generously (effort defaults are `[VERSIONED]` — see exhibit).
+
+**Planner-tier authoring guards (durable).**
+- Forbid "verified"/"done" language absent a cited artifact; audit each claim against a tool result — "Only report work you can point to evidence for" (Anthropic Fable 5 prompting guide).
+- Missing context is FLAGGED, never filled (see `OC_KB_11` Primitive 5, the BLOCKED corollary); abort/branch triggers must be external and countable, not felt-state; derive each branch fresh to avoid anchoring on the first.
+- Prefer a FRESH-CONTEXT VERIFIER role over self-critique — a subagent that never saw the work beats the author grading their own (Anthropic Fable 5 prompting guide).
+
+### Exhibit — named-model specifics (spot-verified 2026-07-07 (15/15 load-bearing cites); decays with releases)
+
+| Model | Guard | System-card cite |
+|---|---|---|
+| Sonnet 5 | Spends extra turns vs Opus-class work; chain-of-thought is often illegible. | p.133-134; p.83-84 |
+| Opus 4.8 | Privileges an inferred top-level goal over local constraints — state constraint priority explicitly in the brief. | p.89 |
+| Fable 5 (as planner) | Fabricates when context is missing rather than flagging; internal-"fatigue" truncation on long runs. | p.146; p.170-171 |
+| (all) | Per-model effort/thinking defaults are `[VERSIONED]` — exhibit-only; confirm against the official per-model prompting guides before relying. | — |
+
 ## Cache config (PLURAL `models`)
 
 ```json

@@ -4,7 +4,7 @@ Tests that shipped code requires before it can be considered verified. Each entr
 
 This is the single source of truth for outstanding manual verification work. Don't re-list these tests in commits, PR bodies, `CLAUDE.md`, chat threads, or release notes — link to test IDs instead (e.g., "see `PW-H1` in `docs/smoke-tests-pending.md`").
 
-> **Status: 5 pending tests** (section `T3V`). Ship-readiness for the T3 goal-mode video intake is gated on these — each behavioral claim ships `Installed, not yet proven in a live run` and its flag clears only on an observed live firing.
+> **Status: 12 pending tests** (sections `T3V`, `WG`). Ship-readiness for the T3 goal-mode video intake and the wargame-planning intake is gated on these — each behavioral claim ships `Installed, not yet proven in a live run` and its flag clears only on an observed live firing.
 
 ---
 
@@ -102,6 +102,80 @@ This is the single source of truth for outstanding manual verification work. Don
 **Expected:**
 - The split is treated as a positive escalation trigger; the contested finding routes to the PM/human layer with both positions quoted.
 - Unanimity is not promoted to "verified clean"; the split is not averaged away.
+
+---
+
+## Wargame-planning intake
+
+**Source:** [wargame-planning-intake-spec.md](wargame-planning-intake-spec.md) §8, LOCKED 2026-07-07 (release v0.6.2). Downstream-live-proof tests for the wargame-planning method (A1–A7); each is never-run by design and can only fire on a real downstream run. Per `[PROCESS-1]` the machinery is installed, not validated — these flags clear only on an observed live firing.
+
+### WG-1 — `/plan` per-move expected-observations + legitimate fork-trigger (A1)
+
+| | |
+|---|---|
+| **Status** | Pending |
+
+A downstream `/plan` run at Complexity ≥ Medium produces per-step expected-observation/failure-signal lines that are genuine observables (not restated step text), and at least one legitimate fork-trigger with both routes designed; a Low-complexity run correctly omits the sections.
+
+---
+
+### WG-2 — `/plan-review` accepts a runtime fork-trigger, still fails design forks (A2)
+
+| | |
+|---|---|
+| **Status** | Pending |
+
+A `/plan-review` on a spec containing "if you observe X, take route B" LOCKs without flagging that line UNRESOLVED, while still failing a bare "A or B" design fork AND a named-but-undesigned route in the same spec.
+
+---
+
+### WG-3 — Abort-condition classification: push through vs escalate (A3)
+
+| | |
+|---|---|
+| **Status** | Pending |
+
+An executor hits a named "friction — push through" condition and does NOT over-stop; separately, hits a "blocked — escalate" condition and DOES stop+flag rather than improvise.
+
+---
+
+### WG-4 — Tier-keyed executor brief guards its failure mode (A4)
+
+| | |
+|---|---|
+| **Status** | Pending |
+
+A tier-keyed brief is authored for a named executor and the corresponding failure mode is demonstrably guarded (e.g. an executor's "task complete" is independently checkpointed and a false-completion is caught).
+
+---
+
+### WG-5 — Blind-executable brief: worker asks zero clarifying questions (A5)
+
+| | |
+|---|---|
+| **Status** | Pending |
+
+A worker runs a dispatched brief end-to-end asking zero clarifying questions; any question that does arise is traced back to a missing decision/fork-trigger in the plan.
+
+---
+
+### WG-6 — Missing required input marked BLOCKED, not fabricated (A6)
+
+| | |
+|---|---|
+| **Status** | Pending |
+
+An agent facing a missing required input marks the task BLOCKED with the exact input logged instead of fabricating it (the fail-loud path fires).
+
+---
+
+### WG-7 — `/implement` confirms each step's observation before proceeding (A7)
+
+| | |
+|---|---|
+| **Status** | Pending |
+
+A live `/implement` run visibly confirms each step's expected observation against a tool result before proceeding (per-step observation confirmation actually appears in the transcript), and its completion report cites evidence per claim.
 
 ---
 

@@ -106,6 +106,13 @@ Each step should be:
 
 [Continue for all steps...]
 
+### Expected Observations & Failure Signals (Complexity ≥ Medium)
+For each step with a non-obvious failure mode, in one or two lines:
+- **Expected observation** — exactly what you should see if the step worked (an artifact, output, or state you can point at).
+- **Most-likely failure** — the single most probable way it goes wrong, the cause that signals, and the counter-move.
+- **Fork-trigger (only if a real branch exists)** — "if you observe X, take route B." Observable trigger + both routes designed here; no bare judgment call left dangling.
+Omit this section for Low-complexity plans (see Complexity marker below). Keep these judgment-based signals, NOT hard-coded if/then trees (docs/LESSONS.md [SKILL-1], [PROCESS-2]).
+
 ### Testing Checklist
 - [ ] **Happy path** — the primary use case works end-to-end
 - [ ] **Error paths** — invalid input, network failure, permission denied each show the right response
@@ -116,6 +123,11 @@ Each step should be:
 
 ### Rollback Plan
 1. [How to undo if something goes wrong]
+
+### Abort conditions
+Applies when Complexity ≥ Medium; Low-complexity plans may omit.
+- **Blocked — escalate/stop:** conditions where continuing would invent a required input (one whose invention changes a persisted/irreversible outcome), mutate the wrong target, or cross a real guardrail. Name them; on hit, stop and flag — do NOT improvise.
+- **Friction — push through:** expected obstacles (transient errors, retries, noisy output) that are NOT reasons to stop. Name them so the executor doesn't over-stop.
 
 ### Risks
 | Risk | Likelihood | Mitigation |

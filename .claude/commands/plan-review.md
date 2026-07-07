@@ -161,6 +161,7 @@ For each match: confirm there's an adjacent decision (in the decisions table or 
 - The match sits inside a backtick-delimited inline code span (`` `[TODO decision]` ``) — same reason.
 - The match is in a paragraph that describes Step 6 itself, or documents the fork-detection patterns (e.g., a sentence enumerating the patterns to scan for). That's commentary, not content.
 - The match is inside a `§Resolved decisions` or `§8` section that lists post-release revisit triggers (`"revisit if X happens"`, `"revisit in a later release"`) — those are deliberate future milestones, not unresolved forks within this release's scope.
+- The match is an **execution-time fork-trigger** ("if you observe X, take route B" — a deliberately retained runtime branch), not the design-time fork Step 6 exists to resolve. Such a fork-trigger is legitimate (not UNRESOLVED) **IFF all three hold**: (a) it names an **observable trigger**; (b) **both routes are fully pre-designed** — the plan defers WHICH route runs, never the DESIGN of a route; and (c) the observable is **runtime-evaluable without making the deferred choice**. A branch failing any leg — a bare "maybe A or B", or a named-but-undesigned route B — is still UNRESOLVED. (This ties to the per-step Expected Observations element `/plan` emits at Complexity ≥ Medium, which is where legitimate fork-triggers originate.)
 
 A match qualifies as **UNRESOLVED** only when it represents an actual decision *in this spec's content* that has no corresponding closure in the decisions table.
 

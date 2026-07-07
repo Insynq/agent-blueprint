@@ -244,6 +244,19 @@ docs/plans/skill-rework/
 - [What NOT to touch]
 - [Scope boundaries]
 
+## Expected observations & failure signals
+(Include only at Complexity ≥ Medium; Low-complexity plans may omit — same gate as `/plan`.)
+For each step with a non-obvious failure mode (not mechanically every step):
+- **Expected observation** — exactly what you should see if the step worked: an artifact, output, or state you can point at.
+- **Most-likely failure** — the single most probable way it goes wrong, the signal that shows it, and the counter-move.
+- **Fork-trigger (only for a real branch)** — "if you observe X, take route B": an observable trigger plus both routes pre-designed here, never a bare judgment call left dangling.
+Keep these judgment-based signals, NOT hard-coded if/then trees (LESSONS.md [SKILL-1]).
+
+## Abort conditions
+(Include only at Complexity ≥ Medium; Low-complexity plans may omit — same gate as `/plan`.)
+- **Blocked — escalate/stop:** inventing a required input, mutating the wrong target, or crossing a real guardrail. Name these; on hit, stop and flag — do NOT improvise.
+- **Friction — push through:** named transient obstacles (retries, noisy output, recoverable errors) that are NOT reasons to stop. Name them so the executor doesn't over-stop.
+
 ## Granular audit
 [Worker fills this in during Phase 5 — file:line specifics, edge cases, integration risks]
 
@@ -262,7 +275,7 @@ docs/plans/skill-rework/
 
 **Lifecycle:**
 
-- Created by PM in Phase 4 with skeleton + Task / Files / Constraints filled in.
+- Created by PM in Phase 4 with skeleton + Task / Files / Constraints filled in. **Blind-executability gate before dispatch:** could the worker run this doc end-to-end without asking a single question? Every question you can anticipate is a missing decision or fork-trigger — resolve it into the plan now.
 - Worker fills Granular audit + Recommendations in Phase 5.
 - PM fills PM annotations in Phase 6.
 - Worker fills Implementation log + Completion notes in Phase 7.

@@ -144,6 +144,8 @@ Anonymized example:
 
 Assumption surfacing is the **strongest** primitive against confidently-wrong agents. It forces the agent to make its model of the world legible. Most agent failures are bad assumptions silently held; surfacing them is the cheap fix.
 
+**The BLOCKED corollary — never invent a required input.** Not every unverified assumption is safe to proceed under, so classify before you act. A **required** input is one whose invention would change a *persisted or irreversible* outcome — the record that gets written, the target that gets mutated. When a required input is unresolved, the task is **BLOCKED**: log the *exact* missing input, stop, and escalate. Inventing it is prohibited — a guessed required input is a silent-open failure (see Primitive 9). A **soft** assumption, by contrast, is a stateable default you can proceed under and surface for correction — the list in the surfacing example above is soft assumptions. The classification test: *would inventing this change a persisted or irreversible outcome?* Yes → required → BLOCKED. No → soft → proceed-and-surface. This matters because agents fabricate missing inputs to satisfy an output-format instruction rather than escalate the gap (verified in executor and planner system cards) — the fail-loud BLOCKED path is what stops the fabrication.
+
 ### 6. Soft-delete and time-delayed commits
 
 Irreversible operations get a delay window. The agent stages the action, and only after the window elapses (or an explicit go) does the commit fire.

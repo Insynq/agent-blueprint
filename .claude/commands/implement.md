@@ -60,6 +60,7 @@ Read the plan file and extract:
 - Files to create (NEW)
 - Files to modify (MODIFY)
 - Dependencies between steps (what must be done before what)
+- The plan's **Expected Observations & Failure Signals** and **Abort conditions** sections, when present (Complexity ≥ Medium plans carry them). These carry, per step, the observation that confirms the step worked, any named fork-triggers, and the conditions that mean stop-and-escalate vs push-through.
 
 If the plan cannot be found, STOP and report: "Could not find plan. Please provide the plan file path or run /orchestrate first."
 
@@ -121,6 +122,8 @@ Read the first few lines of files to modify, confirming they match the plan's as
 **For NEW IN-REPO MCP SERVERS:** Create `workspace/mcp-servers/<name>/` with its own `package.json`, `tsconfig.json` (if TS), and source. Server IDs are kebab-case; tool IDs are snake_case; params are camelCase. Each tool returns a single text content block of stringified JSON. Then register in `workspace/config/mcporter.json` under the `mcpServers` key (NOT `servers`).
 
 **For DETERMINISTIC SCRIPTS:** Write `workspace/scripts/<name>.{js,ts,sh}`. Convention: emit JSON to stdout, tagged messages (`[script-name] msg`) to stderr. Cron-invoked scripts get bound to per-cron API keys for cost attribution.
+
+**Confirm each step against its Expected Observation (when the plan carries them).** Before advancing past a step, point at the artifact/output/state the plan named — the edit returning success is not confirmation (Anthropic computer-use self-verification-loop precedent). On a named fork-trigger, take the route the plan already designed. On an Abort condition, stop and flag — do NOT improvise past it. Report only work you can cite observed evidence for (Anthropic Fable 5 prompting guide) — never a self-reported "done."
 
 ### 4c: Parallel Implementation (when batch has multiple independent files)
 
@@ -219,7 +222,7 @@ If anything fails:
 
 Build/shape validation above confirms the code *runs*; it does not confirm you built *what the plan specified*. Before advancing to a quality review (`/audit-code`, Stage 2), run a spec-compliance check. You have both the plan and the edits in context, so spawn one `Explore` agent to diff the working tree against the plan and report a checklist:
 
-- **No gaps:** every plan step → implemented?
+- **No gaps:** every plan step → implemented, and — for steps carrying one — its Expected observation confirmed *held*, not merely that the step ran?
 - **No unrequested extras:** every changed file → in the plan's affected-files list? (Run `git diff --name-only` and compare against the plan; flag any file the plan didn't name.)
 - **No drift:** any plan-specified behavior missing or altered?
 
