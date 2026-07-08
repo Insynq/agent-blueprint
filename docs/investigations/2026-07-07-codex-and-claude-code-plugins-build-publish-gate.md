@@ -145,6 +145,18 @@ There is **no** documented declarative "always-on instructions" manifest field i
 
 ---
 
+## Releasing an update (operational checklist)
+
+For a **derived-plugin** setup (private source repo → separate public plugin repo, as used for Kai-RE), publishing an update is not automatic. The plugin is a snapshot; pushing to the source repo does **not** update the plugin. Each release:
+
+1. **Edit in the source repo** (skills, safety spine, references).
+2. **Re-sync** the plugin (`python3 tools/build-plugin.py` — regenerates skills/spine/references, never touches manifests/hooks/README).
+3. **Bump `version`** in **both** manifests — `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`. ⚠️ **This is the step that actually ships the update:** if the version string doesn't change, existing users are **not** prompted to update (version resolves from the manifest first — see Part 1). Use semver.
+4. **Review the diff** in the plugin repo, commit, and push.
+5. Users pull it: Claude Code `/plugin marketplace update` → `/plugin update <name>`; Codex refreshes from `codex plugin`.
+
+Corollary: build tooling (the `tools/` build script) lives in the **private source repo only** — it is never copied into the public plugin.
+
 ## Caveats & open questions
 - **Time-sensitivity is the biggest risk.** Codex's directory/self-serve publishing is unreleased; Claude's private-GitHub org sourcing was in private beta; Claude's private-repo auth was actively buggy through Jan 2026. Re-verify before relying on any of these.
 - **Neither platform confirmed a native license-key/API-key entitlement feature** — assume you build that yourself if you want to sell gated functionality.
