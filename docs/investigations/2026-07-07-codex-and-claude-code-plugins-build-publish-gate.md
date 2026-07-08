@@ -139,7 +139,8 @@ A plugin that ships an agent identity or safety rules hits a real problem: in *p
 - Codex supports the **same `hooks/hooks.json` at the plugin root, same schema, same `SessionStart` event and matchers** (`startup`/`resume`/`clear`/`compact`), and SessionStart stdout / `hookSpecificOutput.additionalContext` is likewise **added as developer context**. Full event list: `SessionStart`, `SubagentStart`, `PreToolUse`, `PermissionRequest`, `PostToolUse`, `PreCompact`, `PostCompact`, `UserPromptSubmit`, `SubagentStop`, `Stop`.
 - Codex exposes `PLUGIN_ROOT`/`PLUGIN_DATA` **and** legacy `CLAUDE_PLUGIN_ROOT`/`CLAUDE_PLUGIN_DATA` to hook commands — so a single command `cat "${CLAUDE_PLUGIN_ROOT:-$PLUGIN_ROOT}/AGENTS.md"` works under **both** runtimes. One `hooks/hooks.json` can serve both ecosystems.
 - ⚠️ **The key difference:** plugin-bundled hooks in Codex are **non-managed / trust-gated** — Codex skips them until the user reviews and *trusts* the hook definition (and re-trusts if it changes). So on Codex the safety-spine load is a one-time user approval, **not** guaranteed silently on install.
-- `.codex-plugin/plugin.json` can point `"hooks"` at a custom path; default is `hooks/hooks.json`.
+- `.codex-plugin/plugin.json` can point `"hooks"` at a custom path (accepts a `./`-path, array of paths, or inline object); default is `hooks/hooks.json`.
+- **Trust flow (verified in practice):** installing a plugin does *not* trust its hooks — Codex skips them until you approve them via the `/hooks` command (CLI) or the **Hooks panel** (app). Until approved, the panel shows **"No hooks found."** Also: bare default `hooks/hooks.json` discovery didn't reliably surface in the Codex app — **declaring the `hooks` field explicitly in the manifest fixed it.** Once trusted, the SessionStart hook loaded `AGENTS.md` every session as intended.
 - Source: https://developers.openai.com/codex/hooks and https://developers.openai.com/codex/plugins/build
 
 ### Codex `AGENTS.md` discovery (the hard-guarantee fallback)
@@ -191,7 +192,8 @@ policy:
 ### Plugin manifest `.codex-plugin/plugin.json`
 - Only `plugin.json` belongs in `.codex-plugin/`. Keep `skills/`, `hooks/`, `scripts/`, `assets/`, `.mcp.json`, `.app.json` at the **plugin root**.
 - Minimal validated shape: `{ "name", "version" (semver), "description", "skills": "./skills/" }`.
-- ⚠️ **`hooks` is NOT a valid manifest field — validation rejects it.** Do not add `"hooks": "..."`. (The `hooks/` folder itself may still ship.) Also keep `apps`/`mcpServers` out of the manifest unless the companion files actually exist.
+- **`hooks` IS a valid manifest field:** `"hooks": "./hooks/hooks.json"` (also accepts an array of paths or an inline object). Default discovery is `hooks/hooks.json` at the plugin root even without the field, but declaring it explicitly is what reliably surfaces the hook in the Codex app. *(Correction: an earlier skill-creator scaffolder said to omit `hooks`; the runtime hooks docs + live testing supersede that — the field is valid and installs fine.)* Keep `apps`/`mcpServers` out of the manifest unless the companion files actually exist.
+- **Icons live in the manifest `interface` object** (camelCase) — see "Icons & plugin imagery" below.
 
 ### Marketplace manifest `.agents/plugins/marketplace.json`
 - Location: repo-scoped `$REPO_ROOT/.agents/plugins/marketplace.json` (or personal `~/.agents/plugins/marketplace.json`). **Not** the repo root, **not** `.codex-plugin/`.
@@ -209,6 +211,21 @@ policy:
 - `source.path`: relative to the **marketplace root** (the repo root for a git-added marketplace), must start `./`, must stay inside the root. Plugins live under **`./plugins/<name>`** — pointing at the repo root itself is unsupported. So the plugin's `.codex-plugin/plugin.json` must sit at `plugins/<name>/.codex-plugin/plugin.json`.
 - `policy.installation`: `NOT_AVAILABLE` | `AVAILABLE` | `INSTALLED_BY_DEFAULT`. `policy.authentication`: `ON_INSTALL` | `ON_USE`. Both `policy` and `category` are required per entry.
 - A marketplace manifest **is required** — Codex does not auto-detect a bare root `.codex-plugin/plugin.json`.
+
+### Icons & plugin imagery
+- **Plugin-level icon** → `.codex-plugin/plugin.json` under an `interface` object, **camelCase**: `composerIcon` (small icon shown in the composer/UI), `logo`, and optional `logoDark` (dark-theme variant). Point them at assets under `./assets/`:
+  ```json
+  "interface": {
+    "composerIcon": "./assets/icon-small.svg",
+    "logo": "./assets/logo.png",
+    "logoDark": "./assets/logo-dark.png"
+  }
+  ```
+  `composerIcon` is meant to be small (SVG or small PNG); `logo` can be a larger PNG (500×500 works).
+- **Per-skill chip icons** are separate → `skills/<name>/agents/openai.yaml` under `interface`, **snake_case**: `icon_small`, `icon_large` (paths relative to the skill dir, under its `./assets/`).
+- **Do NOT** put icons in `marketplace.json` — that file only points Codex at the plugin and names the marketplace.
+- Sizes/formats aren't strictly documented; store all imagery under `./assets/` with `./`-relative paths. Plugin `interface.displayName`/`shortDescription` may also live here.
+- **Claude Code** has no documented plugin-icon field — icons are Codex-only today.
 
 ### Codex CLI commands (there is no `codex plugin install`)
 ```
