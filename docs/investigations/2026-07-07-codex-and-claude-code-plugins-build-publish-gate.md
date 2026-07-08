@@ -20,6 +20,28 @@ Both ecosystems use the **same fundamental model**: a plugin is a directory with
 
 ---
 
+## Projects vs. plugins vs. skills (mental model)
+
+These three are easy to conflate but play different roles:
+
+- **Project** = the thing being worked on — the repo, app, docs, configs, tests, data, and business context. It owns the **source of truth**: live source files, data, task context, and project-specific conventions. Changes happen here (edit files, run tests, debug, analyze local docs). Scoped to its folder/workspace.
+- **Plugin** = an installable **capability package** Codex/Claude brings *into* projects. Reusable across many projects while installed; not itself the project (unless you're actively developing the plugin repo). Packages skills, MCP tools/connectors, scripts, assets, and metadata. Remove the plugin and its capabilities go away.
+- **Skill** = a focused **instruction/workflow unit** — one procedure. A `SKILL.md` (frontmatter `name`/`description` = when to trigger; body = the workflow) plus optional `references/`, `scripts/`, `assets/`, `agents/openai.yaml`. Can live standalone in a skills folder or bundled inside a plugin.
+
+Analogy: **Project = the house being renovated · Plugin = the specialized toolbox + playbook · Skill = one procedure in that playbook.**
+
+Layout sketch:
+
+```
+Kai-RE project (source of truth — live work)      kai-re-plugin (reusable capabilities)
+├── app code                                       ├── .codex-plugin/plugin.json (+ .claude-plugin/)
+├── docs / tests / config                          ├── skills/<name>/ (SKILL.md, agents/, references/, scripts/)
+├── data files                                     ├── mcp / apps / assets
+└── project-specific instructions                  └── marketplace metadata
+```
+
+Scope: a project is scoped to its workspace; a **standalone** skill in your Codex skills dir is available across sessions; a **plugin-provided** skill is available across projects only while the plugin is installed (it belongs to the plugin). Key rule: **the plugin should not store the project's live source files** — it teaches Codex *how* to work, the project holds *what* is worked on.
+
 ## Part 1 — Claude Code Plugins
 
 ### Architecture & file structure
@@ -132,6 +154,74 @@ A plugin that ships an agent identity or safety rules hits a real problem: in *p
 3. For a Codex hard guarantee, document copying the spine to `~/.codex/AGENTS.md`.
 
 There is **no** documented declarative "always-on instructions" manifest field in either ecosystem (Codex's config `instructions` key is explicitly "reserved for future use").
+
+## Part 5 — Codex plugin & skill formatting rules (spec conformance)
+
+Codex is strict about structure; a non-conformant manifest **parses but silently offers nothing**. These rules come from the official Codex skill-authoring / plugin-creator guidance and were verified by building the Kai-RE plugin.
+
+### Skill folder & `SKILL.md`
+- Structure: `skills/<name>/SKILL.md` (**required**), optional `agents/openai.yaml` (recommended), `references/`, `scripts/`, `assets/`.
+- **Frontmatter allows ONLY `name` and `description`.** No other keys (no `when-to-use`, no `user-invokable`). "When to use" text belongs *inside* `description` — it's the primary trigger signal.
+- `name`: lowercase letters/digits/hyphens, ≤64 chars; the **folder name must equal the skill `name`**.
+- Body: imperative voice, keep under ~500 lines, use progressive disclosure (move schemas/detail into `references/`, one level deep, TOC for files >100 lines).
+- **Do NOT** put `README.md`, `CHANGELOG.md`, `INSTALLATION_GUIDE.md`, etc. inside a skill — only files the agent needs to do the job.
+
+### `agents/openai.yaml` (Codex app UI metadata — optional but recommended)
+Quote all **string values**; leave **keys** unquoted.
+```yaml
+interface:
+  display_name: "Human-facing name"
+  short_description: "Short UI description (25-64 chars)"
+  default_prompt: "Use $skill-name to do the thing this skill supports."
+  icon_small: "./assets/small-400px.png"   # optional
+  icon_large: "./assets/large-logo.svg"    # optional
+  brand_color: "#3B82F6"                    # optional
+dependencies:                               # optional
+  tools:
+    - type: "mcp"                           # only "mcp" is currently supported
+      value: "github"
+      transport: "streamable_http"
+      url: "https://example.com/mcp/"
+policy:
+  allow_implicit_invocation: true           # false = won't auto-inject, still callable via $skill-name
+```
+- `default_prompt` must reference the skill as `$skill-name`; `short_description` ideally 25–64 chars; icon paths relative to the skill dir. Omit optional sections you don't need.
+- Note: triggering is still driven only by `SKILL.md` `name`/`description` — `openai.yaml` is display polish.
+
+### Plugin manifest `.codex-plugin/plugin.json`
+- Only `plugin.json` belongs in `.codex-plugin/`. Keep `skills/`, `hooks/`, `scripts/`, `assets/`, `.mcp.json`, `.app.json` at the **plugin root**.
+- Minimal validated shape: `{ "name", "version" (semver), "description", "skills": "./skills/" }`.
+- ⚠️ **`hooks` is NOT a valid manifest field — validation rejects it.** Do not add `"hooks": "..."`. (The `hooks/` folder itself may still ship.) Also keep `apps`/`mcpServers` out of the manifest unless the companion files actually exist.
+
+### Marketplace manifest `.agents/plugins/marketplace.json`
+- Location: repo-scoped `$REPO_ROOT/.agents/plugins/marketplace.json` (or personal `~/.agents/plugins/marketplace.json`). **Not** the repo root, **not** `.codex-plugin/`.
+- Top level: `name`, `interface.displayName`, `plugins[]`.
+- Each entry:
+```json
+{
+  "name": "kebab-name",
+  "source": { "source": "local", "path": "./plugins/<name>" },
+  "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+  "category": "Productivity"
+}
+```
+- `source.source`: `local` | `url` | `git-subdir`. **Use `local` for a plugin in the same repo** (`git-subdir` is for pulling from a *different* repo and needs a `url`).
+- `source.path`: relative to the **marketplace root** (the repo root for a git-added marketplace), must start `./`, must stay inside the root. Plugins live under **`./plugins/<name>`** — pointing at the repo root itself is unsupported. So the plugin's `.codex-plugin/plugin.json` must sit at `plugins/<name>/.codex-plugin/plugin.json`.
+- `policy.installation`: `NOT_AVAILABLE` | `AVAILABLE` | `INSTALLED_BY_DEFAULT`. `policy.authentication`: `ON_INSTALL` | `ON_USE`. Both `policy` and `category` are required per entry.
+- A marketplace manifest **is required** — Codex does not auto-detect a bare root `.codex-plugin/plugin.json`.
+
+### Codex CLI commands (there is no `codex plugin install`)
+```
+codex plugin marketplace add <owner/repo>      # register a git/repo marketplace
+codex plugin list --available --json           # what an added marketplace offers (uninstalled)
+codex plugin add <plugin>@<marketplace>        # install a plugin
+codex plugin marketplace upgrade [<name>]      # refresh cached git marketplace after a push
+codex plugin remove <plugin[@marketplace]>
+```
+Enable/disable is a config edit (`~/.codex/config.toml` `[plugins."<name>@<marketplace>"] enabled = ...`, restart Codex) or Space in the `codex /plugins` browser. Installed plugins are enabled by default. Validate locally with the skill-creator's `quick_validate.py` / `validate_plugin.py`.
+
+### Why a plugin parses but never shows as installable
+Marketplace manifest in the wrong location; `source.path` invalid or not `./`-prefixed / points outside root / at a dir with no `.codex-plugin/plugin.json`; `policy.installation` missing or `NOT_AVAILABLE`; stale cache (pushed after `add` → run `marketplace upgrade` or remove/re-add); `git-subdir` used without a `url`; non-kebab `name`.
 
 ## Best practices for smooth, reliable publishing (both ecosystems)
 
