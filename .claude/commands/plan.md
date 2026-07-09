@@ -68,6 +68,16 @@ Each step should be:
 - **Atomic** — can be completed and verified independently
 - **Ordered** — dependencies respected
 - **Specific** — exact file and change described
+- **Closure-owner tagged** — every step carries exactly one inline tag naming who can close it and how (see below). This makes it structurally impossible to fool yourself that a product is validated by editing docs.
+
+**Closure-owner tags (required on every step).** Prefix each step heading with one of:
+- **`[EDIT]`** — the agent closes this by changing repo files. Done when the diff lands.
+- **`[RUN]`** — live validation only the user can perform (a real end-to-end exercise against the running system). **Can NEVER be closed by editing** — no amount of doc-writing marks it done. Every `[RUN]` item must also be written into `docs/smoke-tests-pending.md` with a stable ID, so the true-closure signal lives on the committed ship-gate ledger, not in this plan.
+- **`[DECIDE]`** — a strategy/architecture call not blocking the near-term edits. Maps to the scope-graduation gate (CLAUDE.md `## Patterns` → scope graduation): a `[DECIDE]` that gates a prod-mutating action must be resolved before that action, not silently carried. **If the `[DECIDE]` is architecturally upstream** — it reshapes downstream work, so deciding it late forces a re-port / re-architecture — it must be flagged **decide-early**, filed under the spec template's §10.1 "Upstream forks — decide early" and surfaced by `/plan-review` Step 6a, not carried indefinitely. A "decide early" label is not a decision.
+
+**Closure-owner classification rule (no loophole).** Any step whose success claim depends on *runtime behavior* — a live system actually doing the thing (a cron firing, an email drafting, a write landing in the store, a reminder surfacing) — MUST be `[RUN]`. "The diff landed" NEVER closes a behavior claim; only an observed live exercise does. Corollary: a plan for behavior-changing work with **zero `[RUN]` steps is a red flag** — the plan must explicitly justify it in one line ("why does nothing here require live validation?"). If you can't answer that honestly, a behavior step is mis-tagged `[EDIT]`.
+
+This is a design-validated convention graduated from a downstream product (Kai-RE) that had not yet cleared a live run — it exists precisely because editing-closes-everything is how such products convince themselves they shipped. Treat the tags as load-bearing, not decorative.
 
 ## Output Format (Required)
 
@@ -94,17 +104,21 @@ Each step should be:
 
 ### Implementation Steps
 
-#### Step 1: [Description]
+**Minimum set that MUST land before the next live run:** [list the step numbers — the smallest subset that has to be closed before it is safe to exercise the system end-to-end. This is the sequencing spine: everything else can follow the live run.]
+
+Tag every step heading with its closure owner — `[EDIT]` (agent closes by editing files), `[RUN]` (live validation only the user can perform; also written to `docs/smoke-tests-pending.md`), or `[DECIDE]` (strategy call; maps to the scope-graduation gate).
+
+#### Step 1: [EDIT] [Description]
 **File:** `path/to/file.ts`
 **Change:** [What to change]
 **Why:** [Reason for this change]
 
-#### Step 2: [Description]
-**File:** `path/to/file.ts`
-**Change:** [What to change]
+#### Step 2: [RUN] [Description]
+**Validation:** [what the user must exercise live; cannot be closed by editing]
+**Smoke-test ID:** [stable ID mirrored into docs/smoke-tests-pending.md]
 **Why:** [Reason]
 
-[Continue for all steps...]
+[Continue for all steps — each with an `[EDIT]` / `[RUN]` / `[DECIDE]` tag...]
 
 ### Expected Observations & Failure Signals (Complexity ≥ Medium)
 For each step with a non-obvious failure mode, in one or two lines:

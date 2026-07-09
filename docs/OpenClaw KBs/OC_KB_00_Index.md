@@ -1,13 +1,13 @@
 # OpenClaw KBs — Index
 
-This index sits on top of fourteen **stack-reference** KB files for building, editing, and improving AI agents that run on **OpenClaw**. It exists to answer one question: *"I'm about to build X. Which OC_KB do I read first, and in what order?"*
+This index sits on top of fifteen **stack-reference** KB files for building, editing, and improving AI agents that run on **OpenClaw**. It exists to answer one question: *"I'm about to build X. Which OC_KB do I read first, and in what order?"*
 
 Two kinds of KB live in this repo:
 
 - **Project-state KBs** (`KB_1_Architecture.md`, `KB_8_Current_State.md`, `LESSONS.md`, `CHANGELOG.md`, `APP_CONCEPT.md`, `SCOPE.md`) — owned by *this* project, evolve as the agent ships, populated by `/kickoff` and maintained by `/ship` and `/update-kb`.
-- **Stack-reference KBs** (the fourteen files below) — vetted patterns for OpenClaw + Anthropic Claude + MCP via mcporter. They do not change per project; they are read-mostly. This index is the routing layer.
+- **Stack-reference KBs** (the fifteen files below) — vetted patterns for OpenClaw + Anthropic Claude + MCP via mcporter. They do not change per project; they are read-mostly. This index is the routing layer.
 
-The collection splits into two halves: `OC_KB_01–09` cover the **runtime stack** (architecture, skills, tools, models, cron, deploy, observability, evals). `OC_KB_10–14` cover **capability primitives** that sit on top of the runtime — diagnostic taxonomy, safety, trust, self-improvement, operational excellence. Most adopters read the runtime half first; the capability half pays back as the agent matures.
+The collection splits into two halves: `OC_KB_01–09` cover the **runtime stack** (architecture, skills, tools, models, cron, deploy, observability, evals). `OC_KB_10–14` and `OC_KB_16` cover **capability primitives** that sit on top of the runtime — diagnostic taxonomy, safety, trust, self-improvement, operational excellence, datastore modeling (`OC_KB_15` is reserved). Most adopters read the runtime half first; the capability half pays back as the agent matures.
 
 For per-file detail, open the OC_KB. This file does **not** repeat each KB's contents.
 
@@ -31,6 +31,7 @@ For per-file detail, open the OC_KB. This file does **not** repeat each KB's con
 | `OC_KB_12_Trust_and_Provenance.md` | Decision log, rationale storage, provenance flags, reconciliation hierarchy, audit trail conventions | Convention |
 | `OC_KB_13_Self_Improvement_Loops.md` | **Aspirational** — correction memory, telemetry, edge-case library, self-retro, deviation reporting, template evolution | Aspirational |
 | `OC_KB_14_Operational_Excellence.md` | SLOs per skill, canary, cost visibility, dashboards, rollback paths | Convention |
+| `OC_KB_16_Datastore_Modeling.md` | Data modeling for tool-call-read stores (Sheets/Notion/Airtable): round-trip is the cost unit, named denormalized cache over one canonical source, lazy FKs, persist scaffolding IDs | Convention |
 
 ---
 
@@ -57,6 +58,7 @@ The OC_KB to read **first** is listed first; subsequent files add depth. Always 
 | **Tag skills by primary capability layer** | `OC_KB_10` → update `KB_1_Architecture.md` skill catalog |
 | **Wire up self-improvement / learning from corrections** | `OC_KB_13` → `OC_KB_12` (decision log is the prerequisite) |
 | **Define SLOs and rollback paths for production agents** | `OC_KB_14` → `OC_KB_05`+`OC_KB_06` (cost attribution) → `OC_KB_08` (data sources) |
+| **Model data on a tool-call-read store (Sheets/Notion/Airtable)** | `OC_KB_16` → `OC_KB_10` (Data layer) → `OC_KB_11` (write-verifiability §3a) |
 | **Scope an agent-improvement initiative spec** | `_dev/agent-improvement-spec-template.md` → `OC_KB_10` (Section 5 spine) → `OC_KB_11–14` (Section 6 spine) |
 
 ---
@@ -101,12 +103,14 @@ OC_KB_01 (architecture, runtime model)
 
 Capability primitives layer (sits on top of the runtime layer above):
 
-OC_KB_10 (capability layers — diagnostic taxonomy, frames OC_KB_11–14)
+OC_KB_10 (capability layers — diagnostic taxonomy, frames OC_KB_11–14 and OC_KB_16)
    │
    ├── OC_KB_11 (safety primitives) ←─ targets Extraction + Action layers from OC_KB_10
    ├── OC_KB_12 (trust & provenance) ←─ targets Data + Extraction; runtime-mutable log paths require OC_KB_07 rsync excludes
    ├── OC_KB_13 (self-improvement — aspirational) ←─ depends on OC_KB_12 (decision log) + OC_KB_06 (cron)
-   └── OC_KB_14 (operational excellence) ←─ depends on OC_KB_05 + OC_KB_06 (cost), OC_KB_08 (observability), OC_KB_12 (decision log)
+   ├── OC_KB_14 (operational excellence) ←─ depends on OC_KB_05 + OC_KB_06 (cost), OC_KB_08 (observability), OC_KB_12 (decision log)
+   └── OC_KB_16 (datastore modeling) ←─ refines OC_KB_10 Data layer; write mechanics from OC_KB_11 (§3a), config-home from OC_KB_04
+       (OC_KB_15 reserved)
 ```
 
 ---
@@ -140,4 +144,4 @@ These claims in this KB family rely on OpenClaw runtime defaults that may evolve
 - `mcporter.json` schema (`mcpServers` key, stdio/HTTP entry shape) — confirm against the latest mcporter docs if behavior is unexpected.
 - `openclaw cron` CLI surface (subcommands, flags) — confirm via `openclaw cron --help`; documented commands may have evolved.
 - Per-MCP-server runtime stdout/stderr capture — confirm via `openclaw doctor` whether logs are landing where this KB family expects.
-- The capability-primitives KBs (`OC_KB_10–14`) are framework conventions, not runtime-enforced. The taxonomy, primitive set, and document shapes are recommendations — the runtime does not validate them. Document the project's chosen subsets in `KB_1_Architecture.md` so future maintainers know what's wired up vs aspirational.
+- The capability-primitives KBs (`OC_KB_10–14` and `OC_KB_16`) are framework conventions, not runtime-enforced. The taxonomy, primitive set, and document shapes are recommendations — the runtime does not validate them. Document the project's chosen subsets in `KB_1_Architecture.md` so future maintainers know what's wired up vs aspirational.

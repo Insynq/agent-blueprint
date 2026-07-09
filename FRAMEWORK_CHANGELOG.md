@@ -60,6 +60,35 @@ Only the canonical repo (this repo) maintains `FRAMEWORK_CHANGELOG.md`. Adopter 
 
 ---
 
+## [0.7.0] - 2026-07-09
+
+Graduates field-proven patterns from the Kai-RE agent (G1–G14) into framework KBs, templates, and commands. All changes passed a 6-judge Opus+Fable stress-test panel: 21 findings fixed and re-verified FIXED by the same lenses, plus 8 residual minors fixed. **Patterns are design-validated, not runtime-proven** — the source product had not run a live end-to-end deal at graduation time, and each KB text carries this label.
+
+### Added
+
+- **`docs/OpenClaw KBs/OC_KB_16_Datastore_Modeling.md`** — new Datastore Modeling KB: four rules for tool-call-read stores, the sanctioned named-cache exception (the only allowed form of a second copy), and the persist-scaffolding-IDs corollary. Numbered 16 (renumbered from a draft 15) because `OC_KB_15` stays reserved per `docs/sister-framework-adoption-spec.md`.
+- **`/stress-test` command** (`.claude/commands/stress-test.md`) — multi-lens adversarial judge panel: parallel judges locked to distinct lenses over a change set or spec/doc, optional fix pass, re-verification by the same lenses.
+- **`OC_KB_11_Safety_Primitives.md` sections** — two-tier safety loading; §3a write discipline with the sole-writer precondition; SOFT/HARD enforcement classes; the git-tracked-ledger anti-pattern.
+- **Spec template sections** (`_dev/agent-improvement-spec-template.md`) — audience & voice; overridable-vs-locked config boundary; §10 upstream-fork vs deferrable split; `[VERIFY]` → `[RESOLVED: how]` lifecycle.
+- **Closure-owner tags in `/plan`** (`.claude/commands/plan.md`, checked by `/plan-review`) — `[EDIT]`/`[RUN]`/`[DECIDE]` tags marking who closes each plan item.
+- **Capability-abstraction pattern** in `OC_KB_01_Architecture.md`.
+- **Capability-scoped gotcha log** in `OC_KB_02_Skills.md` (owning skill's `references/` gotcha log, force-read before acting on that capability).
+- **`OC_KB_03_MCP_Tools.md` → `OC_KB_16` cross-link** for datastore modeling of tool-call-read stores.
+- **Config-home rule + dual-manifest table** in `docs/investigations/2026-07-07-codex-and-claude-code-plugins-build-publish-gate.md`, with an `OC_KB_07_Deploy_and_Ops.md` cross-reference.
+- **Two Kai-RE investigation reports** — `docs/investigations/2026-07-09-kai-re-transcript-harvest.md` and `docs/investigations/2026-07-09-kai-re-second-pass.md`.
+
+### Changed
+
+- **`CLAUDE.md`** — DO-NOT list gains two traps: validation/readiness ledgers must be git-tracked, and denormalized in-datastore copies are sanctioned only as a named cache over a single canonical source (per `OC_KB_16`). Reference Documents KB map and `/stress-test` command row updated to include the new surfaces.
+- **`docs/LESSONS.md`** — scope note added: cross-cutting project-wide lessons live here; capability-scoped environmental quirks belong in the owning skill's `references/` gotcha log per `OC_KB_02`.
+
+### Migration Notes
+
+- **`OC_KB_15` remains reserved** (see `docs/sister-framework-adoption-spec.md`); the new Datastore Modeling KB is numbered `OC_KB_16`. No renames, no breaking changes — all edits are additive.
+- **Patterns from the Kai-RE graduation are design-validated, not runtime-proven.** The source product had not run a live end-to-end deal when these patterns were graduated; each affected KB text carries this label. Treat the patterns as vetted designs pending runtime evidence, and record runtime confirmations in your project's `LESSONS.md` when they land.
+
+---
+
 ## [0.3.0] - 2026-06-01
 
 Adopts four discipline-enforcement patterns from a sister app-focused framework's phase-9 retro (forwarded by the user, reframed for headless agents — no text copied verbatim). The four changes reinforce a single loop: **surface decisions early → lock them before dispatch → reflect after ship**. The load-bearing artifact is the new decisions table, created in spec, verified at lockdown, referenced in retro. See `docs/sister-framework-adoption-spec.md` for the full rationale.

@@ -243,6 +243,32 @@ Enable/disable is a config edit (`~/.codex/config.toml` `[plugins."<name>@<marke
 ### Why a plugin parses but never shows as installable
 Marketplace manifest in the wrong location; `source.path` invalid or not `./`-prefixed / points outside root / at a dir with no `.codex-plugin/plugin.json`; `policy.installation` missing or `NOT_AVAILABLE`; stale cache (pushed after `add` → run `marketplace upgrade` or remove/re-add); `git-subdir` used without a `url`; non-kebab `name`.
 
+## Part 6 — Dual-ecosystem packaging: one payload, two manifest sets
+
+_Design-validated against the Kai-RE / kai-re-plugin build, not runtime-proven — the source product has never cleared a live end-to-end run, so treat the layout as a working pattern, not a certified one._
+
+The individual facts above (Parts 1, 2, 5) describe both ecosystems separately. In practice you ship **one payload** to both from a single source repo: the capability content is byte-identical across hosts, and only the manifest/metadata surfaces diverge. Hold that split explicitly — it is what makes "regenerate the plugin" a re-run instead of a re-port.
+
+| Surface | Shared verbatim across both hosts? | Claude Code | OpenAI Codex CLI |
+|---|---|---|---|
+| `skills/<name>/SKILL.md` (+ `references/`, `scripts/`) | **Yes** — identical bytes | same | same |
+| `AGENTS.md` safety spine | **Yes** — identical bytes | same | same |
+| `hooks/hooks.json` (SessionStart cat of the spine) | **Yes** — one file serves both via `${CLAUDE_PLUGIN_ROOT:-$PLUGIN_ROOT}` (Part 4) | same | same |
+| Plugin manifest | **No** — host-specific | `.claude-plugin/plugin.json` (`name` only required) | `.codex-plugin/plugin.json` (`name`, `version`, `description`, `skills`) |
+| Marketplace manifest | **No** | `.claude-plugin/marketplace.json` at repo root | `.agents/plugins/marketplace.json` (repo- or personal-scoped) with structured `source`/`policy` |
+| Plugin nesting | **No** | plugin can sit at repo root | **mandatory** `plugins/<name>/` nesting (`source.path` must point there, not the repo root) |
+| Per-skill UI chips | **No** — Codex-only | (none) | `skills/<name>/agents/openai.yaml` `interface` (snake_case) |
+| Icons | **No** — Codex-only | no documented icon field | `.codex-plugin/plugin.json` `interface` (camelCase: `composerIcon`/`logo`/`logoDark`) |
+| Version bump | **No** — bump in **both** manifests every release | `.claude-plugin/plugin.json` `version` | `.codex-plugin/plugin.json` `version` (semver) |
+
+**Rule:** the shared surfaces are authored once in the source repo and copied verbatim; the host-specific surfaces are the *only* place per-ecosystem divergence is allowed to live. Two hand-maintained version strings across two manifests is a drift hazard — a release that bumps one and forgets the other silently fails to prompt users on the un-bumped host (version resolves from the manifest first; see Parts 1 and 5, and the operational checklist below).
+
+**Build-script footguns any generator MUST guard against** (a future `/package-plugin` skill is **deferred** — this is doc-only reference until the pattern's shape is settled). The Kai-RE `tools/build-plugin.py` has asymmetric file ownership that a naive re-run silently corrupts:
+
+- **Generated dirs are `rmtree`'d and recopied every run.** `references/` and `assets/` are wiped and regenerated, so any manual edit made directly in the plugin repo is silently clobbered on the next build. Guard: the generator must own these dirs completely (never hand-edit them in the plugin), or diff-and-warn before deleting.
+- **Hand-kept frontmatter allowlist KeyErrors.** Frontmatter injection reads a hand-maintained per-skill allowlist and **KeyErrors** (hard crash) rather than failing gracefully if a currently-frontmattered skill is missing from it. Guard: derive the allowlist from the skills actually present, or fail loud with a named skill, not a raw `KeyError`.
+- **Fence-stripping is skills-only.** The build strips stray ```` ```markdown ```` fences from *skills* but not from *references* — a fenced reference file rides verbatim into the shipped plugin (in Kai-RE, into its most liability-sensitive `compliance.md`). Guard: strip fences on every synced markdown surface, not just skills.
+
 ## Best practices for smooth, reliable publishing (both ecosystems)
 
 1. **Get the folder layout exactly right** — only the manifest in `.claude-plugin/` / `.codex-plugin/`; everything else at the plugin root. This is the most common silent failure.
@@ -254,6 +280,18 @@ Marketplace manifest in the wrong location; `source.path` invalid or not `./`-pr
 7. **Codex specifically:** treat today's git/marketplace-file distribution as temporary — the official directory and self-serve publishing are coming, and will likely change the recommended path. Don't over-invest in tooling around the current model.
 
 ---
+
+## User state across plugin updates (the read-only-package rule)
+
+_Design-validated against Kai-RE's recorded architecture decision, not runtime-proven — the pattern shipped but has not survived a live open-deal update cycle._
+
+A plugin is distributed code the **author** re-pushes on their own cadence; the user does not control when an update lands, and an update replaces the shipped package files. This is the plugin-distribution analogue of the rsync `--delete` hazard (`OC_KB_07` → rsync excludes), except the author cannot fix it per-install after the fact — so the boundary has to be designed in from the start:
+
+- **Shipped package files are read-only at runtime.** The `SKILL.md` / `AGENTS.md` / references payload teaches the agent *how* to work; it holds no user-specific config, preferences, consents, provider routing, or persisted resource IDs. Kai-RE states it flat: **"The `.md` files never hold user config."**
+- **ALL runtime-writable state lives in ONE designated update-safe surface**, in **user-owned storage outside the package** — in Kai-RE, a "Meta" tab inside the *user's own* Google Sheet (preferences, persisted scaffolding IDs, consents, `provider_stack` routing, watermarks). Because it lives in the user's store, not the shipped package, a plugin update **cannot** overwrite it. One designated surface, not scattered — so "where does user state go?" has a single answer and an update never has to reconcile.
+- **Pair it with an explicit overridable-vs-locked boundary.** Name what the user may steer (voice, brokerage, state, vendor routing) versus what the shipped code locks (validation logic, guardrails, classification). The update-safe surface holds only the overridable half; the locked half stays in read-only package files where an update *should* replace it.
+
+The parallel to `OC_KB_07`: a self-hosted OpenClaw agent protects runtime-mutable paths with rsync excludes it controls; a distributed plugin has no such lever, so it must instead push all mutable state **off the package entirely** into user-owned storage. Same failure (an update wiping user state), different mechanism (author-controlled excludes vs. author-uncontrollable package replacement).
 
 ## Releasing an update (operational checklist)
 

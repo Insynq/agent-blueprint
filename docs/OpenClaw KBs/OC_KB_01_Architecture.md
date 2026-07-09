@@ -23,6 +23,22 @@ The agent project is a **content/config repo, not a JS app.** There is no root `
 
 When you weigh an off-the-shelf agent, reviewer, or tool against building your own, the durable value is usually the underlying **data/signal**, not the **harness** around it. A capable specialized agent is often a thin shim that loads a skill as a container and coerces the output into a structured shape (the audit commands in this framework are exactly that pattern) — cheap to own, and the harness layer tends to commoditize as open-source dev tooling matures. So anchor build-vs-buy on the data you cannot easily reproduce: buy for the data, and build the harness yourself when the *shaping* (skill + references + output coercion) is what makes the model reliable.
 
+## Capability abstraction: route off the capability, not the vendor
+
+_Design-validated against Kai-RE's recorded architecture decision, not runtime-proven — the routing indirection shipped but has not been exercised across a live second-vendor stack._
+
+When an agent depends on external systems, name the **capability** (email, calendar, files, database), not the vendor. Three rules:
+
+1. **Name the capability set.** Skills, prompts, and docs refer to "email" / "calendar" / "files" / "database" — never "Gmail" or "Google Sheets" inline.
+2. **Keep user-facing language vendor-neutral.** The agent talks about "your calendar," not "your Google Calendar," so the same copy holds when the backing vendor changes.
+3. **Route internal tool calls through a user-recorded capability→provider map.** A `provider_stack` key (persisted in the agent's update-safe config surface — see `OC_KB_04` and the plugin-state rule in `docs/investigations/2026-07-07-codex-and-claude-code-plugins-build-publish-gate.md`) maps each capability to whichever vendor serves it. A skill reads the map, then dispatches to that vendor's tool.
+
+**Carve-out — vendor-neutral governs user-facing language and routing logic, not failure-signature artifacts.** Rule 1's "never inline" applies to the copy the agent speaks and the abstraction skills route through. It does **not** apply to internal diagnostic artifacts whose entire value is verbatim vendor specificity: a `references/` gotcha log's exact error strings, an observed-symptom reference, a per-connector quirk note (see `OC_KB_02` → the capability-scoped gotcha log). Those are keyed to the literal signature a specific vendor's API emits — paraphrasing them to stay vendor-neutral would destroy the match. Keep failure-signature artifacts verbatim vendor-specific by design.
+
+**Mixed stacks are first-class, not a corner case.** A real second stack is capability-mixed, not vendor-monolithic. The market evidence forcing this: Codex's connector directory carries Outlook, SharePoint, Dropbox, and Smartsheet but has **no monolithic "Microsoft" store** and no standalone Excel connector — so the realistic alternative to (say) an all-Google stack is `email=Outlook, files=Dropbox, database=Smartsheet`, not "the Microsoft equivalent of Google." Design the map so `files=Dropbox` while `database=Sheets` is a supported configuration, not a special case.
+
+The cost is one indirection layer (map lookup before dispatch) bought against never re-authoring skills when a user arrives on a different stack. For the one-capability-served-by-multiple-interchangeable-connectors case — which the fixed-`mcpServers` registry model does not natively express — see `OC_KB_03`'s note on capability→connector indirection.
+
 ## Workspace tree (mandated by OpenClaw)
 
 ```

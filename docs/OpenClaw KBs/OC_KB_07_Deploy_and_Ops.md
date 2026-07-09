@@ -176,6 +176,8 @@ The framework's `deploy.sh` template lists the excludes explicitly. When you add
 2. Test the deploy locally first (`rsync --dry-run`)
 3. Then ship
 
+**Plugin-distribution analogue.** This exclude mechanism only works because *you* control the deploy. When the agent is shipped as a **plugin** (Claude Code / Codex), the author re-pushes updates the user can't schedule, and an update replaces the shipped package files — there is no author-side exclude list to protect user state. The equivalent rule there is to push *all* runtime-writable state **off the package** into user-owned storage (one designated update-safe surface) so an update can never overwrite it. See `docs/investigations/2026-07-07-codex-and-claude-code-plugins-build-publish-gate.md` → "User state across plugin updates (the read-only-package rule)".
+
 ## Operations CLI
 
 Common runtime-host operations:

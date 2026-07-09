@@ -73,6 +73,92 @@
 
 - [TODO new entity / new field / new bootstrap file / new MCP server]
 
+<!--
+  Environment-claim convention: any row here (or anywhere in the spec) that
+  asserts a host capability you have not verified against the real install —
+  "connector X exposes Y", "the runtime writes to Z" — carries an inline
+  `[VERIFY per host]` tag at the point of use. Resolve each before lockdown by
+  rewriting it in place as `[RESOLVED: checked <what> on <where>]` (claim held) or
+  `[RESOLVED, corrected: …]` (claim was wrong; here's the truth). A bare
+  `[RESOLVED]` with no how-verified note counts as UNRESOLVED at lock; an
+  unresolved `[VERIFY…]` blocks /plan-review Step 6a. Prior art: docs/context-instrumentation-spec.md.
+-->
+
+#### 4.2a Overridable-vs-locked config boundary
+
+<!--
+  For an agent whose users can steer its behavior: draw the line between what a
+  user may override and what is locked by the author. State it as a hard rule,
+  not a vibe. Locked rows are typically safety / correctness invariants
+  (deadline validation, duplicate handling, doc classification, approval
+  guardrails); overridable rows are personalization (voice, brokerage/org name,
+  vendor list). See the plugin-distribution "user state across updates" rule in
+  docs/investigations/2026-07-07-codex-and-claude-code-plugins-build-publish-gate.md
+  for the KB-side treatment of WHERE overridable config is persisted (in the
+  user's own store, never in shipped read-only code). Skip if the agent exposes
+  no user-tunable config.
+-->
+
+| Config surface | Overridable by user? | Enforced how | Rationale |
+|---|---|---|---|
+| [TODO e.g. voice / tone] | Yes | — | personalization |
+| [TODO e.g. deadline validation] | **No — locked** | author-owned rule | safety invariant |
+
+#### 4.2b New persisted config fields (manifest)
+
+<!--
+  If this spec introduces user-overridable config, list EACH new persisted
+  field here as an explicit manifest — one row per field — so the fields are
+  reviewable and so the update path knows what user state it must never
+  overwrite. These live in the user's own store (Sheet Meta tab, config file,
+  etc.), NOT in shipped read-only skill/.md files. Skip if no new fields.
+-->
+
+| Field | Store / location | Type | Default | Who writes it |
+|---|---|---|---|---|
+| [TODO field name] | [TODO user store] | [TODO] | [TODO] | [onboarding / user / agent] |
+
+### 4.3 Audience & Voice constraints (non-negotiable)
+
+<!--
+  For a CONVERSATIONAL / user-facing agent, the exact words ARE the
+  implementation — user-facing copy is not decoration to be paraphrased at
+  build time. Pin three things and treat them as locked spec content:
+
+    1. Reading level — a concrete target (e.g. "12th-grade / plain English").
+    2. Forbidden vocabulary — a hard never-say list of terms that leak the
+       machinery (e.g. MCP, API, schema, JSON, OAuth, scope, "database
+       structure"). Implementers must not surface these to users.
+    3. Verbatim user-facing copy WITH per-phrase rationale — embed the literal
+       scripts the agent speaks, each annotated with WHY that wording (what it
+       reassures, what it must NOT claim). The rationale is load-bearing: it is
+       what keeps a later editor from "improving" a line into a lie or an
+       awkward read.
+
+  Skip this section for a non-conversational / internal agent. When present,
+  its lines are locked copy — /plan-review treats an unresolved wording fork
+  here the same as any other unresolved decision.
+-->
+
+**Reading level:** [TODO e.g. 12th-grade, plain English — no jargon]
+
+**Never-say list (forbidden vocabulary):**
+- [TODO term] — [TODO what to say instead / why it's banned]
+
+**Verbatim user-facing copy (exact words + rationale):**
+
+| Situation | Exact words (verbatim) | Why this wording |
+|---|---|---|
+| [TODO trigger] | "[TODO literal script]" | [TODO reassurance it carries / claim it must avoid] |
+
+<!--
+  Example (design-validated, from a downstream product): a "what will you do to
+  my data" reassurance rides on the literal line "I won't change, send, move, or
+  delete a single thing" — and deliberately does NOT append "I'm only looking,"
+  because that addition "reads weird." The exact words, and the reason for them,
+  are both the spec.
+-->
+
 ## 5. Capability Fixes
 
 <!--
@@ -245,9 +331,39 @@
   Explicitly NOT in this spec, with a one-line reason. Saves reviewers
   from re-asking. Items that get deferred during /plan-review or
   /implement should land here too.
+
+  Split open items by architectural upstream-ness — a flat backlog hides the
+  ones that are expensive to delay. /plan-review Step 6a reads this split:
+  an unresolved "Upstream fork" BLOCKS lockdown; a "Genuinely deferrable" item
+  WITH a recorded why-safe-to-sit rationale does NOT.
 -->
 
-- [TODO item] — deferred because [TODO reason]
+### 10.1 Upstream forks — decide early
+
+<!--
+  Architecturally upstream: choosing late forces a re-port / re-architecture,
+  so delaying is expensive. For each, record WHAT downstream work it reshapes.
+  A "decide early" LABEL is not a decision — until a row has a closing decision
+  (in §1), /plan-review Step 6a treats it as UNRESOLVED and blocks lock.
+
+  Field case (design-validated, downstream product): an IP-protection fork was
+  filed here as "Decide early — it shapes the architecture," yet the crown-jewel
+  extraction logic shipped in-the-clear as readable markdown across nine
+  version-string bumps because the decision was never actually made. Labeling it did
+  not protect it; deciding it would have.
+-->
+
+- [TODO upstream fork] — reshapes: [TODO downstream work]; decision status: [OPEN — blocks lock / decided in §1 row N]
+
+### 10.2 Genuinely deferrable
+
+<!--
+  Nothing in this release depends on these. Each MUST record WHY it is safe to
+  sit — that rationale is what lets /plan-review accept it instead of flagging
+  it UNRESOLVED. No rationale ⇒ treated as an unjustified open fork.
+-->
+
+- [TODO item] — deferred because [TODO reason]; safe to sit because [TODO nothing downstream depends on it]
 - [TODO item] — out of scope: [TODO reason]
 
 ## 11. Prioritization Hints

@@ -50,7 +50,7 @@
 **OpenClaw stack-reference KBs** (vetted patterns — consult the index, then read only the relevant OC_KB):
 - `docs/OpenClaw KBs/OC_KB_00_Index.md` — start here. Routing layer over the OC_KB collection. Two halves:
   - **Runtime stack** (`OC_KB_01–09`): architecture, skills, MCP tools, bootstrap files, models & prompts, cron & scripts, deploy & ops, observability, evals.
-  - **Capability primitives** (`OC_KB_10–14`): capability layers (diagnostic taxonomy), safety primitives, trust & provenance, self-improvement loops, operational excellence.
+  - **Capability primitives** (`OC_KB_10–14`, `OC_KB_16`): capability layers (diagnostic taxonomy), safety primitives, trust & provenance, self-improvement loops, operational excellence, datastore modeling.
 
 > **Note on KB numbering:** KB_1 and KB_8 are template-provided. Numbers 2–7 and 9 are reserved for project-specific knowledge bases added during kickoff (skill catalog, MCP server catalog, custom integrations, etc.). The `OC_KB_*` files in `docs/OpenClaw KBs/` are stack-reference patterns and are separate from the project-state KBs.
 
@@ -107,6 +107,7 @@ All commands live in `.claude/commands/`. On a fresh clone, run `/preflight` the
 |---------|---------|
 | `/audit-code` | Review code/plans for elegance, reuse, anti-patterns |
 | `/audit-infra` | Audit infrastructure — mcporter config, env vars, deploy script, MCP server deps |
+| `/stress-test` | Multi-lens adversarial judge panel over a change set or spec — parallel judges with distinct lenses, optional fix pass, re-verify with the same lenses |
 
 ### Generators
 | Command | Purpose |
@@ -133,5 +134,7 @@ The following are canonical OpenClaw silent-failure traps. Each one parses as va
 - Prompt cache config goes under PLURAL `models`, NOT singular `model`. Singular `model` is the routing config; cache misplaced there silently disables caching.
 - Adding a new runtime-mutable path (where the agent writes at runtime) requires updating the rsync excludes in `deploy/deploy.sh` BEFORE next deploy. Otherwise `rsync --delete` wipes the path.
 - Memory/bootstrap files hold durable rules and query paths, NOT copies of system-of-record facts. A duplicated fact parses fine, then silently diverges from the source — the agent then defends the stale copy against the live system. Store the rule and the query path; fetch the facts fresh.
+- Denormalized copies inside the datastore silently diverge once a separate write path touches one. A second copy is sanctioned only when shaped as a named cache over a single canonical source — see `OC_KB_16` for the only allowed form.
+- Validation/readiness ledgers (`[RUN]`/smoke-test state) MUST be git-tracked. A gitignored ledger runs green in your working tree, then silently never travels with the repo or into a derived plugin/package — its unchecked boxes rot while the work lands in commits.
 
 [TODO — add additional project-specific hard constraints during development]

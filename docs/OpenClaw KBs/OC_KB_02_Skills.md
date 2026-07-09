@@ -177,6 +177,19 @@ The references/ files are NOT loaded automatically. The skill itself decides whe
 
 Beyond saving context budget, a `references/` pack is also a deliberate **accuracy lever.** A base model can only apply knowledge you actually give it, so synthesizing your prior art — worked examples, decision rules, known-good patterns, per-domain or per-class write-ups — into a reference the skill loads at the matching judgment step tends to raise its hit-rate on that task. Author references proactively for accuracy, not only reactively to evict overflow. The cost is honest: it is tedious authoring work, and a large pack earns its keep only because it loads on demand, not every fire. Reference packs are model-interpreted prose and examples — judgment-side content — so they stay on the right side of the skill/script boundary (see `[SKILL-1]` and "The mixed case").
 
+### The capability-scoped gotcha log (force-read-before-acting)
+
+_Design-validated against Kai-RE's `calendar-gotchas.md`, not runtime-proven — seeded and amended in testing, but the owning skill has not run a live open-deal cycle._
+
+A specialized `references/` variant: a **durable per-capability gotcha log** that stops the agent rediscovering environmental quirks on every run. It is distinct from the project-wide `docs/LESSONS.md` tier — narrower, and enforced differently:
+
+- **Capability-scoped, not project-wide.** One file per quirky capability (Kai-RE's `references/calendar-gotchas.md`: adding attendees emails them *and* double-displays; secondary calendars need an `@`-form ID, not a display name; deadline holds auto-attach a Meet link). `LESSONS.md` is the cross-cutting log; this is the local one the owning skill carries.
+- **Force-read immediately before acting.** The owning skill instructs the model to load it at the top of the relevant step — "read this before you create, invite to, or write a deadline onto any calendar" — not lazily and not optionally. It is the last thing read before the environment-touching action.
+- **Entries keyed to a VERBATIM failure signature.** Each entry pins the exact error string / observed symptom, so a future run matches on the literal signature rather than a paraphrase (in Kai-RE, commit `48c98a6` appended the exact error string a live test produced).
+- **Grown incrementally from live runs.** It is the low-ceremony learn-once/write-back loop *without* auto-mutating memory: when a run hits a quirk, append the verbatim entry by hand.
+
+Position it as the **low-ceremony front-end to `OC_KB_13`'s edge-case library**: the gotcha log is the fast, skill-local capture at the moment of failure; graduate recurring or regression-worthy entries into the structured edge-case library (which feeds `OC_KB_09` evals). One captures cheaply mid-run; the other is the versioned institutional record.
+
 ## Anti-patterns
 
 - **Folder/name drift.** You rename a folder but forget to update frontmatter. Skill silently disappears from the router. → fix: standardize one or the other; never edit just one.

@@ -131,6 +131,15 @@ The gateway assembles each Messages API call from these layers (in order):
 
 Caching kicks in at the breakpoint between layer 4 and 5. If layers 1–3 grow on every call (because some "stable" file is actually being mutated), cache misses every time — useless caching.
 
+## SOUL.md voice constraints for conversational agents
+
+For a user-facing conversational agent, SOUL.md (layer 1 — identity, role, tone) is where the agent's *voice* is pinned. For such an agent the exact words the agent speaks ARE the implementation, not decoration — so encode two hard constraints in SOUL.md rather than leaving voice to per-call improvisation:
+
+- **Reading level** — a concrete target (e.g. "12th-grade / plain English, no jargon"), not a vibe. This is a durable rule; state it once in SOUL.md so every prompt inherits it.
+- **Never-say list (forbidden vocabulary)** — a hard list of machinery-leaking terms the agent must never surface to a user (e.g. MCP, API, schema, JSON, OAuth, scope, "database structure"). A never-say list belongs in SOUL.md because it applies to every turn; the *per-situation verbatim scripts* (the literal lines the agent speaks, with per-phrase rationale) are spec content, not bootstrap content — they live in the spec's Audience & Voice section and load via skill on demand, keeping SOUL.md terse.
+
+This is the KB pointer-half: the full treatment — reading level, forbidden-vocabulary table, and verbatim user-facing copy annotated with why each phrase is worded as it is — is authored as locked spec content in the agent-improvement spec template's **§4.3 Audience & Voice constraints**, and `/plan-review` treats an unresolved wording fork there as a blocking decision. *(Design-validated, not runtime-proven — graduated from a downstream conversational product whose voice constraints had not yet cleared a live end-to-end run.)*
+
 ## Cache cost-thresholds (per Anthropic docs, verify before shipping)
 
 Different models have different minimum prompt sizes for cache breakpoints to be worth establishing:

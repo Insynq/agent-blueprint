@@ -69,6 +69,18 @@ If the runtime host's plist doesn't have `GMAIL_TOKEN`, the substitution produce
 
 `.env` files in the repo are for **local-dev** MCP servers only — when you're testing an MCP server outside the OpenClaw gateway, your dev tools may load `.env`. The gateway itself does not.
 
+## Capability→connector indirection (mixed/swappable vendor stacks)
+
+The `mcpServers` registry is a **fixed, flat set of named servers**. It does not natively model "one capability served by several interchangeable providers" — there is no `email` slot you point at either `gmail-mcp` or `outlook-mcp`. When an agent must support mixed or swappable vendor stacks (see `OC_KB_01` → capability abstraction), layer the selection *above* the registry:
+
+- Register **every candidate connector** in `mcpServers` (e.g. both `gmail-mcp` and `outlook-mcp`); the registry stays a flat superset of all supported providers.
+- Record a **capability→provider map** in the agent's config surface (Kai-RE's `provider_stack`; persisted in the update-safe store, not the shipped package).
+- A skill reads the map, resolves the capability (`email`) to a server-id (`outlook-mcp`), then dispatches to that server's tool. The registry knows nothing about the choice; the indirection lives in the skill layer.
+
+When a resolved tool reaches a datastore (a sheet, a table, a file store), the per-call read cost of that store is a separate modeling concern — see `OC_KB_16` (Datastore Modeling for Tool-Call Reads) for the read-cost model.
+
+_Design-validated against Kai-RE's recorded design, not runtime-proven — the indirection shipped but has not been exercised across a live second-vendor stack._
+
 ## Naming conventions
 
 | Layer | Convention | Example |

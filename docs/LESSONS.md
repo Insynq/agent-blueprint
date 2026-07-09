@@ -4,6 +4,8 @@ A running log of gotchas, hard-won lessons, and non-obvious behaviors discovered
 
 **Format:** Each entry has a short ID for cross-referencing (e.g., `[MCP-1]`), the rule itself, a **Why** (the real incident), and a **How to apply** line (when to use it).
 
+**Scope:** this file is the cross-cutting, project-wide tier. Capability-scoped environmental quirks (a specific connector's error signatures and format traps) belong instead in the owning skill's `references/` gotcha log, force-read before acting on that capability — see `OC_KB_02` "The capability-scoped gotcha log."
+
 Commands that reference this file: `/debug`, `/implement`, `/audit-code`.
 
 > **Status: starter template.** This file ships nearly empty so that **app-specific** lessons accumulate from your own incidents rather than carrying another project's baggage. The exception is **framework-level architectural lessons** (like `[SKILL-1]` below) that apply to *every* OpenClaw agent — those ship with the framework and propagate via `/update-framework`. Add your own entries as gotchas surface during development.
