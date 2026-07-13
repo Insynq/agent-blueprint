@@ -60,6 +60,21 @@ Only the canonical repo (this repo) maintains `FRAMEWORK_CHANGELOG.md`. Adopter 
 
 ---
 
+## [0.8.1] - 2026-07-13
+
+Docs-only patch: backfills the missing changelog entries for **v0.4.0 through v0.6.3** (eight releases that were tagged and published on GitHub but never recorded here — the file previously jumped from 0.7.0 straight to 0.3.0). Restores the `/update-framework` parsing contract's migration-note coverage for adopters crossing that range. Entries are condensed from each version's GitHub release notes and flagged as backfilled in place; rename detection was re-run across every gap pair (`git diff -M90` between adjacent tags) — **no renames anywhere in the range**, so no `### Renamed` sections were needed.
+
+### Changed
+
+- **`FRAMEWORK_CHANGELOG.md`** — added `[0.6.3]`, `[0.6.2]`, `[0.6.1]`, `[0.6.0]`, `[0.5.1]`, `[0.5.0]`, `[0.4.1]`, `[0.4.0]` entries in descending order.
+- **`package.json`** — version `0.8.0` → `0.8.1`.
+
+### Migration Notes
+
+- No framework content changed — this release exists so the backfilled changelog ships in a release tarball (the v0.8.0 tarball is pinned without it). Safe to skip if you're already on v0.8.0 and don't need the historical migration notes.
+
+---
+
 ## [0.8.0] - 2026-07-13
 
 Graduates one reasoning-discipline pattern from the downstream kai-openclaw agent (its `[CTME-5]`, commit `862a08a`) into the framework: **an unverified negative is defended by every later run**. A recorded negative assertion ("X isn't present," "no match found," "arrived outside our pipeline") is a claim requiring evidence at a *higher* bar than a positive — negatives written into durable state (watermarks, queues, caches, notes) become the surviving record and suppress the re-check that would correct them. Field-proven downstream (a real 7-day wrong-diagnosis incident); the framework prose itself is `Installed, not yet proven in a live run` per `[PROCESS-1]`.
@@ -79,6 +94,7 @@ Graduates one reasoning-discipline pattern from the downstream kai-openclaw agen
 
 - All edits are additive at stable anchors; no renames, no breaking changes. Adopters with customized `LESSONS.md` / `CLAUDE.md` receive the changes per the standard hybrid/sibling merge pattern.
 - The pattern's domain-specific worked example (real-estate contract capture) intentionally stays downstream in kai-openclaw's `[CTME-5]`; the framework wording is domain-agnostic.
+
 
 ---
 
@@ -109,6 +125,194 @@ Graduates field-proven patterns from the Kai-RE agent (G1–G14) into framework 
 - **`OC_KB_15` remains reserved** (see `docs/sister-framework-adoption-spec.md`); the new Datastore Modeling KB is numbered `OC_KB_16`. No renames, no breaking changes — all edits are additive.
 - **Patterns from the Kai-RE graduation are design-validated, not runtime-proven.** The source product had not run a live end-to-end deal when these patterns were graduated; each affected KB text carries this label. Treat the patterns as vetted designs pending runtime evidence, and record runtime confirmations in your project's `LESSONS.md` when they land.
 
+
+---
+
+## [0.6.3] - 2026-07-07
+
+*Backfilled 2026-07-13 from the v0.6.3 GitHub release notes (entries condensed; no content changes to the release itself).*
+
+Doc-only prose cleanup of all 25 command files plus `docs/MULTI_AGENT_WORKFLOW.md`, net −370 lines, graded by an 8-judge panel (6 Opus-family judges + 2 adversarial Fable adjudicators) over ~30 findings. **Zero guardrail cuts** — every LESSONS-cited rule, refutation block, seed prompt, fresh-context copy, and destructive-op rule preserved.
+
+### Changed
+
+- **All 25 command files + `docs/MULTI_AGENT_WORKFLOW.md`** — prose condensation; consumed-verbatim artifacts (seed prompts, worker templates, executable blocks) left intact per what later became `[PROCESS-8]`/`[PROCESS-9]`.
+- **`/kickoff` embedded CLAUDE.md template** — drift vector closed: now fills the on-disk `[TODO]`s in place instead of regenerating the DO NOT / Custom Commands / Reference Documents blocks (its embedded DO-NOT copy had already drifted 7-vs-8 traps).
+- **Hardcoded 22-command rosters** replaced by a `.framework-manifest.json` pointer; a duplicated KB_1 template removed.
+- **Framework-wide app-blueprint web-residue sweep** — audit-code globs, plan-review agent briefs, unify/update-kb/research vocabulary, dead KB_7/gen-component pointers.
+
+### Migration Notes
+
+- No runtime behavior changed; no renames. The one behavior-adjacent change (the fill-don't-regenerate `/kickoff` rewrite) shipped `Installed, not yet proven in a live run` (smoke flag SA-1).
+
+
+---
+
+## [0.6.2] - 2026-07-07
+
+*Backfilled 2026-07-13 from the v0.6.2 GitHub release notes (entries condensed).*
+
+Wargame-planning intake: extracts the transferable planning method from the "Fable Wargame Kit" into the canonical framework (no new command). Sources: the kit + 3 Anthropic system cards + official prompting docs + an independent red-team study; 15/15 load-bearing cites page-verified. Spec LOCKED after a 3-agent plan-review; hardened by an 8-judge skill-audit panel.
+
+### Added
+
+- **Per-step expected-observation lines + Abort conditions section** (blocked-escalate vs friction-push-through) in `/plan` and the MAW worker plan-doc template, gated at Complexity ≥ Medium.
+- **`/plan-review` Step 6a runtime-fork-trigger artifact class** — an observable "if you observe X, take route B" line LOCKs only when both routes are fully pre-designed.
+- **`/implement` per-step observation-confirmation consuming loop.**
+- **Blind-executability dispatch gate** in `/orchestrate` + `docs/MULTI_AGENT_WORKFLOW.md`.
+- **`OC_KB_05` tier-role executor-brief section** — durable planner/executor guards; named-model specifics quarantined in a dated, decays-with-releases Exhibit table.
+- **`OC_KB_11` BLOCKED-never-invent corollary** — never invent a required input; classify required vs soft, fail loud on required.
+
+### Migration Notes
+
+- Additive at stable anchors; no renames. Smoke flags WG-1..WG-7 await first downstream firing.
+
+
+---
+
+## [0.6.1] - 2026-07-07
+
+*Backfilled 2026-07-13 from the v0.6.1 GitHub release notes (entries condensed).*
+
+T3 goal-mode video intake (LOCKED spec `docs/t3-video-2026-07-06-intake-spec.md`), harvested from a practitioner goal-mode video via a 4-agent Opus grounding panel with anchor-verified edit targets. 12 files modified + one new command. Rejected imports (per-model score tables, "never use Haiku", unanimity-as-confidence, wall-clock thresholds, and more) are recorded with reasons in the spec's decisions table.
+
+### Added
+
+- **`/triage` command** (`.claude/commands/triage.md`) — triage a stale backlog into action buckets with judge-verified verdicts and a mandatory `[PROCESS-3]` fail-loud coverage tally.
+- **`OC_KB_11` autonomy-budget doctrine** — standing multi-step autonomy only when the deploy target is revertible, an automated approval gate precedes each irreversible step, and the permission grant is enumerated; absent all three, stay turn-by-turn. Plus the committed-ledger supervision surface.
+- **`docs/LESSONS.md [PROCESS-7]`** — effort disproportion is an architecture signal, measured by diff not wall-clock; cross-referenced from `/debug` and `/audit-code`.
+- **`OC_KB_02` delegation-skill archetype + empty-result contract** (also in `/gen-skill`).
+- **`OC_KB_05` routing philosophy** — cost gates exploration, not what ships; routing is a default not a ceiling; named-model exclusions are an anti-pattern.
+- **Evaluative-terms glossary** in `/kickoff` + `CLAUDE.md` Preferences.
+
+### Changed
+
+- **`docs/MULTI_AGENT_WORKFLOW.md`** — live-orchestration-vs-deterministic-workflow rule (scripted fan-outs fit fan-out-and-verify only; checkpoint-driven programs run from the live PM session); Phase-8 risk-targeted verification (diff as risk map; re-exercise old adjacent behaviors) with conditional worktree reconciliation; Phase-6 split-verdict escalation (mirrored in `/audit-code`'s Refutation Pass).
+- **`docs/LESSONS.md [PROCESS-1]` Corollary 1** — trigger sharpen.
+
+### Migration Notes
+
+- Cross-context port per `[PROCESS-5]`; every prose/doctrine change shipped `Installed, not yet proven in a live run` (smoke flags T3V-1..T3V-5). No renames.
+
+
+---
+
+## [0.6.0] - 2026-07-06
+
+*Backfilled 2026-07-13 from the v0.6.0 GitHub release notes (entries condensed).*
+
+Kai Jul 2–6 harvest intake (LOCKED spec `docs/kai-harvest-2026-07-06-intake-spec.md`): a 15-transcript kai-openclaw harvest stress-tested by a 12-judge Fable+Opus adversarial panel that corrected 5 synthesis-layer errors before lock. All 20 edit blocks landed across 9 files; no code.
+
+### Added
+
+- **`OC_KB_11` Primitive 8 blocked-side sharpen** — a "blocked"/"skipped" verdict is a capability claim held to the verify-by-attempt bar; plus a seeded-negative anti-pattern.
+- **`OC_KB_11` Primitive 9 negative test-sentence dual + field closure; Primitive 3 read-back extended to side-effect rows; semantic-defaults anti-pattern** (the ~$97k DEFAULT/COALESCE two-headed trap).
+- **`docs/LESSONS.md [PROCESS-1]` Corollary 3** — a false "blocked" cascades; negative statuses need the same evidence bar.
+- **`CLAUDE.md` DO-NOT fact-copy trap** (memory/bootstrap files hold rules and query paths, not copies of facts; + `OC_KB_04` cross-ref) and the **scope-graduation conduct rule** (design sign-off is not deploy authorization), with LOCKED-not-deploy clarifications mirrored in `/plan-review` and `docs/MULTI_AGENT_WORKFLOW.md`.
+
+### Changed
+
+- **`OC_KB_12`** — timestamps from `now()`/DB DEFAULT, never typed literals; reconciliation hierarchy upgraded to field-proven.
+- **`docs/LESSONS.md`** — `[PROCESS-4]` args-as-JSON-string sharpen; `[PROCESS-3]` corroboration append (no demotion).
+
+### Migration Notes
+
+- Prose-only diff; no renames. Every canonical prose change shipped flagged `Installed 2026-07-06, not yet proven in a live run`, except the two field-attestation upgrades (Primitive 9 field closure, reconciliation field-proof), which record already-observed production firings.
+
+
+---
+
+## [0.5.1] - 2026-06-26
+
+*Backfilled 2026-07-13 from the v0.5.1 GitHub release notes (entries condensed).*
+
+Post-v0.5.0 verification & safety hardening, learned and adversarially filtered from a week of kai-openclaw downstream proving runs (a phases-1–4 build session, a 75-agent phases-5–8 workflow build, four live catch-ups). No code. Three candidates deliberately DROPPED by the adversarial filter.
+
+### Added
+
+- **`docs/LESSONS.md [PROCESS-1]` input-side corollary** — a prior analysis/audit/roadmap is `relayed`, not `read-it`, until re-grounded (a 424-line audit drove 4 phases, wrong in all 4).
+- **`docs/LESSONS.md [PROCESS-1]` runtime corollary** — a shipped code path is unproven until its trigger fires AND you inspect the persisted artifact, not the digest ("deployed ≠ exercised").
+- **`docs/LESSONS.md [PROCESS-3]`** — a schema-forced Workflow fan-out can silently under-cover; log the drop.
+- **`docs/LESSONS.md [PROCESS-4]`** — a fan-out's synthesis is the least-trustworthy layer; verify the primaries.
+- **`OC_KB_11` Primitive 9** — fail loud or fail closed, never fail silent-open (+ anti-pattern + diagnosis step; primitive count 8→9).
+- **`OC_KB_13`** — "output metrics without a paired outcome metric" anti-pattern; concrete-defect-over-abstract-lesson refinement.
+
+### Changed
+
+- **`/retro`** (`.claude/commands/retro.md`) — outcome-vs-output check in the phase retro.
+
+### Migration Notes
+
+- Every addition shipped `Installed, not yet proven in a live run`. No renames.
+
+
+---
+
+## [0.5.0] - 2026-06-25
+
+*Backfilled 2026-07-13 from the v0.5.0 GitHub release notes (entries condensed).*
+
+Bundles the full two-talk *Insecure Agents* (Sentry) framework review (Tiers 1–3). The review's adversarial filter deliberately dropped one candidate (an "over-decomposition" anti-pattern resting on a single confounded anecdote) and one proposed audit-infra check (false-positive generator for single-tenant agents).
+
+### Added
+
+- **`docs/LESSONS.md [PROCESS-1]`** ("a prose change is unproven until a live run") **and `[PROCESS-2]`** ("augment the deterministic baseline; don't replace it").
+- **`OC_KB_11` Primitive 0** — don't expose the operation (close the capability); least-privilege / default-deny section.
+- **`_dev/tools/validate-skills.mjs`** — zero-dependency Node validator for the CLAUDE.md DO-NOT skill traps (folder==name, `user-invokable` spelling, bootstrap char-cap). Homed in `_dev/tools/` (dev/CI), NOT the rsync-deployed `workspace/scripts/`.
+- **Multi-user conditional notes** — `MEMORY.md` single-operator isolation; least-privilege / default-deny.
+
+### Changed
+
+- **`OC_KB_02`** — `references/` reframed as a proactive accuracy lever; MCP-vs-CLI auth-boundary note. **`/gen-test`** — "Before you trust these tests" discipline (behavior-verified at ship: an independent `/gen-test` run reached and applied it). **`OC_KB_01`** — build-vs-buy (anchor on the data, not the harness). **`OC_KB_05`** — confounded-model-swap anti-pattern.
+- **`.framework-manifest.json`** release version bumped to 0.5.0.
+
+### Migration Notes
+
+- Verification ledger at ship: 2 items verified (validate-skills.mjs on fixtures; the /gen-test discipline firing), all other additions `Installed, not yet proven in a live run`. No renames.
+
+
+---
+
+## [0.4.1] - 2026-06-25
+
+*Backfilled 2026-07-13 from the v0.4.1 GitHub release notes (entries condensed).*
+
+Encodes the skill/script-boundary lesson: keep judgment in the skill, mechanics in a script (dry-run handoff: build payload → invoke `--dry-run` → review → invoke for real). Originated from a read-only assessment of a production agent's six longest skills; an independent refutation pass caught one false positive, so the guidance ships with a "don't over-extract / verify per-block" caveat.
+
+### Added
+
+- **`docs/LESSONS.md [SKILL-1]`** — the decision record; the ships-empty note now distinguishes framework-level lessons (which propagate) from app-specific ones.
+- **`OC_KB_02` "The mixed case" section** + over-determinism anti-pattern + validation-checklist item.
+
+### Changed
+
+- **`_dev/skill-template.md`** — determinism guidance at the Workflows section (prevent at creation).
+- **`/audit-code`** — over-determinism anti-pattern row (detect in review).
+
+### Migration Notes
+
+- Additive prose only; no renames.
+
+
+---
+
+## [0.4.0] - 2026-06-25
+
+*Backfilled 2026-07-13 from the v0.4.0 GitHub release notes (entries condensed).*
+
+Completes the three-thread verification-discipline agenda: thread 3 closure provenance, thread 2 falsification primitive (independent Refutation Pass), thread 1 ground-first primary-artifact anchor (this release's headline). All three threads are markdown-prose command edits, shipped `Installed, not yet proven in a live run`.
+
+### Added
+
+- **`/investigate` "Step 0: Anchor on the Primary Artifact"** — quote the literal artifact (error text, log line, data row, transcript, or the user's verbatim claim) and derive the entry point from it, not from a theory; downstream root-cause claims marked UNVERIFIED when the artifact is unavailable; checkable "Primary Artifact" / "Entry point derived from:" output fields.
+- **`/brainstorm` Phase 1 conditional artifact-anchor line** reusing the `[verified]`/`[relayed]` provenance vocabulary.
+- **Spec:** `docs/ground-first-anchor-spec.md` (LOCKED).
+
+### Migration Notes
+
+- Bundles threads landed since v0.3.0 (closure provenance `c48f93d`, falsification primitive `7aea047`). Open follow-up at ship: session instrumentation (capture which files were in context at a wrong output) — later shipped as the context-at-turn tool (`666b817`). No renames.
+
+
 ---
 
 ## [0.3.0] - 2026-06-01
@@ -137,6 +341,7 @@ Adopts four discipline-enforcement patterns from a sister app-focused framework'
 - **`docs/KB_1_Architecture.md` adopters get a `.new` sibling for the first time post-manifest-update.** The v0.3.0 manifest changes `default_action_on_conflict` for `docs/KB_1_Architecture.md` from `"skip"` to `"sibling"` — previously, adopters' customized `KB_1` never received framework-side updates to that file. After the v0.3.0 update lands, adopters will see the new decisions-table skeleton arrive as a `.framework` sibling for manual merge into their existing `KB_1`.
 - Reference patterns captured in `docs/sister-framework-adoption-spec.md` §7 (five reframed sister-framework lessons: ARCH-3 capability ≠ default responsibility, ARCH-8 architecture lockdown before PM dispatch, PROC-1 talk it out before any docs, PROC-2 git commits as conversation checkpoints, PROC-3 when all options feel meh the framing is wrong) are **not seeded** into `docs/LESSONS.md` — that file is project-owned and ships starter-empty by design. Adopters may consult §7 and selectively copy entries into their own `LESSONS.md` if matching incidents surface.
 
+
 ---
 
 ## [0.2.0] - 2026-05-27
@@ -157,6 +362,7 @@ Adopts four discipline-enforcement techniques observed in `obra/superpowers` (Je
 ### Migration Notes
 
 - All edits are additive insertions at stable anchors. Unmodified adopter copies update via `overwrite-with-backup`; customized copies trigger a three-way merge. `_dev/skill-template.md` and `workspace/skills/README.md` are hybrid and arrive as `.framework` siblings requiring a small manual merge. The `OC_KB_02_Skills.md` edit is canonical-only and does not reach installed agents via `/update-framework`.
+
 
 ---
 
