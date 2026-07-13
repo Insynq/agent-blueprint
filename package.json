@@ -1,6 +1,6 @@
 {
   "name": "@insynq/agent-blueprint",
-  "version": "0.3.0",
+  "version": "0.8.0",
   "description": "Installer for the @insynq/agent-blueprint framework: slash-command + KB scaffold for OpenClaw agent projects.",
   "license": "MIT",
   "author": "Insynq",

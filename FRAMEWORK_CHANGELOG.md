@@ -60,6 +60,28 @@ Only the canonical repo (this repo) maintains `FRAMEWORK_CHANGELOG.md`. Adopter 
 
 ---
 
+## [0.8.0] - 2026-07-13
+
+Graduates one reasoning-discipline pattern from the downstream kai-openclaw agent (its `[CTME-5]`, commit `862a08a`) into the framework: **an unverified negative is defended by every later run**. A recorded negative assertion ("X isn't present," "no match found," "arrived outside our pipeline") is a claim requiring evidence at a *higher* bar than a positive — negatives written into durable state (watermarks, queues, caches, notes) become the surviving record and suppress the re-check that would correct them. Field-proven downstream (a real 7-day wrong-diagnosis incident); the framework prose itself is `Installed, not yet proven in a live run` per `[PROCESS-1]`.
+
+### Added
+
+- **`docs/LESSONS.md [PROCESS-10]`** — "An unverified negative is defended by every later run — exhaust the source before recording one." Three-part rule (exhaust the source of truth / cite the queries + IDs in the record itself / a stored pattern is a hypothesis to test, never a presumption), with the downstream incident as the Why. Numbered 10 because `[PROCESS-6]` remains reserved by `docs/team-of-peers-and-prod-audit-spec.md` (DRAFT).
+- **`CLAUDE.md` DO-NOT trap** — never record a negative into durable state without exhausting the source first; make the record cite the queries and IDs checked.
+
+### Changed
+
+- **`docs/LESSONS.md [PROCESS-1]` Corollary 3** — closing cross-reference to `[PROCESS-10]` for the persisted, domain-data side of the negative-claims asymmetry (Corollary 3 keeps the in-run capability side: "blocked"/"skipped").
+- **`docs/OpenClaw KBs/OC_KB_11_Safety_Primitives.md` Primitive 8 blocked-side sharpen** — extended from capability claims to domain-data negatives persisted into durable state, pointing at `[PROCESS-10]`.
+- **`package.json`** — version corrected `0.3.0` → `0.8.0`; it had been stale since v0.3.0 while releases advanced through v0.7.0.
+
+### Migration Notes
+
+- All edits are additive at stable anchors; no renames, no breaking changes. Adopters with customized `LESSONS.md` / `CLAUDE.md` receive the changes per the standard hybrid/sibling merge pattern.
+- The pattern's domain-specific worked example (real-estate contract capture) intentionally stays downstream in kai-openclaw's `[CTME-5]`; the framework wording is domain-agnostic.
+
+---
+
 ## [0.7.0] - 2026-07-09
 
 Graduates field-proven patterns from the Kai-RE agent (G1–G14) into framework KBs, templates, and commands. All changes passed a 6-judge Opus+Fable stress-test panel: 21 findings fixed and re-verified FIXED by the same lenses, plus 8 residual minors fixed. **Patterns are design-validated, not runtime-proven** — the source product had not run a live end-to-end deal at graduation time, and each KB text carries this label.
