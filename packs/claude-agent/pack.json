@@ -1,0 +1,73 @@
+{
+  "name": "claude-agent",
+  "title": "Claude Code operational agent",
+  "description": "Starter for an operational agent run by Claude Code itself: runbooks, guarded write scripts, headless scheduled runs, a model-free health check, and hosting on a virtual machine that can be handed to an operator.",
+  "requires": [],
+  "manifest": {
+    "framework-managed": [
+      ".claude/hooks/checks/runbook.mjs",
+      ".claude/rules/agent.md",
+      "agent/runbooks/README.md",
+      "agent/scripts/guarded-write.mjs",
+      "agent/scripts/scheduled-run.sh",
+      "agent/vm/sync-checkout.sh",
+      "agent/vm/onboard-operator.sh",
+      "agent/vm/vm-check.sh",
+      "docs/AGENT_PATTERNS.md",
+      "docs/AGENT_HOSTING.md",
+      "docs/OPERATOR_HANDOFF.md",
+      "docs/kickoff/claude-agent.md"
+    ],
+    "hybrid": [
+      ".claude/settings.operator.json",
+      "agent/schedule/README.md",
+      "agent/schedule/crontab.template",
+      "agent/scripts/health-check.mjs"
+    ],
+    "project-owned": [
+      ".claude/skills/run-example/",
+      "agent/runbooks/",
+      "agent/schedule/",
+      "agent/scripts/",
+      "agent/vm/"
+    ]
+  },
+  "conflict_actions": {
+    ".claude/hooks/checks/runbook.mjs": "overwrite-with-backup",
+    ".claude/rules/agent.md": "overwrite-with-backup",
+    "agent/runbooks/README.md": "overwrite-with-backup",
+    "agent/scripts/guarded-write.mjs": "overwrite-with-backup",
+    "agent/scripts/scheduled-run.sh": "overwrite-with-backup",
+    "agent/vm/sync-checkout.sh": "overwrite-with-backup",
+    "agent/vm/onboard-operator.sh": "overwrite-with-backup",
+    "agent/vm/vm-check.sh": "overwrite-with-backup",
+    "docs/AGENT_PATTERNS.md": "overwrite-with-backup",
+    "docs/AGENT_HOSTING.md": "overwrite-with-backup",
+    "docs/OPERATOR_HANDOFF.md": "overwrite-with-backup",
+    "docs/kickoff/claude-agent.md": "overwrite-with-backup",
+    ".claude/settings.operator.json": "sibling",
+    "agent/schedule/README.md": "sibling",
+    "agent/schedule/crontab.template": "sibling",
+    "agent/scripts/health-check.mjs": "sibling",
+    ".claude/skills/run-example/": "skip",
+    "agent/runbooks/": "skip",
+    "agent/schedule/": "skip",
+    "agent/scripts/": "skip",
+    "agent/vm/": "skip"
+  },
+  "settings": {
+    "permissions": {
+      "ask": [
+        "Bash(*guarded-write.mjs delete*--confirm*)"
+      ],
+      "deny": [
+        "Bash(*AGENT_WRITE_AUTHORIZED=*)"
+      ]
+    }
+  },
+  "gitignore": [
+    "agent/logs/",
+    "agent/data/",
+    ".claude/settings.local.json"
+  ]
+}

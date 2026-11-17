@@ -1,0 +1,6 @@
+[
+  { "id": "A-101", "title": "Confirm delivery window with supplier", "status": "open", "due": "2020-03-02", "owner": "ops", "note": "" },
+  { "id": "A-102", "title": "Renew service contract", "status": "open", "due": "2020-04-15", "owner": "ops", "note": "Waiting on the vendor's revised quote, promised by them in writing." },
+  { "id": "A-103", "title": "Archive last quarter's reports", "status": "done", "due": "2020-01-10", "owner": "ops", "note": "" },
+  { "id": "A-104", "title": "Plan next year's audit", "status": "open", "due": "2099-01-01", "owner": "finance", "note": "" }
+]

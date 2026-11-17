@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd job: run one skill headlessly on a schedule.
+
+  1. Copy to ~/Library/LaunchAgents/<label>.plist, one file per scheduled skill.
+  2. Replace every __PLACEHOLDER__ and the com.example label.
+  3. Follow agent/schedule/README.md to load and test it.
+
+  __RUNTIME_CHECKOUT__ is the absolute path of the checkout scheduled runs use.
+  Make it a dedicated clone, not the one you edit in.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.example.agent-run.run-example</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__RUNTIME_CHECKOUT__/agent/scripts/scheduled-run.sh</string>
+    <string>run-example</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>__RUNTIME_CHECKOUT__</string>
+
+  <!-- Weekdays at 07:05. Weekday 1 is Monday. Pick a minute other jobs do not use. -->
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>7</integer><key>Minute</key><integer>5</integer></dict>
+    <dict><key>Weekday</key><integer>2</integer><key>Hour</key><integer>7</integer><key>Minute</key><integer>5</integer></dict>
+    <dict><key>Weekday</key><integer>3</integer><key>Hour</key><integer>7</integer><key>Minute</key><integer>5</integer></dict>
+    <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>7</integer><key>Minute</key><integer>5</integer></dict>
+    <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>7</integer><key>Minute</key><integer>5</integer></dict>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>AGENT_REPO</key>
+    <string>__RUNTIME_CHECKOUT__</string>
+    <key>AGENT_PERMISSION_MODE</key>
+    <string>dontAsk</string>
+    <!--
+      Optional. Pin runs to a reviewed commit or tag:
+        <key>AGENT_RUN_REF</key><string>__TAG_OR_COMMIT__</string>
+
+      Leave AGENT_WRITE_AUTHORIZED out until the owner has approved scheduled
+      writes. While it is absent every scheduled run is a dry run.
+        <key>AGENT_WRITE_AUTHORIZED</key><string>true</string>
+
+      Do not put secret values in this file. Have scheduled-run.sh's
+      environment come from your secret manager instead (see the README).
+    -->
+  </dict>
+
+  <!-- launchd's own capture. The run's real log is under agent/logs/scheduled/. -->
+  <key>StandardOutPath</key>
+  <string>__RUNTIME_CHECKOUT__/agent/logs/scheduled/launchd.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>__RUNTIME_CHECKOUT__/agent/logs/scheduled/launchd.err.log</string>
+
+  <key>RunAtLoad</key>
+  <false/>
+</dict>
+</plist>

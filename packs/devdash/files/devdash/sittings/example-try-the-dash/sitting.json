@@ -1,0 +1,45 @@
+{
+  "id": "example-try-the-dash",
+  "example": true,
+  "title": "Example: try a sitting on the dash itself",
+  "date": "2026-01-01",
+  "status": "active",
+  "outcome": "",
+  "intro": "This is the example sitting that ships with the dash. It tests the thing you are looking at, so you can see how a sitting runs. Real sittings are written by the agent for work only a person can check.",
+  "environment": { "name": "this machine", "url": "http://localhost:4317" },
+  "signIn": { "as": "nobody", "note": "The dash needs no sign-in on this machine. A real sitting names the test account to use here." },
+  "prerequisites": ["Have a screenshot, or anything you can take a screenshot of."],
+  "steps": [
+    {
+      "n": 1,
+      "title": "Start the clock",
+      "do": ["Press **Start** at the top of this page."],
+      "expect": ["The clock starts counting.", "This step opens and its Pass, Fail and Skip buttons can be pressed."]
+    },
+    {
+      "n": 2,
+      "title": "Add a note and a screenshot",
+      "do": ["Type a few words in the Notes box of this step.", "Take a screenshot and drop it on this step, or paste it."],
+      "expect": ["A small Saved message appears after you stop typing.", "The screenshot appears under the notes with a caption box."]
+    },
+    {
+      "n": 3,
+      "title": "Reload the page",
+      "where": "/#/sittings/example-try-the-dash",
+      "do": ["Reload this page in the browser."],
+      "expect": ["The clock carries on from where it was.", "Your note, your screenshot and the results so far are all still here."]
+    },
+    {
+      "n": 4,
+      "title": "Fail a step on purpose",
+      "do": ["Press **Fail** on this step and say why in the note."],
+      "expect": ["The step turns red and stays open so you can write the note.", "The progress bar counts it as done."]
+    },
+    {
+      "n": 5,
+      "title": "Finish",
+      "do": ["Press **Finish**."],
+      "expect": ["The clock stops and a summary shows the time and the counts.", "The agent hears about it at the start of its next session without you telling it."]
+    }
+  ]
+}

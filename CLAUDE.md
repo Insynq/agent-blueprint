@@ -1,141 +1,125 @@
-> ⚠️ **This file is unpopulated until you run `/preflight` then `/kickoff`.** Do not edit manually — `/preflight` writes the `## Environment` block, then `/kickoff` discovery fills in the rest. If you see `[TODO]` markers, you haven't completed onboarding yet.
+# Project: [TODO: name]
 
-# Project: [TODO — run /kickoff to populate this]
-
-> **This file is the project foundation.** Every Claude session reads it at the start.
-> Onboarding sequence: `/preflight` (records agent + OS) → `/kickoff` (discovery session populates the project sections).
+> Unpopulated until you run `/preflight` and then `/kickoff` (new project) or `/adopt` (existing code). Those skills fill the `[TODO]` markers in place.
+>
+> Keep this file short (a hook rejects it past 40,000 characters). It loads into every session, so it holds only what every session needs: what the project is, how to run it, the rules that are easy to get wrong, and where everything else lives. History, phase detail and stack reference go in `docs/`.
 
 ## Environment
-[TODO — run /preflight to populate this. Captures which AI agent, OS, and shell are being used.]
+[TODO: written by /preflight. Agent, OS, shell.]
 
 ## Overview
-[TODO — what this agent does and for whom]
+[TODO: what this is, who it is for, in two or three sentences.]
 
-## Tech Stack
-- Runtime: OpenClaw gateway (CLI: `openclaw`)
-- Agent format: markdown skills + bootstrap files
-- Tools: MCP via mcporter (`workspace/config/mcporter.json`)
-- LLM: Anthropic Claude
-- [TODO — model routing primary/fallback, populated during `/kickoff`]
-- [TODO — MCP integrations, populated during `/kickoff`]
-- [TODO — deploy story, populated during `/kickoff`]
+## Stack
+[TODO: runtime, language, data store, hosting, model routing. One line each.]
 
-## Build Commands
-- Gateway restart (after mcporter.json or bootstrap-file changes): `openclaw gateway restart`
-- Doctor / repair: `openclaw doctor --repair`
-- Session cleanup: `openclaw session cleanup`
-- Cron list (source of truth, NOT in-repo HEARTBEAT.md): `openclaw cron list`
-- Deploy (push to canonical; webhook fires on the runtime host): `git push origin main`
-- [TODO — per-MCP-server build commands, e.g., `cd workspace/mcp-servers/<name> && npm run build`]
+## Layout
+[TODO: the top-level directories and what each holds. Name the one place each kind of thing lives.]
 
-## Roles
-[TODO — agent capabilities and personas. Populated during /kickoff. Skip if single capability.]
+One repository holds every surface of the product: clients, backend, data definitions, and any agent. Split something out only when it deploys on a wholly separate schedule to a separate audience, such as a marketing site.
 
-## Core Entities
-[TODO — main domain concepts the agent manages, not table names]
+## Commands
+[TODO: the exact commands. Skills read them from here.]
+- Install:
+- Build:
+- Test:
+- Typecheck:
+- Lint:
+- Run locally:
+- Release:
+- Landing: [TODO: pull request, or direct to the default branch]
+- Push to the default branch deploys: [TODO: yes or no. If yes, anything that changes behaviour lands by pull request, whatever the line above says.]
 
-## Reference Documents
+## Current phase
+[TODO: one paragraph. Detail lives in `docs/KB_8_Current_State.md`.]
 
-**Primary workflow** — `docs/MULTI_AGENT_WORKFLOW.md` is the canonical pattern for shipping any non-trivial chunk of work in this project. PM context drives a phase loop (pivot review → brainstorm → plan + audit → worker dispatch → reconciliation → implementation → verification → smoke → ship), workers execute focused slices in their own sessions. Entry point: `/orchestrate`. Read the workflow doc before starting a phase.
+## Live invariants
+Facts that must be re-checked before touching the thing they guard. One line each, with a pointer to where the full explanation lives.
 
-**Project state** (populated during development) — see `/docs` folder:
-- `APP_CONCEPT.md`: Problem statement, users, use cases, success criteria
-- `SCOPE.md`: V1 scope, out-of-scope, known unknowns
-- `KB_1_Architecture.md`: Architecture decisions — skills, MCP integrations, model routing, deploy target
-- `KB_8_Current_State.md`: Current phase and active tracking
-- `CHANGELOG.md`: Running log of what was shipped and when — maintained by `/ship`
-- `LESSONS.md`: Running log of gotchas and hard-won lessons — read before debugging or implementing in unfamiliar areas
-- `smoke-tests-pending.md`: **Single source of truth** for outstanding manual smoke tests with stable IDs. When asked about ship-readiness or "what's left to verify," point here — do not re-list tests in commits, PRs, or chat. Add new tests when shipping behavior automated coverage misses; collapse passed sections to one-liners after each release.
+[TODO: none yet. Add an entry when a mistake here would cost money, data or trust.]
 
-**OpenClaw stack-reference KBs** (vetted patterns — consult the index, then read only the relevant OC_KB):
-- `docs/OpenClaw KBs/OC_KB_00_Index.md` — start here. Routing layer over the OC_KB collection. Two halves:
-  - **Runtime stack** (`OC_KB_01–09`): architecture, skills, MCP tools, bootstrap files, models & prompts, cron & scripts, deploy & ops, observability, evals.
-  - **Capability primitives** (`OC_KB_10–14`, `OC_KB_16`): capability layers (diagnostic taxonomy), safety primitives, trust & provenance, self-improvement loops, operational excellence, datastore modeling.
+## Working agreements
 
-> **Note on KB numbering:** KB_1 and KB_8 are template-provided. Numbers 2–7 and 9 are reserved for project-specific knowledge bases added during kickoff (skill catalog, MCP server catalog, custom integrations, etc.). The `OC_KB_*` files in `docs/OpenClaw KBs/` are stack-reference patterns and are separate from the project-state KBs.
+**Autonomy: grill first, then run.** Before a long run, ask every open question in one go and record the answers in the spec. After the user says go, work through the agreed scope without asking again: commit, push branches, open and merge pull requests in order, and release to the environments that were named. Stop only for a decision the grilling did not cover, a spec premise that turns out false in a way that changes what gets built, an action that spends money or contacts real people outside the agreed scope, or something destructive beyond normal landing. Otherwise choose the sensible default, note it, and continue. Answering design questions is not a go.
 
-## Current Phase
-[TODO — Phase 1: Not Started]
+**Evidence.** Never record a result you did not observe. These words have fixed meanings here:
+
+| Term | Means |
+|---|---|
+| done | Built, reviewed, and its smokes run or deferred with an owner and a date. Not "code written". |
+| clean | No new problems against the recorded baseline. Not zero problems. |
+| verified | Observed by running it or probing it. Never inferred from reading code. |
+| trace-verified | The code path was read end to end but not run. Weaker than verified; never closes a smoke. |
+| eyeballed | A person looked at the real interface. |
+| live-required | Only a run against the live service closes it. |
+| production-ready | Released and live-smoked at its service boundaries. Not merely merged. |
+| go-with-nits | Approved. Every nit is fixed or parked with a pointer, never dropped. |
+
+A claim carried forward from somewhere else is tagged `[verified: how]` if you checked it yourself, or `[relayed: source]` if you did not.
+
+**Secrets.** Never print a secret to check it, and never paste one into chat. Pipe it between tools. Names go in `.env.example`, values in [TODO: the secrets manager, or a local `.env`], one set per environment. `docs/SECRETS.md` has the rest.
+
+**Working tree.** One writer per checkout. Use a separate worktree for each parallel line of work, under `.claude/worktrees/`, and ground on the remote default branch, not the local one. Remove a worktree when its branch lands, without asking: `node _dev/tools/worktrees.mjs --prune`.
+
+[TODO: /kickoff adds the user's communication preferences here.]
 
 ## Patterns
-[Empty — patterns emerge during development. Add here when established so all future sessions inherit them.]
-- Spec docs: Live in `/docs/` with `*-spec.md` naming (e.g., `docs/feature-name-spec.md`). Created by `/brainstorm` or `/unify` output, consumed by `/plan-review` and `/implement`.
-- Agent-improvement spec template: `_dev/agent-improvement-spec-template.md` is the structural skeleton for non-trivial agent-improvement initiatives. Section 5 (Capability Fixes) is organized by the `OC_KB_10` capability layers; Section 6 (Capability Enhancements) is organized by the `OC_KB_11–14` enhancement axes.
-- PM owns architectural decisions before worker dispatch (Phases 1–3 of `/orchestrate`). Workers receive locked plans, not forks. See `docs/MULTI_AGENT_WORKFLOW.md` → PM Pre-Dispatch Responsibilities.
-- Spec docs become implementable once `/plan-review` writes a `Status: LOCKED YYYY-MM-DD` header. Drafts without the header are exploratory only — `/orchestrate` Phase 6 and `/implement` use the header to decide whether to dispatch workers. LOCKED certifies design completeness / dispatch-readiness, NOT user authorization to deploy — deploy stays gated at the Phase 9/10 checkpoints.
-- Spec docs and `KB_1_Architecture.md` record architectural decisions in `Decision | Choice | Reasoning | Date` table format (per `_dev/agent-improvement-spec-template.md` §1).
-- Scope graduation is separate authorization from design sign-off. A brief that declares design-only scope ("build nothing yet") is NOT upgraded to build+deploy authority by the user answering the design's open decisions — even build-scope ones. Before the first prod-mutating action (migration, prod write, push to a deploying branch), ask one explicit line ("Design ratified — proceed to build + deploy now?") and wait; announcing "proceeding to build" is not asking. Beware ratifying your own presupposition: if the phrase implying a built artifact originated in your question, the user's echo is not deploy authorization. For how much unsupervised runway may precede the gate, see OC_KB_11 §Autonomy budget.
+Conventions that have been established in this project. Add one when it is settled, so later sessions inherit it.
 
-## Preferences
-[TODO — populate during /kickoff with working style and communication preferences]
-- Glossary — evaluative terms and what they mean here (e.g., "done", "clean", "taste", "good enough"), so task descriptions and routing rules interpret consistently. [TODO — populate during /kickoff]
+- A spec records what was decided and why; a pull request is how a change lands. Docs go straight in. See `docs/WORKFLOW.md`, "Spec or pull request".
+- Specs live in `docs/plans/<slug>/spec.md` and are implementable only with a `Status: LOCKED` header.
+- Decisions are recorded as `Decision | Choice | Reasoning | Date`.
+- Tangents go to `docs/PARKING_LOT.md`.
 
-## Custom Commands
-All commands live in `.claude/commands/`. On a fresh clone, run `/preflight` then `/kickoff` (greenfield) or `/adopt` (existing repo) before anything else.
+## Reference documents
+Read the one you need, when you need it.
 
-### Orchestrators
-| Command | Purpose |
-|---------|---------|
-| `/preflight` | One-time setup — records agent + OS in CLAUDE.md, verifies commands are project-local, sanity-checks mcporter.json. Run on every fresh clone. |
-| `/kickoff` | Discovery session for **greenfield** agent projects — run after `/preflight` on a new repo |
-| `/adopt` | Discovery session for **existing** agent projects — populate KBs from observation, audit existing user KBs, merge CLAUDE.md. Run after installer + `/preflight`. |
-| `/update-framework` | Pull canonical framework updates with per-file review and assisted merge for customizations |
-| `/orchestrate` | PM phase loop — pivot → brainstorm → plan + audit → workers → reconcile → implement → smoke → ship. See `docs/MULTI_AGENT_WORKFLOW.md`. |
-| `/audit-full` | Full audit (code + infrastructure) in parallel |
+- `docs/WORKFLOW.md`: how non-trivial work ships. Entry point `/orchestrate`.
+- `docs/KB_INDEX.md`: index of every knowledge base in the project.
+- `docs/APP_CONCEPT.md`, `docs/SCOPE.md`: what is being built and what is out of scope.
+- `docs/KB_1_Architecture.md`: architecture and the decisions behind it.
+- `docs/KB_8_Current_State.md`: the active phase.
+- `docs/smoke-tests-pending.md`: the only list of what still needs verifying. Point to it; do not restate it.
+- `docs/LESSONS.md`: what was learned the hard way. Read before debugging or working in an unfamiliar area.
+- `docs/PARKING_LOT.md`: deferred ideas and tangents.
+- `docs/SECRETS.md`: where secrets live and what to do when one leaks.
+- `docs/AUTHORING_SKILLS.md`: how to write skills, agents, rules and hook checks.
 
-### Planning & Review
-| Command | Purpose |
-|---------|---------|
-| `/brainstorm` | Deep codebase research before committing to an approach |
-| `/research` | Deep web research with synthesized report saved to `.research/` |
-| `/investigate` | Deep exploration — trace data flow, find all usages |
-| `/plan` | Create an implementation plan from investigation findings |
-| `/plan-review` | Gap analysis on a spec doc before implementing |
-| `/triage` | Triage a stale backlog (PRs/branches/work items) into action buckets with judge-verified verdicts and a fail-loud coverage tally |
+## Skills
+Skills live in `.claude/skills/`, subagent roles in `.claude/agents/`, path-scoped rules in `.claude/rules/`, and mechanical checks in `.claude/hooks/`.
 
-### Implementation
-| Command | Purpose |
-|---------|---------|
-| `/implement` | Execute a validated plan (parallel agents + post-batch validation) |
-| `/debug` | Diagnose and fix a bug — root-cause investigation before code changes |
-| `/unify` | Find duplicate/similar skills or scripts and design a unified replacement |
-| `/ship` | Update KBs, write changelog entry, commit, push (deploy fires via webhook on push) |
-| `/changelog` | Generate or update CHANGELOG.md from git history |
+| Skill | Use it when |
+|---|---|
+| `/preflight` | First session on a new machine or clone. |
+| `/kickoff` | Starting a new project. |
+| `/adopt` | Bringing the framework into existing code. |
+| `/orchestrate` | Running a phase of work end to end. |
+| `/brainstorm` | You need options and a recommendation grounded in the codebase. |
+| `/research` | The answer is on the web, not in the repo. |
+| `/investigate` | You need to know how something works or where it is used. |
+| `/plan` | Turning findings into a spec. |
+| `/plan-review` | A spec draft needs its gaps found, then locking. |
+| `/stress-test` | A spec or change set needs an adversarial panel. |
+| `/implement` | Building from a locked spec. |
+| `/debug` | Something is broken and you need the root cause. |
+| `/gen-test` | Adding tests that are proven able to fail. |
+| `/audit-code` | Reviewing code or a plan for defects and simpler alternatives. |
+| `/audit-full` | Running every audit the project has. |
+| `/unify` | Several things do the same job and should be one. |
+| `/triage` | A backlog of stale branches, pull requests or items needs sorting. |
+| `/ship` | Work is built and you are landing it. |
+| `/update-kb` | Docs have drifted from the code. |
+| `/update-framework` | Pulling a newer version of the framework. |
 
-### Auditing
-| Command | Purpose |
-|---------|---------|
-| `/audit-code` | Review code/plans for elegance, reuse, anti-patterns |
-| `/audit-infra` | Audit infrastructure — mcporter config, env vars, deploy script, MCP server deps |
-| `/stress-test` | Multi-lens adversarial judge panel over a change set or spec — parallel judges with distinct lenses, optional fix pass, re-verify with the same lenses |
+<!-- packs:start -->
+<!-- packs:end -->
 
-### Generators
-| Command | Purpose |
-|---------|---------|
-| `/gen-skill` | Scaffold a new SKILL.md at `workspace/skills/<name>/` with valid frontmatter and 5-section skeleton |
-| `/gen-test` | Generate tests following project patterns |
-| `/visualize` | Generate ASCII diagrams |
-| `/update-kb` | Update knowledge base documents |
+## Do not
+Hard constraints. Each of these has caused real damage and none produces an error when broken.
 
-## KB Maintenance
-- Completed phases: collapse to 2–3 line summaries. Full history lives in git.
-- KB_8 session notes: only for active blockers or cross-session context. Clear after resolution.
-- Changelog: one-liner entries only.
-- Always update CLAUDE.md phase status when updating other KBs.
+- Do not record a negative ("no match", "not present") in durable state without exhausting the source of truth and citing what was checked. Every later run inherits it and defends it.
+- Do not copy facts from a system of record into memory or docs. Store the rule and how to query it. Copies diverge silently.
+- Do not embed a copy of a canonical file inside a skill. Edit the real file.
+- Do not keep a verification ledger in a gitignored file. It will not travel with the work.
 
-## DO NOT
-The following are canonical OpenClaw silent-failure traps. Each one parses as valid input and produces no error — the symptom only surfaces later as broken agent behavior. Treat these as hard constraints on every change.
-
-- `mcporter.json` top-level key is `mcpServers`, NOT `servers`. Wrong key → tools silently absent.
-- `${ENV_VAR}` substitution reads `process.env`, NOT `.env` files. On macOS runtime hosts, set in launchd plist `EnvironmentVariables`.
-- Skill frontmatter spelling: `user-invokable`, NOT `user-invocable`. Typo → skill silently un-callable.
-- Skill folder name MUST match frontmatter `name`. Mismatch → router never sees the skill.
-- Bootstrap files have a per-file character cap (default ~20K, `bootstrapMaxChars` in `~/.openclaw/openclaw.json`). Long-running content silently truncates when it outgrows the cap.
-- Prompt cache config goes under PLURAL `models`, NOT singular `model`. Singular `model` is the routing config; cache misplaced there silently disables caching.
-- Adding a new runtime-mutable path (where the agent writes at runtime) requires updating the rsync excludes in `deploy/deploy.sh` BEFORE next deploy. Otherwise `rsync --delete` wipes the path.
-- Memory/bootstrap files hold durable rules and query paths, NOT copies of system-of-record facts. A duplicated fact parses fine, then silently diverges from the source — the agent then defends the stale copy against the live system. Store the rule and the query path; fetch the facts fresh.
-- Denormalized copies inside the datastore silently diverge once a separate write path touches one. A second copy is sanctioned only when shaped as a named cache over a single canonical source — see `OC_KB_16` for the only allowed form.
-- Validation/readiness ledgers (`[RUN]`/smoke-test state) MUST be git-tracked. A gitignored ledger runs green in your working tree, then silently never travels with the repo or into a derived plugin/package — its unchecked boxes rot while the work lands in commits.
-- Never record a negative ("no match found," "arrived outside our pipeline") into durable state — a watermark advance, work-queue item, cache, status flag, or run note — without exhausting the source of truth first. The note parses fine, then every later run inherits and defends it against the source, suppressing the exact re-check that would correct it. Make the record cite the queries and IDs checked — see `docs/LESSONS.md [PROCESS-10]`.
-
-[TODO — add additional project-specific hard constraints during development]
+[TODO: project-specific constraints accumulate here.]

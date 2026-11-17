@@ -1,18 +1,18 @@
-# App Concept: [App Name]
+# Concept: [name]
 
-> **Populated during `/kickoff`.** Run the kickoff command to fill in this document through a guided discovery session.
+Filled in by `/kickoff`.
 
-## The Problem
-[TODO — what problem this app solves, who experiences it, why current approaches fall short]
+## The problem
+[TODO: what problem this solves, who has it, and why current approaches fall short.]
 
-## The Solution
-[TODO — what this app does: elevator pitch + happy path walkthrough]
+## The solution
+[TODO: what this does, and one walk through the main path.]
 
 ## Users
-[TODO — each user type with their role, goals, and key actions in the app]
+[TODO: each kind of user, what they want, and what they do here.]
 
-## Success Criteria
-[TODO — what a successful V1 looks like. Specific and measurable where possible.]
+## Success criteria
+[TODO: what a successful first version looks like, measurable where possible.]
 
-## Why Now
-[TODO — the timing rationale]
+## Why now
+[TODO]

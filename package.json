@@ -1,7 +1,7 @@
 {
   "name": "@insynq/agent-blueprint",
-  "version": "0.8.1",
-  "description": "Installer for the @insynq/agent-blueprint framework: slash-command + KB scaffold for OpenClaw agent projects.",
+  "version": "1.0.0",
+  "description": "Installer for the @insynq/agent-blueprint framework: Claude Code skills, subagents, hooks and docs for building apps and agents, with optional packs.",
   "license": "MIT",
   "author": "Insynq",
   "homepage": "https://github.com/Insynq/agent-blueprint",
@@ -19,10 +19,10 @@
     "scaffold",
     "installer",
     "agent",
-    "agent-dev",
-    "slash-commands",
-    "openclaw",
-    "mcp"
+    "skills",
+    "subagents",
+    "hooks",
+    "dev-dashboard"
   ],
   "bin": {
     "agent-blueprint": "bin/init.js"

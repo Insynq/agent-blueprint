@@ -1,0 +1,14 @@
+# Schedule for the checkout at __RUNTIME_CHECKOUT__
+# Copy this file to agent/schedule/crontab, edit it and commit it.
+# agent/vm/onboard-operator.sh installs it as a marked block in the account's crontab.
+# Times are in the machine's time zone. Keep the three kinds of job on different minutes.
+# Put settings on the job's own line: a VAR=value line in a crontab applies to every line after it.
+#
+# Keep the checkout at the ref the owner named. Local changes are saved aside, then discarded.
+*/15 * * * * AGENT_SYNC_REF=main __RUNTIME_CHECKOUT__/agent/vm/sync-checkout.sh --discard-local >/dev/null 2>&1
+#
+# One line per scheduled job. A dry run until the owner adds AGENT_WRITE_AUTHORIZED=true to the line.
+5 7 * * 1-5 __RUNTIME_CHECKOUT__/agent/scripts/scheduled-run.sh run-example
+#
+# Health check: no model, more often than the jobs. Replace the echo with whatever reaches the owner.
+10,40 * * * * cd __RUNTIME_CHECKOUT__ && node agent/scripts/health-check.mjs --json > agent/logs/scheduled/health.json 2>&1 || echo "agent health check failed on $(hostname)" >> agent/logs/scheduled/FAILURES.log

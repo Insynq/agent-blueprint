@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Dev dash: sign in</title>
+<link rel="stylesheet" href="/app.css">
+<script src="/app.js" defer></script>
+</head>
+<body class="login-page">
+<form class="login-card" id="login">
+  <h1>Dev dash</h1>
+  <p class="muted">This device is not the one the dash runs on, so it needs the token once. It is in <code>devdash/.data/token</code> on that machine, or run <code>node devdash/scripts/start.mjs link</code> there for a sign-in link.</p>
+  <label for="token">Token</label>
+  <input id="token" type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false">
+  <button type="submit" class="primary">Sign in</button>
+  <p class="err" id="login-err" role="alert"></p>
+</form>
+</body>
+</html>

@@ -5,13 +5,9 @@
 # new manual tests are needed. It does NOT block merge.
 #
 # Setup for adopter projects:
-#   1. Replace the HIGH_RISK_PATHS regex below with paths that are actually
-#      risky in your agent codebase. Common candidates for OpenClaw projects:
-#        - workspace/skills/             (skill behavior changes)
-#        - workspace/config/mcporter.json (MCP registry changes)
-#        - workspace/mcp-servers/        (in-repo MCP server source)
-#        - workspace/scripts/            (cron-invoked deterministic scripts)
-#        - deploy/                       (deploy script + webhook receiver + plist template)
+#   1. Replace the HIGH_RISK_PATHS regex below with the paths that are risky
+#      in your codebase: data definitions, permission rules, payment and
+#      messaging code, deploy scripts, anything an agent runs unattended.
 #   2. Leave it warn-only until the team is in the habit of updating the
 #      catalog. Promote to blocking by changing `::warning::` to `::error::`
 #      and adding `exit 1`.
@@ -34,7 +30,7 @@ jobs:
       - name: Check whether smoke-test catalog needs an update
         env:
           # EDIT_ME — extended-regex of paths that are risky in your codebase.
-          HIGH_RISK_PATHS: '^(workspace/skills/|workspace/config/mcporter\.json|workspace/mcp-servers/|workspace/scripts/|deploy/)'
+          HIGH_RISK_PATHS: '^(EDIT_ME_no_paths_configured/)'
         run: |
           set -euo pipefail
           BASE="origin/${{ github.base_ref }}"

@@ -1,0 +1,81 @@
+{
+  "name": "app",
+  "title": "App (web, mobile and database in one repository)",
+  "description": "Layout, parity and database rules for a product with a web client, an optional mobile client and a database-backed backend in one repository, with an opt-in demo environment (guard, nightly reset); skills are Supabase-aware.",
+  "requires": [],
+  "manifest": {
+    "framework-managed": [
+      ".claude/hooks/checks/demo-seed-real-email.mjs",
+      ".claude/hooks/checks/migration-no-fixtures.mjs",
+      ".claude/hooks/checks/migration-prefix-unique.mjs",
+      ".claude/rules/app-spec-checks.md",
+      ".claude/rules/database.md",
+      ".claude/skills/audit-rls/",
+      ".claude/skills/db-push/",
+      ".claude/skills/deploy/",
+      ".claude/skills/gen-component/",
+      ".claude/skills/gen-migration/",
+      "docs/APP_MONOREPO.md",
+      "docs/DEMO_ENVIRONMENT.md",
+      "docs/kickoff/app.md",
+      "scripts/demo/README.md",
+      "scripts/demo/examples/",
+      "scripts/demo/guard.mjs",
+      "scripts/demo/reset.mjs"
+    ],
+    "hybrid": [
+      ".github/workflows/app-ci.yml",
+      ".github/workflows/demo-reset.yml"
+    ],
+    "project-owned": [
+      "docs/PARITY_LEDGER.md",
+      "docs/demo-logins.md",
+      "docs/prod-action-safety-map.md",
+      "scripts/demo/environments.json"
+    ]
+  },
+  "conflict_actions": {
+    ".claude/hooks/checks/demo-seed-real-email.mjs": "overwrite-with-backup",
+    ".claude/hooks/checks/migration-no-fixtures.mjs": "overwrite-with-backup",
+    ".claude/hooks/checks/migration-prefix-unique.mjs": "overwrite-with-backup",
+    ".claude/rules/app-spec-checks.md": "overwrite-with-backup",
+    ".claude/rules/database.md": "overwrite-with-backup",
+    ".claude/skills/audit-rls/": "overwrite-with-backup",
+    ".claude/skills/db-push/": "overwrite-with-backup",
+    ".claude/skills/deploy/": "overwrite-with-backup",
+    ".claude/skills/gen-component/": "overwrite-with-backup",
+    ".claude/skills/gen-migration/": "overwrite-with-backup",
+    "docs/APP_MONOREPO.md": "overwrite-with-backup",
+    "docs/DEMO_ENVIRONMENT.md": "overwrite-with-backup",
+    "docs/kickoff/app.md": "overwrite-with-backup",
+    "scripts/demo/README.md": "overwrite-with-backup",
+    "scripts/demo/examples/": "overwrite-with-backup",
+    "scripts/demo/guard.mjs": "overwrite-with-backup",
+    "scripts/demo/reset.mjs": "overwrite-with-backup",
+    ".github/workflows/app-ci.yml": "sibling",
+    ".github/workflows/demo-reset.yml": "sibling",
+    "docs/PARITY_LEDGER.md": "skip",
+    "docs/demo-logins.md": "skip",
+    "docs/prod-action-safety-map.md": "skip",
+    "scripts/demo/environments.json": "skip"
+  },
+  "settings": {
+    "permissions": {
+      "deny": [
+        "Bash(supabase db reset --linked:*)",
+        "Bash(npx supabase db reset --linked:*)",
+        "Bash(supabase db reset --db-url:*)",
+        "Bash(npx supabase db reset --db-url:*)"
+      ]
+    }
+  },
+  "gitignore": [
+    "supabase/.temp/",
+    "supabase/.branches/",
+    ".expo/",
+    ".env.*",
+    "!.env.example",
+    "demo.env",
+    "*.demo.env"
+  ]
+}

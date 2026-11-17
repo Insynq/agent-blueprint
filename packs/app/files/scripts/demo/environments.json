@@ -1,0 +1,11 @@
+{
+  "_about": "Read by scripts/demo/guard.mjs. Commit this file: it holds identifiers, not secrets. The guard refuses to run while either value is still a placeholder.",
+  "demo": "<demo project reference or host>",
+  "production": ["<production project reference or host>"],
+  "_connectionEnv": "Names of environment variables that hold connection strings. Each one that is set must identify demo and must not mention production.",
+  "connectionEnv": ["DEMO_DB_URL", "DEMO_API_URL"],
+  "_secretEnv": "Names of environment variables that hold keys. Each one that is set is searched for a production value. Values are never printed.",
+  "secretEnv": ["DEMO_SERVICE_KEY"],
+  "_seedEmailDomains": "Extra domains seed files may use for invented accounts, beyond the reserved ones (example.com, .test, .invalid). List only a domain you own that cannot receive mail, such as a demo subdomain with no MX record.",
+  "seedEmailDomains": []
+}

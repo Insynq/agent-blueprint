@@ -1,0 +1,10 @@
+{
+  "project": "",
+  "owner": "",
+  "port": 4317,
+  "environments": [],
+  "readRef": "auto",
+  "autostart": true,
+  "logNudgeMinutes": 90,
+  "idleDays": 3
+}

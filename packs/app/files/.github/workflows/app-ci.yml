@@ -1,0 +1,234 @@
+# App CI: typecheck, test and lint for each client, plus database checks.
+#
+# Harmless until the project fills it in. Every step checks that the thing it
+# needs exists (the client directory, a lockfile, the package script, the
+# backend directory) and reports "skipped" as a notice when it does not, so
+# this file can be committed on day one and stays green.
+#
+# To make it real:
+#   1. Set `dir` for each client in the matrix below (and remove a client the
+#      project does not have).
+#   2. Give each client's package file these scripts: `typecheck`, `test`,
+#      `lint`. They are the same commands CLAUDE.md records.
+#      The typecheck script must name the config that actually lists files.
+#      A bare compiler run at a root whose config has no files reports zero
+#      errors on anything. Prove the script once: plant a type error, watch
+#      this job fail, remove it.
+#   3. Set MIGRATIONS_DIR and BACKEND_DIR if the backend is not Supabase in
+#      `supabase/`, and replace the database job's Supabase steps with your
+#      database's service and test runner.
+#   4. Pin each action to a commit hash once the workflow is in use.
+#
+# Each client installs from its own directory with its own lockfile. There is
+# no root install on purpose: see docs/APP_MONOREPO.md, rule 1.
+#
+# ---------------------------------------------------------------------------
+# Warn-only typecheck, and how to promote it
+#
+# A client whose typecheck is not yet clean (a newly merged mobile client, a
+# codebase with a backlog of errors) starts with `typecheck: warn`. In warn
+# mode a failing typecheck raises a warning annotation on the pull request and
+# the job stays green, so contract drift is visible without blocking work that
+# did not cause it. Warn mode is a stage, not a destination: a warning nobody
+# has to act on stops being read.
+#
+# Promotion to blocking:
+#   1. Get the client's typecheck to zero errors on the default branch. (If
+#      that is out of reach, a blocking gate needs a recorded baseline and a
+#      set comparison, which this template does not do; stay on warn.)
+#   2. Change that client's matrix entry from `typecheck: warn` to
+#      `typecheck: blocking`.
+#   3. Prove it can fail: on a branch, plant a type error in that client, open
+#      a pull request and confirm this job goes red. Remove the error.
+#   4. Make the job a required status check in the branch protection rules.
+#      Until then a red job does not stop a merge.
+#   5. Record the change in CLAUDE.md, so sessions stop treating that client's
+#      errors as background.
+# ---------------------------------------------------------------------------
+
+name: App CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, demo, staging]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BACKEND_DIR: supabase
+  MIGRATIONS_DIR: supabase/migrations
+  NODE_VERSION: "22"
+
+jobs:
+  client:
+    name: ${{ matrix.name }} client
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: web
+            dir: web
+            typecheck: blocking
+          - name: mobile
+            dir: mobile
+            typecheck: warn
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Detect client
+        id: detect
+        shell: bash
+        env:
+          CLIENT_DIR: ${{ matrix.dir }}
+        run: |
+          if [ -f "$CLIENT_DIR/package.json" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=${{ matrix.name }} client::no $CLIENT_DIR/package.json, client checks skipped"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.detect.outputs.present == 'true'
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # npm is assumed. For pnpm, yarn or bun, change the install line and the
+      # lockfile name, and the `npm run` calls below.
+      - name: Install
+        id: install
+        if: steps.detect.outputs.present == 'true'
+        shell: bash
+        working-directory: ${{ matrix.dir }}
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+            echo "done=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "done=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=${{ matrix.name }} client::no package-lock.json, install and checks skipped"
+          fi
+
+      - name: Typecheck
+        if: steps.install.outputs.done == 'true'
+        shell: bash
+        working-directory: ${{ matrix.dir }}
+        env:
+          MODE: ${{ matrix.typecheck }}
+        run: |
+          if ! node -e "process.exit(require('./package.json').scripts?.typecheck ? 0 : 1)"; then
+            echo "::notice title=${{ matrix.name }} typecheck::no typecheck script in package.json, NOT checked"
+            exit 0
+          fi
+          RC=0
+          npm run typecheck || RC=$?
+          if [ "$RC" != 0 ] && [ "$MODE" = "warn" ]; then
+            echo "::warning title=${{ matrix.name }} typecheck::failed (exit $RC), warn-only. See the promotion steps at the top of app-ci.yml."
+            exit 0
+          fi
+          exit "$RC"
+
+      - name: Test
+        if: steps.install.outputs.done == 'true'
+        shell: bash
+        working-directory: ${{ matrix.dir }}
+        run: |
+          # Skips a missing script and the package-manager placeholder that
+          # always fails.
+          if node -e "const s=require('./package.json').scripts?.test; process.exit(s && !/no test specified/.test(s) ? 0 : 1)"; then
+            npm test
+          else
+            echo "::notice title=${{ matrix.name }} test::no test script in package.json, NOT tested"
+          fi
+
+      - name: Lint
+        if: steps.install.outputs.done == 'true'
+        shell: bash
+        working-directory: ${{ matrix.dir }}
+        run: |
+          if node -e "process.exit(require('./package.json').scripts?.lint ? 0 : 1)"; then
+            npm run lint
+          else
+            echo "::notice title=${{ matrix.name }} lint::no lint script in package.json, NOT linted"
+          fi
+
+  database:
+    name: database
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # On a pull request this runs on the merge of the branch into its base,
+      # which is the only place a collision between two parallel branches is
+      # visible. See .claude/rules/database.md.
+      - name: Migration version prefixes are unique
+        shell: bash
+        run: |
+          if [ ! -d "$MIGRATIONS_DIR" ]; then
+            echo "::notice title=database::no $MIGRATIONS_DIR, prefix check skipped"
+            exit 0
+          fi
+          DUPES=$(ls "$MIGRATIONS_DIR" | grep -E '^[0-9]+_.*\.sql$' | cut -d_ -f1 | sort | uniq -d || true)
+          if [ -n "$DUPES" ]; then
+            echo "::error title=database::duplicate migration version prefix: $(echo $DUPES)"
+            exit 1
+          fi
+          echo "prefixes unique: $(ls "$MIGRATIONS_DIR" | grep -cE '^[0-9]+_.*\.sql$' || true) migration(s)"
+
+      - name: Detect backend
+        id: detect
+        shell: bash
+        run: |
+          if [ -f "$BACKEND_DIR/config.toml" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=database::no $BACKEND_DIR/config.toml, migrations NOT applied and database tests NOT run"
+          fi
+          if [ -d "$BACKEND_DIR/tests" ]; then
+            echo "tests=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "tests=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # --- Supabase-specific from here. Replace for another backend. ---
+      - uses: supabase/setup-cli@v1
+        if: steps.detect.outputs.present == 'true'
+        with:
+          version: latest   # pin to the version the team runs locally
+
+      # Starts the database only. If migrations refer to schemas owned by other
+      # services (storage, realtime), start those too: use `supabase start`
+      # with an --exclude list instead.
+      - name: Start local database
+        if: steps.detect.outputs.present == 'true'
+        run: supabase db start
+
+      # Rebuilds from the full chain, then the seed file. A migration that
+      # fails on a clean database fails here.
+      - name: Apply every migration from scratch
+        if: steps.detect.outputs.present == 'true'
+        run: supabase db reset --local
+
+      - name: Database tests
+        if: steps.detect.outputs.present == 'true'
+        shell: bash
+        run: |
+          if [ "${{ steps.detect.outputs.tests }}" = "true" ]; then
+            supabase test db --local
+          else
+            echo "::notice title=database::no $BACKEND_DIR/tests, database tests NOT run"
+          fi

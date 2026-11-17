@@ -1,233 +1,106 @@
 # Agent Blueprint
 
-A Claude Code framework for building, editing, and improving AI agents that run on **OpenClaw**. Adopt it into a new agent project (greenfield) or an existing one — same toolkit either way.
+A starting point for building software with Claude Code as the engineer and you as the project manager. It gives a project a working process (plan, review, build, verify, ship), the skills that run it, and mechanical checks for the mistakes that do not produce errors.
 
-> Sister framework to [`@insynq/app-blueprint`](https://github.com/Insynq/app-blueprint), reframed for OpenClaw agent dev. Built and maintained by [Insynq](https://insynqk.com). Source: [github.com/Insynq/agent-blueprint](https://github.com/Insynq/agent-blueprint).
+It is one runtime-neutral core plus optional packs:
 
-## Philosophy
+| Pack | For |
+|---|---|
+| `app` | A product with web, mobile and database in one repository |
+| `claude-agent` | An operational agent that runs as Claude Code driving deterministic scripts, interactively and on a schedule |
+| `devdash` | A local dashboard: your window onto the project, with decision runs, timed test sittings and a daily log |
 
-Agent projects fail differently from app projects. Skills go stale, MCP configs silently break, model routing drifts, prompts truncate at character caps no one is watching. This framework encodes the runtime assumptions of OpenClaw so a discovery-first workflow can stay grounded in what the gateway actually loads, what mcporter actually parses, and what launchd actually runs.
+Packs combine. An app with an agent inside it takes `app` and `claude-agent`, and `devdash` goes with anything.
 
-**The greenfield sequence:**
-```
-install → /preflight → /kickoff → /orchestrate (per phase) → /ship
-```
+## Start a project
 
-**The existing-repo sequence:**
-```
-install → /preflight → /adopt → /orchestrate (per phase) → /ship
-```
-
-Updates ship via `/update-framework` — pull canonical changes with per-file review and assisted merge for any customizations you've made.
-
-## Getting Started
-
-### 1. Install (existing or new agent project)
-
-From inside the project directory you want to install into:
+New project, from a local clone of this repository:
 
 ```bash
-npx @insynq/agent-blueprint init
+node bin/create.js ../my-project --packs app,claude-agent,devdash
 ```
 
-The installer:
+That copies the core and the packs into a new directory, without the framework's own development files, and initialises git.
 
-- Refuses to run on a dirty git working tree (so changes are reviewable)
-- Asks before overwriting any file you've already authored
-- Stages all downloads in `./.framework-install-staging/` and only commits to disk after every file succeeds
-- Stamps `.framework-version` at the repo root for `/update-framework` to use later
-- Prints clear next steps when done
-
-If your repo isn't a git repo, the installer offers to `git init` for you. Recovery from any install issue is a `git diff` away.
-
-### 2. Open in your editor with an AI agent
-
-Open the folder in VS Code (or your editor of choice). Any of these agents work: Claude Code, Codex, Cursor, Aider, Continue, Cline.
-
-### 3. Run preflight
-
-A one-time, sub-minute setup that records which agent + OS you're on into `CLAUDE.md` so future sessions don't have to re-figure it out, and confirms your project-level commands aren't being shadowed by user-global ones.
-
-- **Claude Code:** type `/preflight`
-- **Other agents:** paste *"Read and follow the instructions in `.claude/commands/preflight.md`"*
-
-### 4. Run kickoff *(greenfield)* OR adopt *(existing repo)*
-
-**Greenfield (`/kickoff`):** Discovery session that defines your agent's identity, capabilities, MCP integrations, model routing, and deploy story from scratch.
-
-**Existing repo (`/adopt`):** Reads your existing agent project, drafts proposed populations for project-state KBs (architecture, current state), audits any existing user KBs against current code for stale references, and assists merging an existing CLAUDE.md if you have one. Always shows drafts before writing — never silently overwrites your content.
+Existing repository:
 
 ```bash
-# greenfield
-/kickoff
-
-# existing repo
-/adopt
+cd my-existing-repo
+npx @insynq/agent-blueprint init --packs app
 ```
 
-`/adopt` has a `--minimal` flag for users who just want commands installed without the discovery flow.
+Then open Claude Code in the project and run `/preflight`, followed by `/kickoff` for a new project or `/adopt` for existing code.
 
-> **Note for non-Claude-Code agents:** The `.md` files in `.claude/commands/` are instruction documents, not commands you need to install. When the user types `/<name>`, just read the corresponding file and follow its steps inline. Don't copy them anywhere global.
+Add a pack later, from a local clone:
 
-## Multi-Agent Workflow (PM / Worker)
+```bash
+node /path/to/agent-blueprint/bin/pack.js add devdash --target .
+node /path/to/agent-blueprint/bin/pack.js list
+```
 
-This framework is built around a PM/worker phase loop driven by `/orchestrate`. One PM context window holds the strategic view; workers execute focused slices in their own contexts (subagents, or separate Claude Code sessions for context-heavy work).
+## What a project gets
 
-The loop walks 10 phases per piece of work: pivot review → brainstorm → holistic plan + audit-code → worker dispatch (granular audit round) → reconciliation → worker dispatch (implementation round) → PM verification + integration → smoke handoff → ship.
+```
+CLAUDE.md                 short; what every session needs
+.claude/
+  skills/                 the procedures: /orchestrate, /implement, /ship, ...
+  agents/                 subagent roles: explorer, grounder, implementer, judge, refuter, trace-verifier
+  rules/                  conventions loaded only when matching files are touched
+  hooks/                  mechanical checks that run on every command and edit
+  settings.json           permissions and hook wiring
+docs/
+  WORKFLOW.md             how non-trivial work ships
+  AUTHORING_SKILLS.md     how to write skills, agents, rules and checks
+  smoke-tests-pending.md  the one list of what still needs verifying
+  LESSONS.md, PARKING_LOT.md, KB_*.md, plans/
+```
 
-Worker plan docs are single living artifacts that PM and worker both write to — no handoff drift. See [`docs/MULTI_AGENT_WORKFLOW.md`](docs/MULTI_AGENT_WORKFLOW.md) for the full methodology.
+## How work ships
 
-## Command Library
+`docs/WORKFLOW.md` is the full account. In short:
 
-### Orchestrators
-| Command | Purpose |
-|---------|---------|
-| `/preflight` | One-time per clone — captures agent + OS into CLAUDE.md, verifies commands are project-local |
-| `/kickoff` | Discovery session — **greenfield** agent projects |
-| `/adopt` | Discovery session — **existing** agent repos. Inventories skills, drafts KBs, audits existing user KBs, merges CLAUDE.md |
-| `/update-framework` | Pull canonical framework updates with per-file review and assisted merge |
-| `/orchestrate` | PM phase loop — pivot → brainstorm → plan + audit → workers → reconcile → implement → smoke → ship |
-| `/audit-full` | Full review (code + infrastructure) in parallel |
+1. **Grill, then run.** The agent asks every open question up front and records the answers. After you say go, it works through the agreed scope without stopping to ask.
+2. **A spec is locked before anything is built.** Two judges with different lenses try to falsify it against the real code. Both must pass.
+3. **Each batch goes through a fixed pipeline:** ground the spec against live code, implement in one worktree, pass a mechanical gate (tests seen failing, zero new type errors against a baseline), adversarial review, then a pull request. Nothing merges from inside a batch.
+4. **A report is a claim.** Nothing is recorded as verified unless it was observed. A test that was not run ships as `Unverified at ship`, with an owner and a date.
 
-### Planning & Review
-| Command | Purpose |
-|---------|---------|
-| `/brainstorm` | Deep research + options before committing to an approach |
-| `/research` | Deep web research with synthesized report saved to `.research/` |
-| `/investigate` | Deep codebase exploration — trace data flows, find all usages |
-| `/plan` | Create implementation plan from investigation findings |
-| `/plan-review` | Gap analysis on a spec doc before implementing |
+Small changes skip all of this. The loop is for work that crosses subsystems or needs decisions from you.
 
-### Implementation
-| Command | Purpose |
-|---------|---------|
-| `/implement` | Execute a validated plan (parallel agents + post-batch audit) |
-| `/debug` | Diagnose a bug — characterize symptom, investigate, form hypothesis, confirm before fixing |
-| `/unify` | Consolidate duplicate/similar skills or scripts into one normalized form |
-| `/ship` | Update KBs, commit, push (deploy fires via webhook on push) |
-| `/changelog` | Generate or update CHANGELOG.md from git history |
+## Skills
 
-### Auditing
-| Command | Purpose |
-|---------|---------|
-| `/audit-code` | Review code/plans for elegance, reuse, anti-patterns |
-| `/audit-infra` | Infrastructure review — gateway config, mcporter config, plist env vars, deploy script, rsync excludes |
+| Skill | Use it when |
+|---|---|
+| `/preflight`, `/kickoff`, `/adopt` | Setting a project up |
+| `/orchestrate` | Running a phase of work end to end |
+| `/brainstorm`, `/research`, `/investigate` | Deciding what to do |
+| `/plan`, `/plan-review`, `/stress-test` | Writing a spec and trying to break it |
+| `/implement`, `/debug`, `/gen-test` | Building |
+| `/audit-code`, `/audit-full`, `/unify`, `/triage` | Reviewing and tidying |
+| `/ship`, `/update-kb` | Landing work and keeping docs honest |
+| `/update-framework` | Pulling a newer version of this framework |
 
-### Generators
-| Command | Purpose |
-|---------|---------|
-| `/gen-skill` | Scaffold a new SKILL.md at `workspace/skills/<name>/` with correct frontmatter and 5-section skeleton |
-| `/gen-test` | Generate tests following project patterns |
-| `/visualize` | Generate ASCII diagrams (architecture, data flows, agent state) |
-| `/update-kb` | Update knowledge base documents without committing |
+Packs add their own: `app` adds `/db-push`, `/gen-migration`, `/audit-rls`, `/gen-component` and `/deploy`; `devdash` adds `/dash`, `/dash-questions` and `/dash-sitting`; `claude-agent` adds a runbook wrapper to copy.
+
+## Permissions
+
+The shipped `.claude/settings.json` allows tools broadly, has no ask list, and denies a short list of destructive commands. A hook blocks force pushes and recursive deletes of the home or root directory wherever the flag sits in the command. This is deliberate: approval prompts every few minutes break long runs, and the questions worth asking are asked once, before the run. Tighten it in your project if your situation differs.
 
 ## Updating
 
-When canonical ships a new version, run from your project directory:
+Run `/update-framework` in the project. It downloads the release, shows a plan, backs up anything it replaces to `.framework-backup/`, and never writes over files the project owns. Local changes to framework files survive when wrapped in `<!-- local: reason -->` … `<!-- /local -->`.
 
-```bash
-/update-framework
-```
+Projects on a 0.x version have slash commands in `.claude/commands/` and need a one-time migration. From a clone of this repository run `node bin/pack.js seed-update --target <project>`, then `/update-framework` in the project. The steps are in `.claude/skills/update-framework/migrating-from-0.x.md`.
 
-The command:
+## Installer safety
 
-- Fetches canonical at install-version + target-version (immutable GitHub release tarballs, not raw URLs)
-- Detects which framework files you've customized (compares local against canonical-at-install-version)
-- Presents a four-category review: 🟥 files you customized (decision required), 🟢 unchanged locally (safe to apply), 🟡 new from canonical (consider), 🔵 deprecated (migration notes)
-- For customized files, offers per-file: skip (keep yours), overwrite (with backup), or three-way merge via `git merge-file`
-- Backs up to `.framework-backup/[file]@[old-version]` before any write
-- Refuses downgrades by default; `--allow-downgrade` for legitimate rollback
+The `npx` installer fetches the release tarball for its own version from GitHub, prints its SHA-256, stages it, and writes only to paths the manifest lists. It refuses a dirty working tree, never overwrites a file without a backup or a `.framework` sibling, and never touches `package.json`, lockfiles or `.git/`. `--dry-run` prints the plan and exits. `--tarball <file>` installs from a local archive.
 
-Pass `--dry-run` to see the four-category report without writing anything. Pass `--target-version=0.2.0` to pin to a specific version.
+What you are trusting: the `@insynq` npm scope and the public GitHub repository at install time. Packages are not signed, so compare the printed SHA-256 with the release if that matters to you. Windows needs WSL.
 
-## Security Assumptions (V1)
+## Working on the framework itself
 
-The npx installer and `/update-framework` operate under these assumptions, documented so you know what you're trusting:
+See `CONTRIBUTING.md`. `framework-dev/` holds the specs, investigations and 0.x documents behind the current design. `FRAMEWORK_CHANGELOG.md` records each release.
 
-- The `@insynq` npm scope is secure (signed packages deferred to V2)
-- The canonical GitHub repo at `Insynq/agent-blueprint` is not compromised at install/update time
-- Networks are not actively hostile (no MITM verification — but installer prints SHA256 of the downloaded tarball pre-extraction so you can verify if you choose)
-- The canonical repo is **public** in V1 (private-repo support deferred to V2)
-- Windows-without-WSL is **not supported** in V1 (`/update-framework` shells out to `tar`); WSL or Mac/Linux only
+## License
 
-## What Adopt Produces (Existing Agent Repos)
-
-| File | Auto-derived | User-confirmed | Left as TODO |
-|------|------|------|------|
-| `CLAUDE.md` | OpenClaw runtime block, build commands | Project overview, current phase | Roles, preferences (judgment-required) |
-| `docs/KB_1_Architecture.md` | Skills inventory, MCP servers, scripts, model routing | Architecture decisions | Open questions |
-| `docs/KB_8_Current_State.md` | — | — | User-authored |
-| `docs/APP_CONCEPT.md` | — | — | Always user-authored (kickoff-style mini-session optional) |
-| `docs/SCOPE.md` | — | — | Same |
-
-`/adopt` always shows drafts before writing project content. The auto-populate is just to seed the draft, not to ship final content.
-
-## Knowledge Base Conventions
-
-| File | Contains |
-|------|---------|
-| `docs/APP_CONCEPT.md` | Problem, users, use cases |
-| `docs/SCOPE.md` | V1 scope, out-of-scope, known unknowns |
-| `docs/KB_1_Architecture.md` | Architecture decisions, runtime model, agent shape |
-| `docs/KB_8_Current_State.md` | Active phase, session notes, changelog |
-
-The OpenClaw stack-reference KBs live at `docs/OpenClaw KBs/` and are read-mostly: runtime model, skills, MCP tools, bootstrap files, models & prompts, cron & scripts, deploy & ops, observability, and an aspirational evals shape. Open `OC_KB_00_Index.md` to route into the right file for the task at hand.
-
-**Maintenance rules:**
-- Completed phases: collapse to 2–3 line summaries. Full history in git.
-- KB_8 session notes: only for active blockers. Clear after resolution.
-- Changelog: one-liner entries only.
-- Always update `CLAUDE.md` phase status when updating KBs.
-
-## What Framework Owns vs. What You Own
-
-The `.framework-manifest.json` at canonical declares this explicitly. Five categories:
-
-- **`framework-managed`** — `.claude/commands/`, `docs/OpenClaw KBs/`, `MULTI_AGENT_WORKFLOW.md`, `KB_INDEX.md`. These get refreshed on `/update-framework`.
-- **`hybrid`** — `CLAUDE.md`, `KB_1`, `KB_8`, `.claude/settings.json`, `workspace/`, `deploy/`, `_dev/`. Framework provides scaffolding; you fill content. `/update-framework` uses three-way merge for these.
-- **`project-owned`** — `APP_CONCEPT.md`, `SCOPE.md`, `CHANGELOG.md`, `LESSONS.md`, `smoke-tests-pending.md`, `docs/plans/`, `.claude/memory/MEMORY.md`. Never touched by installer or updater.
-- **`installer_generated`** — `.framework-version`. Created by installer.
-- **`excluded`** — `README.md`, `LICENSE`, `CONTRIBUTING.md`, `.gitignore`, `.vscode/`. Framework artifacts that don't ship to adopters.
-
-If `/update-framework` finds a file in canonical not in the manifest, it surfaces it for your decision rather than installing silently.
-
-## OpenClaw Runtime Assumptions
-
-This framework is **opinionated** for OpenClaw. Adopters are expected to be running:
-
-- The **`openclaw` gateway** as a long-lived service (typically launchd on macOS).
-- Agent code as **markdown** — bootstrap files at `workspace/<NAME>.md` (SOUL, AGENTS, TOOLS, SCHEMA, MEMORY, HEARTBEAT, NOTIFICATIONS, TASK-QUEUE, INDEX) loaded at gateway start with a per-file character cap.
-- **Skills** as `workspace/skills/<name>/SKILL.md`, loaded on demand by the router. Folder name MUST equal the frontmatter `name`.
-- **Tools** exclusively via **MCP** registered in `workspace/config/mcporter.json` (top-level key `mcpServers` — not `servers`). `${ENV_VAR}` substitution reads from `process.env`, which on macOS means the launchd plist `EnvironmentVariables` dict.
-- **Anthropic Claude** as the LLM, with prompt caching configured under `agents.defaults.models["<id>"].params.cacheRetention` (PLURAL `models`, easy to misplace).
-- **GitOps deploy**: webhook receiver → HMAC verify → `git pull` → `rsync --delete workspace/ → ~/.openclaw/workspace/` on the runtime host.
-
-If your stack diverges from this, this is the wrong framework. Consider [`@insynq/app-blueprint`](https://github.com/Insynq/app-blueprint) for general application projects.
-
-## Autonomy contract
-
-By default, the framework allows the agent to edit files, write code, run installs/builds, and stage commits without prompting. The agent pauses for approval on:
-
-- `git commit`, `push`, `reset`, `rebase`, `checkout`, `merge`, `tag`
-- `npm publish`
-- `rm -rf`
-- OpenClaw cron mutations and `openclaw message send`
-- any destructive or shared-state operation
-
-Force-pushes (`git push --force`, `git push -f`), `git reset --hard`, `rm -rf /`, `rm -rf ~`, and `sudo` are denied outright.
-
-The contract lives in `.claude/settings.json` (a hybrid file — your customizations are preserved on update). Override locally in `.claude/settings.local.json` if your workflow needs different boundaries — for instance, allowing `openclaw cron list` only and asking for everything else, or allowing `gh` and `rsync` for your specific deploy tooling.
-
-## Who This Is For
-
-Anyone building OpenClaw agents who wants to work systematically with Claude Code. The framework provides the methodology, command library, and OpenClaw-specific KBs. You bring the agent identity and integrations.
-
-Especially valuable for:
-- Solo builders running one or more OpenClaw agents who want PM/worker rigor
-- Teams maintaining a fleet of agents that need shared workflow vocabulary
-- Existing agent projects that have grown organically and need methodology imposed gently
-- Projects that span multiple phases over weeks/months and need cross-session continuity
-
----
-
-**Agent Blueprint** is by [Insynq](https://insynqk.com) — operations-focused software design. Found this useful? A star on the [repo](https://github.com/Insynq/agent-blueprint) helps others discover it.
+MIT

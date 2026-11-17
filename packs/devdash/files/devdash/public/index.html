@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Dev dash</title>
+<link rel="stylesheet" href="/app.css">
+<script src="/app.js" defer></script>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><b id="project">Dev dash</b><span>dev dash</span></div>
+    <nav id="nav"></nav>
+    <div class="side-foot">
+      <div id="reading" class="reading"></div>
+      <div class="side-btns">
+        <button type="button" data-act="refresh" title="Read the repository again now">Refresh</button>
+        <button type="button" data-act="theme" id="theme" title="Switch between light and dark">Dark</button>
+      </div>
+    </div>
+  </aside>
+  <main id="main"><div class="empty">Loading</div></main>
+</div>
+<div class="lightbox" id="lightbox" data-act="lightbox-close"><img id="lightbox-img" alt=""></div>
+<div class="toast" id="toast" role="status"></div>
+</body>
+</html>

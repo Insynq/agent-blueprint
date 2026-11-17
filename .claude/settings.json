@@ -1,58 +1,15 @@
 {
   "permissions": {
     "allow": [
+      "Read",
       "Edit",
       "Write",
-      "Read",
       "Glob",
       "Grep",
-      "TodoWrite",
       "NotebookEdit",
       "WebFetch",
       "WebSearch",
-      "Bash(ls:*)",
-      "Bash(cat:*)",
-      "Bash(head:*)",
-      "Bash(tail:*)",
-      "Bash(grep:*)",
-      "Bash(find:*)",
-      "Bash(wc:*)",
-      "Bash(mkdir:*)",
-      "Bash(touch:*)",
-      "Bash(mv:*)",
-      "Bash(cp:*)",
-      "Bash(node:*)",
-      "Bash(npm install:*)",
-      "Bash(npm run:*)",
-      "Bash(npx:*)",
-      "Bash(git status:*)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)",
-      "Bash(git branch:*)",
-      "Bash(git show:*)",
-      "Bash(git remote:*)",
-      "Bash(git stash:*)",
-      "Bash(git add:*)",
-      "Bash(openclaw doctor:*)",
-      "Bash(openclaw session list:*)",
-      "Bash(openclaw cron list:*)",
-      "Bash(openclaw gateway status:*)"
-    ],
-    "ask": [
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
-      "Bash(git reset:*)",
-      "Bash(git rebase:*)",
-      "Bash(git checkout:*)",
-      "Bash(git merge:*)",
-      "Bash(git tag:*)",
-      "Bash(npm publish:*)",
-      "Bash(rm -rf:*)",
-      "Bash(openclaw cron create:*)",
-      "Bash(openclaw cron edit:*)",
-      "Bash(openclaw cron delete:*)",
-      "Bash(openclaw models auth:*)",
-      "Bash(openclaw message send:*)"
+      "Bash"
     ],
     "deny": [
       "Bash(git push --force:*)",
@@ -60,8 +17,42 @@
       "Bash(git reset --hard:*)",
       "Bash(rm -rf /:*)",
       "Bash(rm -rf ~:*)",
-      "Bash(rm -rf ~/*:*)",
       "Bash(sudo:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash.mjs\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-edit.mjs\""
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/_dev/tools/worktrees.mjs\" --hook",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }

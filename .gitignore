@@ -41,3 +41,11 @@ yarn-error.log*
 
 # Audit output (ephemeral working docs, not part of the template)
 audits/
+
+# Framework working files
+.framework-backup/
+.framework-install-staging/
+*.framework
+
+# Research reports (quote the claim and source in the spec that relies on one)
+.research/

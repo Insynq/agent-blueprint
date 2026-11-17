@@ -1,0 +1,40 @@
+{
+  "example": true,
+  "_about": "EXAMPLE for a Supabase demo project. Copy to scripts/demo/reset.config.json, edit every command for this project, replace each EDIT-ME, then delete the \"example\" line. reset.mjs refuses to run while that line is present.",
+
+  "timezone": "America/Denver",
+  "window": { "startHour": 1, "endHour": 6 },
+  "timeoutSeconds": 900,
+
+  "_preCheck": "The lock inside the database. demo_ops.marker is created once, by a person, in the demo project only (examples/supabase/demo-ops-setup.sql). Production has no such table, so a wrong connection string fails here.",
+  "preCheck": {
+    "command": "psql \"$DEMO_DB_URL\" -v ON_ERROR_STOP=1 -At -c \"select project_ref from demo_ops.marker\"",
+    "expect": "EDIT-ME-demo-project-reference"
+  },
+
+  "steps": {
+    "_wipe": "Truncates the app tables and deletes every sign-in account in one transaction. Never `supabase db reset` on a hosted project: it drops the marker, stored secrets and everything else with it.",
+    "wipe": [
+      "psql \"$DEMO_DB_URL\" -v ON_ERROR_STOP=1 -v demo_ref=\"$DEMO_TARGET\" -f scripts/demo/examples/supabase/wipe.sql"
+    ],
+    "_migrate": "Empty on purpose. Migrations reach demo through /db-push on a go, not through the nightly job. Add a push here only if you have decided demo should pick up merged migrations unattended.",
+    "migrate": [],
+    "_seed": "Deterministic: the same rows, ids and accounts every night. The account password comes from $DEMO_LOGIN_PASSWORD and is never written in a file.",
+    "seed": [
+      "psql \"$DEMO_DB_URL\" -v ON_ERROR_STOP=1 -f scripts/demo/seed/seed.sql",
+      "node scripts/demo/seed/accounts.mjs"
+    ]
+  },
+
+  "_postCheck": "Counts something only a finished seed produces. Pick a number that is wrong if the seed stopped half way.",
+  "postCheck": {
+    "command": "psql \"$DEMO_DB_URL\" -v ON_ERROR_STOP=1 -At -c \"select count(*) from auth.users\"",
+    "expect": "EDIT-ME-number-of-seeded-accounts"
+  },
+
+  "_marker": "When the last full reset finished. Kept in demo_ops, which the wipe does not touch, so --auto resets once per night however many schedule ticks arrive.",
+  "marker": {
+    "read": "psql \"$DEMO_DB_URL\" -v ON_ERROR_STOP=1 -At -c \"select value from demo_ops.state where key = 'last_reset_at'\"",
+    "write": "psql \"$DEMO_DB_URL\" -v ON_ERROR_STOP=1 -c \"insert into demo_ops.state (key, value) values ('last_reset_at', '$DEMO_RESET_AT') on conflict (key) do update set value = excluded.value\""
+  }
+}

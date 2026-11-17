@@ -1,0 +1,74 @@
+{
+  "name": "devdash",
+  "title": "Dev dashboard (the owner's window onto the work)",
+  "description": "A local, dependency-free dashboard derived from the repository: what is waiting on the owner, question runs answered by clicking, timed guided sittings with screenshots, the smoke ledger, a daily log and metrics, with hooks that bring the owner's results back to the agent and keep the dash current without asking.",
+  "requires": [],
+  "manifest": {
+    "framework-managed": [
+      ".claude/hooks/checks/devdash-definitions.mjs",
+      ".claude/rules/devdash.md",
+      ".claude/skills/dash/",
+      ".claude/skills/dash-questions/",
+      ".claude/skills/dash-sitting/",
+      "devdash/README.md",
+      "devdash/lib/",
+      "devdash/public/",
+      "devdash/scripts/",
+      "devdash/server.mjs",
+      "docs/kickoff/devdash.md"
+    ],
+    "project-owned": [
+      "devdash/config.json",
+      "devdash/log/",
+      "devdash/pages/",
+      "devdash/project.mjs",
+      "devdash/questions/",
+      "devdash/sittings/"
+    ]
+  },
+  "conflict_actions": {
+    ".claude/hooks/checks/devdash-definitions.mjs": "overwrite-with-backup",
+    ".claude/rules/devdash.md": "overwrite-with-backup",
+    ".claude/skills/dash/": "overwrite-with-backup",
+    ".claude/skills/dash-questions/": "overwrite-with-backup",
+    ".claude/skills/dash-sitting/": "overwrite-with-backup",
+    "devdash/README.md": "overwrite-with-backup",
+    "devdash/lib/": "overwrite-with-backup",
+    "devdash/public/": "overwrite-with-backup",
+    "devdash/scripts/": "overwrite-with-backup",
+    "devdash/server.mjs": "overwrite-with-backup",
+    "docs/kickoff/devdash.md": "overwrite-with-backup",
+    "devdash/config.json": "skip",
+    "devdash/log/": "skip",
+    "devdash/pages/": "skip",
+    "devdash/project.mjs": "skip",
+    "devdash/questions/": "skip",
+    "devdash/sittings/": "skip"
+  },
+  "settings": {
+    "permissions": {
+      "deny": [
+        "Edit(/devdash/.data/**)"
+      ]
+    },
+    "hooks": {
+      "SessionStart": [
+        {
+          "hooks": [
+            { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/devdash/scripts/hook-session-start.mjs\"", "timeout": 10 }
+          ]
+        }
+      ],
+      "Stop": [
+        {
+          "hooks": [
+            { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/devdash/scripts/hook-stop.mjs\"", "timeout": 10 }
+          ]
+        }
+      ]
+    }
+  },
+  "gitignore": [
+    "devdash/.data/"
+  ]
+}

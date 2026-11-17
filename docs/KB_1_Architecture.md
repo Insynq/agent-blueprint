@@ -1,39 +1,31 @@
-# KB 1 — Architecture
+# KB 1: Architecture
 
-> **This file is populated during `/kickoff`.** The sections below are shells — run kickoff to fill them in.
+Filled in by `/kickoff` or `/adopt`, then kept current by `/update-kb`.
 
 ## Overview
-[TODO — brief description of the overall architecture]
+[TODO: how the pieces fit together, in a paragraph or two.]
 
-## Tech Stack
-[TODO — full details with versions where known]
+## Stack
+[TODO: each component with its version where it matters.]
 
-## Patterns Needed
-[TODO — from discovery: which of these apply: auth, payments, real-time, file storage, email, external APIs, admin dashboard, mobile/PWA]
+## Capabilities in play
+[TODO: which of these the project has, and where each lives: sign-in, payments, real-time, file storage, outbound email or messages, third-party APIs, scheduled jobs, an in-product agent, an admin surface, a mobile client.]
 
-## Data Model (Draft)
-[TODO — high-level entities and their relationships. Not a full schema yet, just the concepts and how they connect]
+## Data model
+[TODO: the main entities and how they relate. Concepts, not a schema dump. Point to where the real schema is defined.]
 
-## Architecture Decisions
+## Service boundaries
+Everything that crosses to another system. Each one needs a `live-required` smoke before a change to it is production-ready.
 
-Record architectural decisions in the table below. Format and column semantics match `_dev/agent-improvement-spec-template.md` §1 — see that file for the canonical decisions-table format.
+[TODO: boundary, direction, what fails silently if it breaks.]
+
+## Architecture decisions
 
 | # | Decision | Choice | Reasoning | Date |
 |---|---|---|---|---|
-| 1 | [TODO decision] | [TODO choice] | [TODO reasoning] | YYYY-MM-DD |
-| 2 | [TODO decision] | [TODO choice] | [TODO reasoning] | YYYY-MM-DD |
+| 1 | [TODO] | | | |
 
-## Open Questions
-[Empty — add unresolved architecture questions here. Review and resolve before implementing the affected area]
+## Open questions
+Unresolved questions that block or shape upcoming work. Each has an owner and a point by which it must be answered.
 
-**Format for each open question:**
-> **Q:** [The question]
-> **Impact:** [What this blocks or affects if left unanswered]
-> **By when:** [Phase X or "before implementing [feature]"]
-> **Owner:** [Who needs to decide this — you, a stakeholder, a technical constraint]
-
-**Example:**
-> **Q:** Should user data be stored server-side or client-side?
-> **Impact:** Affects auth architecture, data access patterns, and compliance requirements
-> **By when:** Before Phase 1 implementation
-> **Owner:** Product decision — affects privacy policy requirements
+[TODO: none.]

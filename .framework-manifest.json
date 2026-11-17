@@ -1,6 +1,6 @@
 {
   "manifest_schema_version": "1",
-  "version": "0.5.0",
+  "version": "1.0.0",
   "name": "agent-blueprint",
   "canonical_url": "https://github.com/Insynq/agent-blueprint",
   "github_owner": "Insynq",
@@ -17,7 +17,9 @@
       "default_action_on_conflict semantics: 'skip' = keep local untouched; 'sibling' = write incoming as <name>.framework alongside local; 'overwrite-with-backup' = backup local to .framework-backup/ then overwrite with incoming.",
       "More-specific entries override less-specific ones (file path beats directory path).",
       "version is the framework release version (semver, no v prefix). manifest_schema_version is the schema version of THIS file's structure and bumps independently.",
-      "canonical_url is a full https URL. github_owner and github_repo are provided explicitly to avoid URL parsing in consumers."
+      "canonical_url is a full https URL. github_owner and github_repo are provided explicitly to avoid URL parsing in consumers.",
+      "packs lists the optional packs shipped under packs/<name>/. A pack carries its own manifest fragment in pack.json; applying a pack merges that fragment into the project's copy of this file.",
+      "packs/ and framework-dev/ never ship as-is: the installer flattens selected packs onto the tree and removes packs/."
     ],
     "category_defaults": {
       "framework-managed": "overwrite-with-backup",
@@ -29,34 +31,41 @@
   },
   "categories": {
     "framework-managed": [
-      ".claude/commands/",
-      ".env.example",
+      ".claude/agents/",
+      ".claude/hooks/",
+      ".claude/rules/",
+      ".claude/skills/",
       ".framework-manifest.json",
       ".github/",
       "FRAMEWORK_CHANGELOG.md",
+      "_dev/",
+      "docs/AUTHORING_SKILLS.md",
       "docs/KB_INDEX.md",
-      "docs/MULTI_AGENT_WORKFLOW.md",
-      "docs/OpenClaw KBs/"
+      "docs/SECRETS.md",
+      "docs/WORKFLOW.md"
     ],
     "hybrid": [
       ".claude/settings.json",
       "CLAUDE.md",
-      "_dev/",
-      "deploy/",
       "docs/KB_1_Architecture.md",
-      "docs/KB_8_Current_State.md",
-      "workspace/"
+      "docs/KB_8_Current_State.md"
     ],
     "project-owned": [
-      ".claude/memory/MEMORY.md",
+      ".claude/memory/",
+      ".env.example",
+      ".research/",
       "docs/APP_CONCEPT.md",
       "docs/CHANGELOG.md",
       "docs/LESSONS.md",
+      "docs/PARKING_LOT.md",
       "docs/SCOPE.md",
+      "docs/audits/",
       "docs/plans/",
       "docs/smoke-tests-pending.md"
     ],
     "installer_generated": [
+      ".framework-backup/",
+      ".framework-packs.json",
       ".framework-version"
     ],
     "excluded": [
@@ -66,34 +75,48 @@
       "LICENSE",
       "README.md",
       "bin/",
+      "framework-dev/",
       "lib/",
       "package-lock.json",
-      "package.json"
+      "package.json",
+      "packs/"
     ]
   },
   "default_action_on_conflict": {
     "CLAUDE.md": "sibling",
+    ".claude/settings.json": "sibling",
     "docs/KB_1_Architecture.md": "sibling",
     "docs/KB_8_Current_State.md": "skip",
-    ".claude/settings.json": "sibling",
-    ".claude/commands/": "overwrite-with-backup",
-    ".claude/memory/MEMORY.md": "skip",
-    ".env.example": "sibling",
-    ".github/": "overwrite-with-backup",
+    ".claude/agents/": "overwrite-with-backup",
+    ".claude/hooks/": "overwrite-with-backup",
+    ".claude/rules/": "overwrite-with-backup",
+    ".claude/skills/": "overwrite-with-backup",
     ".framework-manifest.json": "overwrite-with-backup",
+    ".github/": "overwrite-with-backup",
     "FRAMEWORK_CHANGELOG.md": "overwrite-with-backup",
+    "_dev/": "overwrite-with-backup",
+    "docs/AUTHORING_SKILLS.md": "overwrite-with-backup",
     "docs/KB_INDEX.md": "overwrite-with-backup",
-    "docs/MULTI_AGENT_WORKFLOW.md": "overwrite-with-backup",
-    "docs/OpenClaw KBs/": "overwrite-with-backup",
-    "_dev/": "sibling",
-    "deploy/": "sibling",
-    "workspace/": "sibling",
+    "docs/WORKFLOW.md": "overwrite-with-backup",
+    ".claude/memory/": "skip",
+    ".research/": "skip",
     "docs/APP_CONCEPT.md": "skip",
     "docs/CHANGELOG.md": "skip",
     "docs/LESSONS.md": "skip",
+    "docs/PARKING_LOT.md": "skip",
     "docs/SCOPE.md": "skip",
+    "docs/audits/": "skip",
     "docs/plans/": "skip",
     "docs/smoke-tests-pending.md": "skip",
-    ".framework-version": "skip"
-  }
+    ".framework-version": "skip",
+    ".framework-packs.json": "skip",
+    ".framework-backup/": "skip",
+    "docs/SECRETS.md": "overwrite-with-backup",
+    ".env.example": "skip"
+  },
+  "packs": [
+    "app",
+    "claude-agent",
+    "devdash"
+  ]
 }

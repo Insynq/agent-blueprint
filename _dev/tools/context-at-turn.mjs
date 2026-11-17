@@ -24,10 +24,6 @@
 //     transcripts: records with type assistant|user, message.content[] of
 //     text|thinking|tool_use|tool_result; files enter context via Read/Edit/Write
 //     tool_use input.file_path).
-//   - The OpenClaw gateway transcript.json schema is NOT implemented — its shape is
-//     [VERIFY BEFORE SHIPPING] per OC_KB_08 and could not be inspected from a dev
-//     host (no ~/.openclaw present). See readOpenClawTranscript() — implement it
-//     against a REAL transcript.json on the runtime host, do not guess the schema.
 //   - "filesInContext" is ground truth for Read/Edit/Write targets. "injected"
 //     context (CLAUDE.md, memory) is detected heuristically from the first user
 //     record and labelled as such — treat it as a hint, not proof.
@@ -65,22 +61,8 @@ function readClaudeCodeJsonl(path) {
   return records
 }
 
-function readOpenClawTranscript() {
-  // [VERIFY BEFORE SHIPPING] OpenClaw gateway transcript.json schema is unconfirmed.
-  // Inspect a real ~/.openclaw/sessions/<id>/transcript.json on the runtime host,
-  // then implement: map its records to the same { role, contentBlocks } shape this
-  // tool consumes. Do NOT guess the schema — that is the exact ground-first failure
-  // this framework just shipped a fix for.
-  throw new Error(
-    'OpenClaw transcript.json reader not implemented — schema unverified. ' +
-    'Inspect a real transcript.json on the runtime host and implement readOpenClawTranscript(). ' +
-    'This tool currently supports Claude Code .jsonl only.'
-  )
-}
-
 function loadTranscript(path) {
   if (path.endsWith('.jsonl')) return readClaudeCodeJsonl(path)
-  if (path.endsWith('.json')) return readOpenClawTranscript(path)
   // default to jsonl attempt
   return readClaudeCodeJsonl(path)
 }

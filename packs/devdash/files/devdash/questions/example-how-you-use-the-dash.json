@@ -1,0 +1,52 @@
+{
+  "id": "example-how-you-use-the-dash",
+  "example": true,
+  "title": "Example: how do you want the dash to behave?",
+  "date": "2026-01-01",
+  "status": "active",
+  "outcome": "",
+  "intro": "This is the example run that ships with the dash, so you can see how questions arrive. The answers are real: the agent will set `devdash/config.json` from them and then archive this run.",
+  "groups": [
+    { "key": "reach", "title": "Reaching the dash" },
+    { "key": "upkeep", "title": "Keeping it current" }
+  ],
+  "questions": [
+    {
+      "id": "E1",
+      "group": "reach",
+      "question": "Where will you open the dash from?",
+      "context": "The dash listens only on this machine. To use it from a phone or another computer it has to be published over a private network, and that device signs in once with a token.",
+      "options": [
+        { "key": "A", "label": "Only on this machine", "detail": "Nothing to set up. No token is ever asked for." },
+        { "key": "B", "label": "This machine and my other devices", "detail": "The agent gives you the one command to publish it on your private network and a sign-in link for each device." }
+      ],
+      "recommend": "A",
+      "reason": "Start local. Publishing it later is one command and changes nothing else."
+    },
+    {
+      "id": "E2",
+      "group": "upkeep",
+      "question": "Should the dash start by itself when an agent session starts?",
+      "context": "If it is not running when a session opens, a hook can start it in the background. It only ever listens on this machine.",
+      "options": [
+        { "key": "A", "label": "Yes, start it automatically", "detail": "The dash is always there when you want it." },
+        { "key": "B", "label": "No, I will start it myself", "detail": "Run `node devdash/server.mjs` when you want it." }
+      ],
+      "recommend": "A",
+      "reason": "A dash you have to remember to start is a dash that is down when you need it."
+    },
+    {
+      "id": "E3",
+      "group": "upkeep",
+      "question": "How often may the agent be sent back to bring the daily log up to date?",
+      "context": "On a day with commits, a hook checks at the end of each agent turn whether the day's entry is missing or behind, and if so makes the agent write it before it stops. This is the limit on how often that can happen.",
+      "options": [
+        { "key": "A", "label": "At most every 90 minutes", "detail": "The entry stays close to current through the day." },
+        { "key": "B", "label": "At most every four hours", "detail": "Fewer interruptions; the entry can lag by an afternoon." },
+        { "key": "C", "label": "Never automatically", "detail": "The entry is written only when work ships and when a session wraps up." }
+      ],
+      "recommend": "A",
+      "reason": "It costs the agent a minute and means the log is right whenever you look."
+    }
+  ]
+}

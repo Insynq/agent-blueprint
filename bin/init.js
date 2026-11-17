@@ -35,6 +35,7 @@ const conflicts = require('../lib/conflicts');
 const paths = require('../lib/paths');
 const version = require('../lib/version');
 const postinstall = require('../lib/postinstall');
+const packsMod = require('../lib/packs');
 
 const SELF_PKG = require('../package.json');
 
@@ -45,7 +46,11 @@ Usage:
   npx @insynq/agent-blueprint init [flags]
 
 Flags:
+  --packs a,b                    Optional packs to install on top of the core
+                                 (app, claude-agent, devdash).
   --yes, -y, --non-interactive   Accept defaults; no interactive prompts.
+  --tarball <file>               Install from a local tarball instead of the
+                                 GitHub release (for testing an unreleased version).
   --dry-run                      Print install plan and exit (no writes).
   --debug                        Verbose logging (HTTP, paths, decisions).
   --force-dirty                  Allow install with a dirty working tree.
@@ -74,6 +79,8 @@ function parseArgs(argv) {
     allowRoot: false,
     showHelp: false,
     showVersion: false,
+    packs: [],
+    tarball: null,
   };
   const rest = [];
   for (let i = 0; i < argv.length; i++) {
@@ -85,6 +92,10 @@ function parseArgs(argv) {
         flags.autoYes = true; break;
       case '--dry-run':
         flags.dryRun = true; break;
+      case '--tarball':
+        flags.tarball = argv[++i] || null; break;
+      case '--packs':
+        flags.packs = (argv[++i] || '').split(',').map((s) => s.trim()).filter(Boolean); break;
       case '--debug':
         flags.debug = true; break;
       case '--force-dirty':
@@ -191,9 +202,13 @@ async function main() {
   const tarballUrl = 'https://github.com/' + owner + '/' + repo +
     '/archive/refs/tags/v' + installerVersion + '.tar.gz';
 
-  log.info('About to fetch framework files from:');
-  log.info('  ' + tarballUrl);
-  if (!flags.autoYes) {
+  if (flags.tarball) {
+    log.info('Installing from local tarball: ' + flags.tarball);
+  } else {
+    log.info('About to fetch framework files from:');
+    log.info('  ' + tarballUrl);
+  }
+  if (!flags.autoYes && !flags.tarball) {
     if (!interactive) {
       log.error('Non-interactive run without --yes. Cannot prompt for fetch confirmation.');
       await staging.cleanupStagingOnPreWriteError(repoRoot);
@@ -210,11 +225,13 @@ async function main() {
   // ---- Download with retry ----
   let downloaded;
   try {
-    downloaded = await staging.downloadWithRetry(tarballUrl, {
-      maxAttempts: 3,
-      baseDelayMs: 1000,
-      debug: flags.debug,
-    });
+    downloaded = flags.tarball
+      ? { buffer: await fsp.readFile(path.resolve(flags.tarball)), finalUrl: 'file:' + path.resolve(flags.tarball) }
+      : await staging.downloadWithRetry(tarballUrl, {
+        maxAttempts: 3,
+        baseDelayMs: 1000,
+        debug: flags.debug,
+      });
   } catch (err) {
     log.error(err.message);
     await staging.cleanupStagingOnPreWriteError(repoRoot);
@@ -234,6 +251,24 @@ async function main() {
     await staging.extractTarball(repoRoot, downloaded.buffer);
   } catch (err) {
     log.error('Tarball extraction failed: ' + err.message);
+    await staging.cleanupStagingOnPreWriteError(repoRoot);
+    return 1;
+  }
+
+  // ---- Flatten packs onto the staged tree ----
+  // Selected packs are overlaid onto the staging root and packs/ is removed,
+  // so everything downstream sees one tree whose paths match the project's.
+  try {
+    const stage = staging.stagingPath(repoRoot);
+    const available = packsMod.listPacks(stage);
+    if (!flags.packs.length && available.length) {
+      log.info('No packs selected (--packs). Installing the core only. Available: ' + available.join(', '));
+    }
+    for (const r of packsMod.flatten({ root: stage, names: flags.packs })) {
+      log.info('Pack ' + r.name + ': ' + (r.copied.length + r.overwritten.length) + ' file(s)');
+    }
+  } catch (err) {
+    log.error(err.message);
     await staging.cleanupStagingOnPreWriteError(repoRoot);
     return 1;
   }
@@ -375,9 +410,10 @@ async function main() {
   await version.writeFrameworkVersion(repoRoot, {
     version: manifest.version,
     tarball_sha256: sha,
-    installed_method: 'npx',
+    installed_method: flags.tarball ? 'local-tarball' : 'npx',
     canonical_url: manifest.canonical_url,
     installed_from: downloaded.finalUrl || tarballUrl,
+    packs: packsMod.installedPacks(repoRoot),
   });
 
   // ---- Cleanup staging ----

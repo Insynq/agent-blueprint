@@ -1,142 +1,119 @@
-# Lessons Log
+# Lessons
 
-A running log of gotchas, hard-won lessons, and non-obvious behaviors discovered during development. Add entries here as they accumulate — this becomes more valuable the longer the agent runs.
+What was learned the hard way. Read the relevant section before debugging or working in an unfamiliar area. `/ship` adds entries during its lessons sweep.
 
-**Format:** Each entry has a short ID for cross-referencing (e.g., `[MCP-1]`), the rule itself, a **Why** (the real incident), and a **How to apply** line (when to use it).
+An entry has an ID for cross-reference, the rule, and why: the incident behind it. Keep entries short; a lesson nobody reads protects nothing. Promote a lesson to `CLAUDE.md` when every session needs it, and to a hook check when it can be detected mechanically.
 
-**Scope:** this file is the cross-cutting, project-wide tier. Capability-scoped environmental quirks (a specific connector's error signatures and format traps) belong instead in the owning skill's `references/` gotcha log, force-read before acting on that capability — see `OC_KB_02` "The capability-scoped gotcha log."
-
-Commands that reference this file: `/debug`, `/implement`, `/audit-code`.
-
-> **Status: starter template.** This file ships nearly empty so that **app-specific** lessons accumulate from your own incidents rather than carrying another project's baggage. The exception is **framework-level architectural lessons** (like `[SKILL-1]` below) that apply to *every* OpenClaw agent — those ship with the framework and propagate via `/update-framework`. Add your own entries as gotchas surface during development.
+The entries below ship with the framework. They come from real incidents across several projects and are general enough to apply to any. Add your own beneath them, in the same categories or new ones.
 
 ---
 
-## SKILL
+## VERIFY
 
-### [SKILL-1] Keep judgment in the skill, mechanics in a script
+### [VERIFY-1] Never write a status you did not observe
+A pass, a fail or a finding is recorded only by whoever watched it happen. This includes status boards and summaries, which feel exempt and are not. **Why:** a status board once showed a fabricated pass that nobody had run, and work was scheduled on top of it.
 
-**Rule:** When a skill workflow interleaves model judgment with deterministic operations (exact SQL writes, parsing, reconciliation math, hashing, fixed API payloads), keep the *judgment* in the SKILL.md and extract the *deterministic execution* to a `workspace/scripts/<name>.js` script, called via the dry-run handoff (build payload → invoke `--dry-run` → review → invoke for real). The skill orchestrates and judges; the script computes and writes. See `OC_KB_02` "The mixed case."
+### [VERIFY-2] A test never seen failing is an assumption
+Break the change, watch the test go red, restore it. **Why:** tests written alongside a change routinely pass with the change removed.
 
-**Why:** A read-only assessment of a production agent's six longest skills (2026-06-25) found all six over-reliant on embedded deterministic logic — e.g. one transaction skill at 956 lines with 48 embedded SQL/command blocks, and a billing skill that re-described in prose the exact CSV parsing a 68 KB script (`hd-reconcile.js`) already did. Embedded deterministic prose carries three costs the script layer avoids: it's **skippable** (model-executed, so a write you need guaranteed isn't), it **bloats context** (loads every fire, pushes the character cap), and it's **untestable**. The same project had already invented the right pattern elsewhere (`ctme-processor.js`'s dry-run handoff) — the lesson is to propagate that boundary, not rediscover it.
+### [VERIFY-3] Every probe needs a negative control
+"Not found" is the least trustworthy result a tool gives. Run the same search for something known to exist, and treat "I could not find it" as a fact about the search. **Why:** absence has been reported from searches that could not have matched anything.
 
-**How to apply:** The trigger is writing a *second* exact-SQL/parse/compute block into a skill workflow — that's the signal to extract. Prioritize money-touching / irreversible writes (payments, settlements, invoices), where "skippable + untestable" is most dangerous. **Caveat — don't over-extract:** a query *template* shown inside a judgment step legitimately stays inline; extract the deterministic *execution*, not the illustration. (An independent refutation pass on the assessment confirmed one skill's queries were correctly inline and should NOT have been extracted — the smell is real, but verify per-block.)
+### [VERIFY-4] A count is a hypothesis about scope
+Never dispatch a sweep from a number. Classify every site as a straight change or context-bound first. **Why:** a "sweep of 11 sites" was really 4; changing the other 7 would have attributed money to the wrong party.
 
----
+### [VERIFY-5] Verify the effect, not the exit code
+A mechanism reporting success is not the mechanism working. A green deploy line proves an upload. **Why:** a release reported success while serving the previous build.
+
+### [VERIFY-6] Gates verify logic; none can see a screen
+Plan a human pass over anything with an interface. **Why:** one person in a browser found eleven issues after every automated gate had passed.
+
+### [VERIFY-7] A fixture test cannot prove producer and consumer agree
+Both sides can be wrong in the same way. Compare the real artifacts, or guard the shape at run time. **Why:** two halves of a feature each passed their own tests while disagreeing on a field name.
+
+### [VERIFY-8] Inherited claims are relayed until re-grounded
+An audit, a plan or an earlier report is unverified until its load-bearing facts are re-derived from source. "Could not find it broken" is not "confirmed correct". **Why:** a refuter given the broader object found a worse hole than the three the original audit named.
+
+### [VERIFY-9] An unverified negative gets defended by every later run
+Do not record "no match" or "not ours" in durable state without exhausting the source of truth and citing what was checked. **Why:** a stored negative suppressed the very re-check that would have corrected it.
+
+### [VERIFY-10] Check that the checker checks
+A typecheck at a root whose configuration includes no files passes everything. When comparing error lists across runs, strip positions first. **Why:** every gate quoting one such command was meaningless for weeks.
 
 ## PROCESS
 
-### [PROCESS-1] A prose change is unproven until a live run
+### [PROCESS-1] A gate result that lives only in chat cannot be re-run
+Record each gate, per cycle, in a checked-in file. **Why:** a control that quietly vanished between fix cycles looked identical to one that still passed.
 
-**Rule:** A markdown/prose edit to a skill, command, or KB is **unproven until you have observed it change behavior in a live run.** "Installed and verified by read-back on disk" proves the text exists — not that it changed what the agent does. Prompt and context tweaks are non-deterministic, so it is easy to convince yourself a technique works when it did nothing (placebo). When you ship a prose change, carry the verbatim flag `Installed, not yet proven in a live run` in the changelog/commit, and downgrade any effectiveness claim that rests on inspection rather than observation. Treat externally-sourced or viral techniques as unproven until they survive a live run *here*.
+### [PROCESS-2] Commit the locked spec to the default branch before dispatching
+A worktree branches from the remote and cannot see a local-only spec, and a squash merge orphans local spec commits.
 
-**Why:** The v0.4.0 / v0.4.1 verification agenda (the independent Refutation Pass, the ground-first anchor, the done-vs-true gate) shipped with every CHANGELOG entry self-flagged "Installed, not yet proven in a live run," and `KB_8_Current_State.md` deliberately separates "verified by read-back on disk" from "exercised in a live run" — the team already practiced this discipline but had never named it as a lesson. The trigger to codify it came from reviewing the *Insecure Agents* (Sentry) talk: "there's a lot of placebo — you convince yourself something's working and then realize it didn't do anything at all... it's so random, so non-predictable." Pointedly, nine of fourteen candidate improvements from that same review were themselves prose additions — so the rule polices the very act of adopting it. **Proven downstream (2026-06-25):** in a live kai-openclaw run, the brainstorm command's `[PROCESS-1]`-cited "earned vs. assumed" check fired behaviorally — a dry-run-first *disproved* a grounding sub-agent's "this lane is reconcilable" claim (44 of 48 false) before any write, and an independent read of a view definition caught a proposed "fix" that was a silent no-op. The lesson flipped from `Installed, not yet proven in a live run` to observed-changing-behavior — by a live run, which is the whole point.
+### [PROCESS-3] One worktree, one writer
+An idle transcript is not a finished agent. Isolation is per batch, not per stage: a worktree per stage fragments the work. After an interrupted agent, read `git status` and the files, because `git diff --stat` omits untracked files.
 
-**How to apply:** The trigger is catching yourself about to call a prose change "works" / "done" on the strength of reading the file back. Reframe to: *have I observed this change behavior in a live run, or do I only believe it?* This is the verification-side twin of `[SKILL-1]`: where `[SKILL-1]` keeps must-happen *mechanics* out of skippable prose, `[PROCESS-1]` keeps *claims about prose's effect* honest until observed.
+### [PROCESS-4] Parallel worktrees collide on anything numbered
+Timestamps and sequential IDs minted in parallel will clash. Check uniqueness where the branches meet.
 
-**Corollary — a prior analysis is `relayed`, not `read-it`, until re-grounded.** The same belief-vs-verification gap runs on the *input* side: an audit, roadmap, investigation doc, or prior plan you are about to **execute against** is an unverified claim until you re-derive its load-bearing facts at primary sources (the actual code, migrations, live data) *this run*. "It's written down in our own doc" is not "I confirmed it's true now" — docs go stale, distill lossily, and idealize. The trigger is catching yourself building on a prior analysis's conclusion without re-checking it; reframe to: *am I executing against a verified fact, or against someone's (possibly my own) earlier belief?* This is the execution-side mirror of `[PROCESS-1]` proper (which keeps claims about your *output's* effect honest) and the same discipline as the ground-first anchor's `read-it` vs `relayed` tagging. **Why it earned its own clause:** in the same 2026-06-25 kai run, a 424-line verification-theory audit drove four phases — and grounding found it idealized or outright wrong in *all four*: `source_code` was assumed "derivable from a job's links" (it isn't — same txn/property/client, two correct codes); the audit named a 25-result cap as the completeness gap while a **worse, fully-silent 883-row financial-data truncation went unnamed** (the "is it *complete*?" sweep caught it); an "S5 credit ledger to build" already existed with drift = 0; an "S6 live crisis" was mostly a legacy backfill. Executing the audit on faith would have shipped the wrong fix four times. **Trigger:** a fix that resolves suspiciously fast AND references an entity/component you didn't expect to exist is asserting a world-model claim — have it point at where the entity lives, then read it, before trusting the fix.
+### [PROCESS-5] Workers report "green on my files"
+Parallel workers share an index: each stages by path, and the PM lands each slice with `git commit --only` and owns the clean, whole-repository gate.
 
-**Corollary 2 — a shipped code path is unproven until its trigger fires (the runtime twin).** `[PROCESS-1]` proper is scoped to *prose*; the same belief-vs-verification gap runs on the *code* side. A guard, detector, migration, or skill you ship is `Installed, not yet proven` until you have **observed its trigger actually fire** *and* **inspected the persisted artifact** — not the run's digest. "Deployed to prod" ≠ "exercised": a guard whose trigger never occurs is dormant, not working; and a write that errors can be **trapped as a non-fatal Warning and swallowed**, so a green "N synced, 0 flags" digest asserts a success that never happened. Verify the artifact (the row, the file, the side effect), never the self-report — that half is `[PROCESS-4]` / `/ship` Step 3.5. The *authoring-side* complement — don't write the catch block that lets the digest lie — is `OC_KB_11` Primitive 9. **Why it earned its clause:** in the first kai-openclaw catch-ups after a four-phase prod rollout (2026-06-26), **5 of 6 shipped deliverables were dormant** (their triggers never fired that run), and a real regression — a write to a column the migration never added — failed `PGRST204` *every run*, trapped as a Warning and hidden behind a clean "9 synced, 0 flags" digest that both the running agent and the maintainer's first read missed; only an adversarial re-verification against the raw tool-results caught it.
+### [PROCESS-6] Decide forks before dispatch
+A subagent given an open architectural choice picks the locally convenient one. If a fork cannot be resolved, question the framing.
 
-**Corollary 3 — a negative status is a claim too; a false "blocked" cascades.** The belief-vs-verification gap runs on the *negative* side as well: "blocked", "skipped", "unavailable", "no data" are assertions that need the same evidence bar as a positive result — and they are *more* dangerous, because a false negative silently **disables every downstream check predicated on the lane having run**. Before you report or persist a blocked/skipped status, execute-verify every candidate your **own** probes surfaced (open the file, run `--help` — the set to try is your own search hits, bounded, not an open-ended hunt), and make the claim evidence-carrying: name the exact commands attempted + the verbatim errors (the negative twin of the "state the counts you read" all-clear rule). An MCP-auth banner rules out only that one MCP path, never the capability. The authoring-side dual is `OC_KB_11` Primitive 8's blocked-side sharpen and Primitive 9's "nor a blockage no attempt verified" test. **Why it earned its clause:** three kai-openclaw sessions (2026-07-03, 2026-07-06 ×2) each falsely declared Gmail "blocked" — seeded by the harness `needsAuthMcpServers` banner plus stale in-repo prose (a SKILL's "pull-via-MCP", a parser header's "via the Gmail MCP") — while their **own greps surfaced the working CLI** (`gmail-attachment.js`, whose usage header documents `search`) as a top hit and they discounted it *without opening the file*. One session persisted `blocked=true` to a durable `catch_up_runs` row **and skipped the reconcile step predicated on the lane**; another's digest recommended the forbidden connector as the only remediation — a structural dead end. Recovery was user-prompted every time. Note the trap is *not* "trust the runbook" — here the runbook lied and the grep succeeded. Like every lesson here, this prose is itself `Installed, not yet proven in a live run` until an agent lacking the instinct consults it and refuses to persist a "blocked" its own probes could have disproved. For the *persisted, domain-data* side of the same asymmetry — a negative written into a watermark, queue, or note that later runs inherit and defend against the source — see `[PROCESS-10]`.
+### [PROCESS-7] Scope decisions surface at smoke, not at audit
+Permission and scope questions show up when a person clicks through as the real role. Keep an irreversible step unlanded until that has happened.
 
-### [PROCESS-2] Augment the deterministic baseline; don't replace it
+### [PROCESS-8] Every landing precondition gets its own smoke row
+A precondition named only in a spec ships the phase inert.
 
-**Rule:** When designing any verification or quality mechanism, start from the pre-LLM **deterministic** check (a golden-trace compare, an external-artifact gate, a manual smoke, a diagnostic run) and use the LLM to *augment* it — judge ambiguity, synthesize, route — never to *be* the check. The pre-LLM problems (synthetic testing, infra, reproduction) are still the real work, and an LLM does not make them easier. The things that were true before are still true.
+### [PROCESS-9] "Out of scope" is earned, not assumed
+Show why something is unaffected before excluding it.
 
-**Why:** Every verification mechanism the framework already ships augments-rather-than-replaces a deterministic check: `/ship` gates on the literal smoke-catalog state, not a self-report; evals use a deterministic `compare.js`, with LLM-as-judge flagged as a worse default (`OC_KB_09`); the Refutation Pass re-reads primary source. But the heuristic was never named, so it had to be re-derived each time. Surfaced from the *Insecure Agents* (Sentry) review: "we're over-rotating on LLMs — how do I do this WITH an LLM versus how can I augment the thing I was trying to do, not just replace it. That's especially true in verification."
+### [PROCESS-10] Ground on the remote, not the local checkout
+Local default branches lag. Fetch first.
 
-**How to apply:** The trigger is catching yourself asking "how do I do this *with* an LLM?" for a check — reframe to "what was the deterministic check before LLMs, and how do I augment it?" This is the verification-side twin of `[SKILL-1]` (which keeps deterministic *mechanics* in a script); `[PROCESS-2]` keeps deterministic *verification* as the baseline the LLM augments.
+### [PROCESS-11] Spike the load-bearing assumption first
+Test the one thing the design depends on at a few percent of the design's cost, before designing around it.
 
-### [PROCESS-3] A schema-forced fan-out can silently under-cover — log the drop
+### [PROCESS-12] Effort out of proportion is an architecture signal
+When a small change produces a large diff, stop and look at the structure. Measure by diff, not by time.
 
-**Rule:** When you author a multi-agent Workflow with `agent({schema})` fan-out (inside `parallel()`/`pipeline()`), assume some agents will **die**: a schema-forced agent that can't produce valid output exhausts the StructuredOutput retry cap and returns `null`, and the call resolves that slot to `null` rather than failing — so the run proceeds with *reduced coverage and no error*. Never let that pass silently. After `.filter(Boolean)`, **`log()` the shortfall** ("N of M agents failed — coverage reduced; lanes X/Y uncovered") so a dropped lane can't masquerade as a complete sweep. Prefer small, flat schemas on hard-reasoning stages, or split the schema from the reasoning (have the agent return prose and parse it after). A fan-out that *looks* complete but quietly lost half its agents is the exact failure the "true AND complete" standard exists to catch — turned on your own orchestration.
+## RELEASE
 
-**Why:** Observed twice across two repos (a pattern, not luck). In a live kai-openclaw run (2026-06-25), the Phase-3.5 grounding fan-out lost **2 of 4 agents** to the retry cap (the publish-path and Gmail-pagination lanes); the orchestrator said "I have enough" and proceeded — correct *that time*, but only because the surviving agents happened to cover the load-bearing lanes (luck-adjacent, not structural). The same failure mode hit this framework's own v0.5.0 video-2 review workflow (the L1-grade agent capped out). In both cases "complete" was asserted while part of the planned coverage had silently vanished — and a schema-forced agent gives no louder signal than a `null` you have to look for. **Corroborated (2026-07-02):** two 8-agent schema-forced fan-outs in the same downstream window completed 8/8 clean (~443K and ~402K tokens), both on small flat schemas — exactly this lesson's recommended mitigation — evidence that the die-silently failure is *intermittent* (not deterministic) and that the small-schema reflex holds up in the field; the lesson and its log-the-drop guard stand intact.
+### [RELEASE-1] "Merge is deploy" is true only for what the host builds
+List the changed paths and check which have their own deploy step before saying something is live.
 
-**How to apply:** The trigger is writing `agent({schema})` inside a `parallel()`/`pipeline()`. Two reflexes: (1) treat every fan-out result as possibly-`null` and surface the *count* of failures — never just `.filter(Boolean)` and move on as if M results came back; (2) if a stage's schema is large or the reasoning is hard, shrink the schema or drop it (prose + parse) — schema strictness trades coverage for structure on exactly the hardest agents. Relates to `[PROCESS-1]` (a fan-out's completeness is unproven until you confirm it actually covered the set) and the synthesis-is-untrusted discipline (a thinned fan-out makes a downstream synthesis quietly narrower).
+### [RELEASE-2] Passing on staging is not a go for production
+A demo or staging pass is evidence. Release to production is a separate decision by the user.
 
-### [PROCESS-4] In a fan-out, the synthesis is the least-trustworthy layer — verify the primaries
+### [RELEASE-3] A fact recorded somewhere that can go stale will contradict the source
+Do not record landing facts in a pull request title or a note when the system itself can be queried.
 
-**Rule:** When you orchestrate a multi-agent Workflow, treat its **synthesized output — the PASS/FAIL verdicts, the summary / FINISH-LINE doc, the rolled-up counts — as `relayed`, not verified.** It is the layer most likely to be wrong, because it compounds every sub-agent's hedge, omission, and error (and a summary agent often cannot even see all the primary work). Before acting on a fan-out's conclusions: (1) **rebuild the catalog from the primary artifacts** the agents actually produced, not the summary's inventory; (2) **re-verify each load-bearing verdict against the real system** — expect verdicts wrong in *both* directions (false flags *and* missed problems); (3) **validate the workflow's own `args`/wiring**: a silent `undefined` arg can misroute every artifact, and `args` may itself arrive as a JSON **string** despite the docs' promise that a script can call array/object methods on it directly (GitHub issue #67488 documents the identical `CUSTOMERS.map is not a function`-class launch failure) — so guard-parse it (`const a = typeof args === 'string' ? JSON.parse(args) : (args ?? {})`) then **fail loud** on any missing key (`if (!a.customers) throw ...`), never masking with `|| FALLBACK` (which converts a loud launch failure into a silent stale-data run) and never canonizing hardcoding the data as the fix (inlining is fine only for a genuinely one-shot script). Land nothing on the summary's word.
+## AGENT
 
-**Why:** A downstream kai-openclaw run built four phases via a 75-agent / ~5.4M-token workflow (2026-06-26). Re-verification found the synthesis wrong in both directions — it over-flagged a correct plain-POST as a regression, mis-diagnosed a real failure's mechanism, and reported a pre-fix count as the current state — while the auto-generated FINISH-LINE summary was structurally **incomplete** (agents scattered artifacts to their own paths, and an `args.scratchpad → undefined` bug staged 42 artifacts into a junk dir inside the repo). The *grounded primary findings* were mostly sound; the **synthesized layer on top** was where the errors lived. Trusting it would have shipped six regressions — some psql-FATAL — to a live billing system; the agent's refusal to trust it ("I won't land a single artifact until I re-verify") is what caught them.
+### [AGENT-1] Agreement between judges that share a premise is not independent
+A split verdict is escalated with both positions quoted, never averaged.
 
-**How to apply:** The trigger is a workflow returning a summary/verdict you're tempted to act on. Reframe: *the agents' raw artifacts are evidence; their summary is a claim.* Re-verify primaries, rebuild the catalog yourself, and check the orchestration's own args. This is the workflow-scale form of the synthesis-is-untrusted discipline, and the verdict-side companion to `[PROCESS-3]` (which covers coverage *loss* when schema-forced agents silently die).
+### [AGENT-2] In a fan-out, the synthesis is the least trustworthy layer
+Check the primaries, and log every item that was dropped, so that N in means N out.
 
-### [PROCESS-5] Field-prove a cross-framework port against the receiving side's transcripts before locking — expect inversion
+### [AGENT-3] Never embed a copy of a canonical file in a skill
+The copy drifts and then overwrites the original. **Why:** a setup skill carried a project-file template two releases old and would have wiped the newer sections.
 
-**Rule:** When porting a discipline set between sibling frameworks (the `sister-framework-adoption-spec` pattern), do **not** lock the spec on author intuition. First field-prove the proposed change-set against a corpus of the **receiving** framework's real downstream transcripts, then re-scope by what the corpus actually shows. Expect the field to **invert** your ordering — not merely correct a fact here and there, but demote your centerpiece, drop a change to reference-only, and surface high-consequence gaps your draft never contained. Author intuition systematically over-weights the *source* framework's priorities and under-weights the *receiving* framework's real failure modes; only the receiving side's transcripts carry that signal. A cross-framework spec is `relayed`, not proven, until field-tested — and "narrow-and-expand by evidence" beats "lock as drafted."
+### [AGENT-4] An instruction that needs emphasis belongs in a hook
+If the same rule keeps being missed, make it a mechanical check.
 
-**Why:** The reverse port of this framework's verification/safety layer into app-blueprint (the mirror of the v0.3.0 app→agent `sister-framework-adoption-spec`; shipped as app-blueprint **v0.2.0**, commit `2d3ef23`, 2026-06-26) was drafted by intuition, then proved against 12 real downstream transcripts (9 eXp Onboarding + 3 Kai-App). The proving **inverted the draft**: the centerpiece **independent Refutation Pass (A1)** turned out to have a *mechanism that never fired* downstream — the field's two RLS-to-prod bugs were caught by existing **smokes**, not refuters, and one was a stale-citation problem — so A1 was demoted to `Installed, not yet proven` and *re-led* by live-SQL re-grounding (the refuter became the wrapper, not the lead). The **safety-primitives KB (B1)** had **0 field instances** (silent-open is a runtime/cron phenomenon absent from dev transcripts) → demoted from an acceptance gate to reference-only. Meanwhile the draft was missing its two **loudest** real signals entirely: deferred-smoke debt accumulating across phases under a self-authorized "authorized posture" (→ new **N1**), and unit-green shipping a non-functional service-boundary flow — 213/213 tests on a broken auth/email path that broke in prod (→ new **N2**). The one item that survived as drafted, **A3** (ship truth-gate), was the one with the most field evidence (6 instances incl. a re-verified prod outage). Locking the draft as written would have over-built an unproven refuter, shipped a theoretical KB as a gate, and missed the two highest-consequence gaps. (Net side-finding: the `sister-framework-adoption` pattern is now **proven bidirectional** — app→agent in v0.3.0, agent→app in v0.2.0.)
+### [AGENT-5] Most permission prompts are self-inflicted
+Compound commands, `cd` prefixes and heredocs trigger prompts that a plain command would not.
 
-**How to apply:** The trigger is authoring or `/plan-review`-ing a sister-framework adoption spec (in either direction). Before writing the `Status: LOCKED` header, ask: *which of these changes has the receiving side's transcripts actually proven load-bearing, and which are my home-framework's priorities projected onto a domain that may not share them?* Run the proving as an adversarial fan-out (scan → verify-against-raw → judge) and treat its synthesis as `relayed` per `[PROCESS-4]`; log any dropped lanes per `[PROCESS-3]`. This is the spec-scale, cross-framework instance of `[PROCESS-1]` Corollary 1 (a prior analysis is `relayed` until re-grounded at primaries) — here the "prior analysis" is your own draft and the "primaries" are downstream transcripts. Like every lesson here, this prose is itself `Installed, not yet proven in a live run` until an agent lacking the instinct consults it and re-scopes a port it would otherwise have locked.
-
-### [PROCESS-7] Effort disproportion is an architecture signal — measure by diff, not wall-clock
-
-**Rule:** When a fix costs *wildly more than its request-class implies* — many files touched, subsystems crossed, a bounded ask sprawling into a large diff — treat that as evidence about the **codebase**, not just the change: do not low-ceremony-merge; escalate to design scrutiny (`/brainstorm` / `/plan-review`). A cheap way to *generate* the signal is a **disposable probe**: a bounded speculative fix whose primary deliverable is the measurement (diff size, files touched, subsystems crossed), with the code expected to be discarded. Anchor to diff/blast-radius, never elapsed time. **Fence:** disposable probing is a dev/staging-sandbox instrument — forbidden for runtime agents at prod-mutating surfaces (scope-graduation gate + OC_KB_11 Primitive 0).
-
-**Why:** Harvested from a practitioner goal-mode run (T3 video intake, 2026-07-06 — see `docs/t3-video-2026-07-06-intake-spec.md`): time-to-fix cleanly ranked codebase health for him ("under 3 minutes… an hour or more — something's wrong with our architecture"), but wall-clock is confounded by model speed, machine, and rate limits; the robust half of his own heuristic is "the amount of changes it has to make." The framework already holds the conclusion in a narrower form — `/debug`'s three-strikes escalates to "the problem is the model of the system, not the fix" — but only after three *failed* fixes, never on an expensive *first* fix, and Phase 8 already computes the robust proxy (`git diff --name-only` vs. plan).
-
-**How to apply:** The trigger is accepting or merging a completed fix whose diff is disproportionate to its request-class. Reframe from "it works, merge it" to "why did this cost so much *here*?" — and route the answer to design scrutiny, not a ceremony-free merge. To probe a suspect area deliberately, spawn a disposable bounded fix in a sandbox and read the measurement, not the code. Generalizes `/debug`'s three-strikes from failed-fix count to first-fix cost.
-
-### [PROCESS-8] A consumed-verbatim artifact is a tool, not prose — compress the body around it, never the artifact
-
-**Rule:** When auditing a skill/command/KB for bloat, split the text into *teaching prose* (explanation a human or model reads, which compresses freely) and *consumed-verbatim artifacts* — paste-ready seed prompts, worker-prompt templates, structured-output/emit templates, and executable command blocks. An artifact's apparent redundancy with the explanation around it **is the design**: the body teaches *why*, the artifact is the thing that gets pasted or run verbatim. Compress the body; leave the artifact whole. Collapsing an artifact to a pointer forces a downstream consumer to reconstruct a contract from prose — the exact detail-drop that cross-file pointers introduce, on the copy least able to survive it.
-
-**Why:** In the 2026-07-07 skill-audit (an 8-judge panel over all 25 command files, shipped as framework v0.6.3), an Opus family judge proposed compressing several blocks that *read* as duplicative of nearby explanation — MAW's appendix PM-seed prompt, orchestrate's two worker-prompt templates, unify's spec-emit template, update-framework's repeated `curl` blocks. A one-sided Fable adjudicator tasked with protecting load-bearing content overturned **five of its seven strongest objections on this single shape**: each target was a consumed-verbatim artifact whose redundancy with the teaching body is functional. The seed prompt is pasted by a user running the no-`/orchestrate` path; the templates ship verbatim to fresh-context workers; the `curl` blocks execute on a repo-mutating update path where a mis-reconstructed retry/backoff could corrupt the update. The judge had read "sounds like the prose above it" as "duplicate," but the two serve different readers — one learns, one executes.
-
-**How to apply:** The trigger is proposing to compress or pointer-ize a block during any bloat/condensation pass. Ask: *is this text read by a human/model, or pasted/run verbatim by a consumer?* If verbatim-consumed, it is a tool — compress the explanation around it and leave the block intact. This is the mirror of `[SKILL-1]` (which keeps must-happen *mechanics* out of skippable prose): here the artifact **is** the mechanics, so pointer-izing it is the skippable-prose trap run backwards. Pairs with `[PROCESS-9]`.
-
-### [PROCESS-9] The co-load test separates deliberate reinforcement from bloat
-
-**Rule:** A rule that appears in more than one place is *deliberate reinforcement* only if its copies fire in contexts where the others are absent. Apply the **co-load test**: if two copies always enter the model's context together (same file, same prompt, same guaranteed-shared load), one is bloat — reduce it to a pointer at the canonical copy. If the copies live in independently-loaded contexts — separate command files that are distinct entry points, or a fresh-subagent prompt that ships to a context the parent never shares — every copy is load-bearing and stays inline, because a cross-context pointer only fires *if the agent follows it*, and inlining is what makes a guardrail fire without a fetch.
-
-**Why:** In the same 2026-07-07 audit, the Opus panel repeatedly defended duplicated guardrails as "reinforcement at independent decision points" without testing the claim. A Fable adjudicator applied the co-load test and split them cleanly. `orchestrate.md`'s provenance-discipline block appeared verbatim **twice in one file** (Step 6 and Step 8) — always co-loaded, so the Step-6 copy became a one-line pointer (a real cut); but the *same* rule also lives in `ship.md`, a separate entry point that loads without orchestrate, and that copy stayed. `debug.md`'s silent-failure trap list was triple-loaded inside one prompt (the step already ordered the agent to read CLAUDE.md's DO NOT, and the layer playbooks re-operationalized each trap) → collapsed to a pointer; but the same traps restated in debug's Step-2 Explore sub-prompt **stayed**, because that prompt ships to a fresh context that never saw Step 0. And the refutation-pass mechanic tripled across `audit-code`/`audit-infra`/`audit-full` was **kept** — each is a standalone entry point, and per `[PROCESS-4]` a refuter that only fires via a followed pointer is a refuter that can silently skip.
-
-**How to apply:** The trigger is calling a duplicated rule "reinforcement" (to keep it) or "redundancy" (to cut it) during an audit. Run the test: *do these copies always load together?* Same-context co-load → reduce to a pointer at the canonical copy; cross-context (separate entry points, fresh-subagent prompts) → keep every copy inline. Pairs with `[PROCESS-8]`: inline duplication of a guardrail across independent entry points is legitimate for the same reason a consumed-verbatim artifact stays whole — reliable firing beats token thrift when a missed guardrail is expensive. Like every lesson here, this prose is `Installed, not yet proven in a live run` (`[PROCESS-1]`) until an agent lacking the instinct applies the test during a real audit instead of rationalizing a co-loaded duplicate as reinforcement.
-
-### [PROCESS-10] An unverified negative is defended by every later run — exhaust the source before recording one
-
-**Rule:** A recorded negative assertion — "X isn't present," "the record lives elsewhere," "no match found," "arrived outside our pipeline" — is a claim requiring evidence, held to a **higher** bar than a positive claim. The reason is asymmetric permanence: a negative written into durable state (watermarks, work queues, caches, status flags, notes, run logs) becomes the surviving record, and every later run inherits and trusts it rather than re-deriving from the source. A wrong positive gets corrected on contact with reality; a wrong negative quietly suppresses the very re-check that would correct it. Before recording a negative: (1) **exhaust the source of truth** — search the entity's full history, open the candidate hits; never infer absence from a summary, manifest, or index; (2) **cite the evidence in the record itself** — the queries run and the IDs checked — so the negative is auditable and re-testable by a later run; (3) treat any **stored pattern as a hypothesis to test** against its tell-tales, never a presumption to apply blind.
-
-**Why:** In a downstream kai-openclaw incident (captured 2026-07-13 as its `[CTME-5]`), a catch-up run swept three emails that carried an executed contract — but instead of opening them, it pattern-matched to a stored heuristic ("this doc type usually arrives outside our pipeline") and wrote a queue note concluding the doc "likely arrived outside the pipeline." Three compounding failures: the negative was recorded without grounding (no source search, no bodies opened); the watermark advanced past the misjudged emails, so no future sweep would ever re-examine them — the wrong note became the only surviving thread; and the next run trusted the recorded diagnosis over the source system and chased a second wrong theory (also asserted without checking). The record sat wrong for seven days until a user-prompted re-ground. The stale *inference* was defended against the source exactly the way a stale copied *fact* gets defended against the live system (`CLAUDE.md` DO NOT / `OC_KB_16`) — this lesson is that rule's reasoning-layer instance: stale inference vs. stale fact, same disease.
-
-**How to apply:** The trigger is writing any absence/elsewhere/no-match conclusion into durable state — a watermark advance, a work-queue item, a cache entry, a status flag, a run note. Stop and ask: *did I open the source, or am I inferring from a summary or a stored pattern?* Then make the record carry its own evidence (queries + IDs checked) so a later run can re-test it instead of inheriting it. This is the persisted-state twin of `[PROCESS-1]` Corollary 3 — that clause governs in-run *capability* negatives ("blocked"/"skipped"); here the claim is about *domain data* and the danger is permanence — and the high-consequence corollary of ground-before-theorize / "never confirm absence from a summary — open the source." Authoring-side dual: `OC_KB_11` Primitive 8's blocked-side sharpen. Like every lesson here, this prose is itself `Installed, not yet proven in a live run` until an agent lacking the instinct consults it and refuses to persist a negative its own sweep could have disproved.
+### [AGENT-6] No secrets in chat
+Never print a secret to verify it. `${var:+set}${var:-MISSING}` prints the value. Pipe between tools.
 
 ---
 
-## Suggested categories
-
-For OpenClaw agent projects, the natural categories are:
-
-- `MCP` — mcporter.json, MCP server lifecycle, tool unavailability bugs, env-var resolution
-- `SKILL` — skill routing, frontmatter spelling, folder/name mismatches, character-cap truncation
-- `MODEL` — model routing, cache hit rate, per-cron API key cost attribution
-- `CRON` — scheduled job behavior, deterministic-script convention, runtime-host vs repo drift
-- `DEPLOY` — webhook + rsync, plist EnvironmentVariables, rsync excludes correctness
-- `ARCH` — design decisions specific to this agent, scope-out vs scope-creep judgment calls
-- `PROCESS` — planning, verification, scoping discipline
-
-Add new categories as they emerge — there's no hard rule against `[OBS-1]` if observability becomes a recurring theme.
-
----
-
-## How to Add a New Entry
-
-Copy this template and append to the relevant section (or create a new section if the category is new):
+## Adding an entry
 
 ```markdown
 ### [CATEGORY-N] Short title
-
-**Rule:** The specific, actionable rule.
-
-**Why:** The real incident that caused this lesson. Be specific — which symptom, what failed, what the actual root cause was. The narrative is what makes a lesson sticky.
-
-**How to apply:** When exactly does this apply? What's the trigger that should remind you of this lesson?
+The rule, specific enough to act on. **Why:** the incident, in a sentence.
 ```
-
-When you add an entry, also consider:
-
-- Does this lesson belong in `CLAUDE.md`'s `## DO NOT` section as a hard constraint? (For lessons that should affect every future change.)
-- Does this lesson reveal a framework gap? (Surface it to `agent-blueprint` upstream if the OpenClaw runtime makes it easy to repeat.)

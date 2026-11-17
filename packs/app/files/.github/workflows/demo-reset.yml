@@ -1,0 +1,193 @@
+# Demo environment: nightly reset.
+#
+# Harmless until the project fills it in. A scheduled run does nothing unless
+# the repository VARIABLE DEMO_RESET_ARMED is exactly "true", and every run
+# stops with a notice when scripts/demo/reset.config.json does not exist yet.
+# So this file can be committed on day one and stays green.
+#
+# What a run does: checks out the tree demo is deployed from, runs the guard
+# (scripts/demo/guard.mjs), then scripts/demo/reset.mjs. The guard refuses
+# anything that is not positively the demo environment, and refuses outright if
+# the target, a connection string or a key matches production. It runs here as
+# its own step so a refusal is the first thing in the log, and again inside
+# reset.mjs so the reset can never be called without it.
+#
+# To make it real (details in scripts/demo/README.md):
+#   1. Fill in scripts/demo/environments.json (demo and production values).
+#   2. Write scripts/demo/reset.config.json from an example in scripts/demo/examples/.
+#   3. Add the repository secrets and variables named in the env block below.
+#      Variables are not secret; secrets are.
+#   4. Install whatever the reset commands need in the "Tools" step.
+#   5. Run a full reset from your own machine first. Then run this workflow
+#      by hand with mode "check" and mode "dry-run", and read the logs.
+#   6. Only then set the variable DEMO_RESET_ARMED to true. A manual run with
+#      mode "reset" needs it too.
+#   7. Pin each action to a commit hash once the workflow is in use.
+#
+# To disarm: set DEMO_RESET_ARMED to anything else, or delete it. Do this
+# before a demo that must not be disturbed, and when tearing demo down.
+#
+# Scheduled workflows run only from the default branch, so this file lives
+# there even when demo is deployed from another branch. Set the variable
+# DEMO_RESET_REF to that branch so the seed that runs is the seed demo is
+# built from.
+#
+# The schedule is UTC and GitHub starts scheduled runs late, sometimes by
+# hours. Do not rely on the cron time to protect a daytime sitting: reset.mjs
+# --auto reads the time itself and resets only inside the night window in
+# reset.config.json. With a "marker" configured there you can add more cron
+# lines (one an hour through the window) so that a missed tick is caught by
+# the next one and the reset still happens exactly once a night. Without a
+# marker, keep the single line below: every tick inside the window resets.
+
+name: Demo reset
+
+on:
+  schedule:
+    - cron: "17 9 * * *"   # 09:17 UTC. Pick an hour inside your window; avoid minute 0, which is the busiest.
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "check (guard and pre-check, no writes) | dry-run (print the commands) | reset (wipe and reseed now)"
+        required: true
+        default: check
+        type: choice
+        options: [check, dry-run, reset]
+
+# One reset at a time. A second run waits for the first; it is never cancelled
+# half way through a wipe.
+concurrency:
+  group: demo-reset
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  reset:
+    name: Reset demo
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Decide whether to run
+        id: gate
+        env:
+          EVENT: ${{ github.event_name }}
+          MODE: ${{ inputs.mode }}
+          ARMED: ${{ vars.DEMO_RESET_ARMED }}
+        run: |
+          set -euo pipefail
+          mode="${MODE:-auto}"
+          case "$mode" in auto|check|dry-run|reset) ;; *) echo "::error::Unknown mode '$mode'."; exit 1 ;; esac
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          # Anything that writes needs the arming variable: the schedule, and a manual reset.
+          if [ "$mode" = "auto" ] || [ "$mode" = "reset" ]; then
+            if [ "$ARMED" != "true" ]; then
+              echo "::notice::Demo reset is not armed (repository variable DEMO_RESET_ARMED is not 'true'). Nothing was done."
+              echo "run=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo "run=true" >> "$GITHUB_OUTPUT"
+          echo "Event $EVENT, mode $mode, armed '${ARMED:-}'."
+
+      - name: Check out the tree demo is deployed from
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ vars.DEMO_RESET_REF || github.ref }}
+
+      - name: Confirm the reset is configured
+        if: steps.gate.outputs.run == 'true'
+        id: configured
+        run: |
+          set -euo pipefail
+          echo "Reset tree: $(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached) at $(git rev-parse --short HEAD)."
+          if [ ! -f scripts/demo/reset.mjs ] || [ ! -f scripts/demo/guard.mjs ]; then
+            echo "::notice::scripts/demo/ is not in this tree. Nothing was done."
+            echo "ready=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if [ ! -f scripts/demo/reset.config.json ]; then
+            echo "::notice::scripts/demo/reset.config.json does not exist yet. Nothing was done. See scripts/demo/README.md."
+            echo "ready=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node
+        if: steps.gate.outputs.run == 'true' && steps.configured.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # Install what the commands in reset.config.json call: a database client,
+      # a platform CLI, the seed script's own dependencies. Check the runner
+      # image before assuming a tool is present.
+      - name: Tools
+        if: steps.gate.outputs.run == 'true' && steps.configured.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          command -v psql >/dev/null 2>&1 && psql --version || echo "psql is not on this runner; install it here if the reset uses it."
+
+      - name: Guard
+        if: steps.gate.outputs.run == 'true' && steps.configured.outputs.ready == 'true'
+        env:
+          DEMO_CONFIRM: "1"
+          # Variables (not secret): the demo reference the guard compares against environments.json.
+          DEMO_TARGET: ${{ vars.DEMO_TARGET }}
+          # Secrets. Add or rename to match scripts/demo/environments.json and reset.config.json.
+          DEMO_DB_URL: ${{ secrets.DEMO_DB_URL }}
+          DEMO_API_URL: ${{ secrets.DEMO_API_URL }}
+          DEMO_SERVICE_KEY: ${{ secrets.DEMO_SERVICE_KEY }}
+          DEMO_LOGIN_PASSWORD: ${{ secrets.DEMO_LOGIN_PASSWORD }}
+        run: |
+          set +e
+          node scripts/demo/guard.mjs
+          rc=$?
+          case "$rc" in
+            0) exit 0 ;;
+            2) echo "::error::Guard refused: a required value is missing. Set the variable DEMO_TARGET and fill in scripts/demo/environments.json." ;;
+            3) echo "::error::Guard refused: PRODUCTION. The target, a connection string or a key matches a production value. Nothing was touched. Find out why before running this again." ;;
+            4) echo "::error::Guard refused: the target is not positively the demo environment. Nothing was touched." ;;
+            *) echo "::error::Guard failed with exit $rc." ;;
+          esac
+          exit "$rc"
+
+      - name: Reset
+        if: steps.gate.outputs.run == 'true' && steps.configured.outputs.ready == 'true'
+        # Keep this block identical to the Guard step's: the guard must check what the reset will use.
+        env:
+          DEMO_CONFIRM: "1"
+          # Variables (not secret): the demo reference the guard compares against environments.json.
+          DEMO_TARGET: ${{ vars.DEMO_TARGET }}
+          # Secrets. Add or rename to match scripts/demo/environments.json and reset.config.json.
+          DEMO_DB_URL: ${{ secrets.DEMO_DB_URL }}
+          DEMO_API_URL: ${{ secrets.DEMO_API_URL }}
+          DEMO_SERVICE_KEY: ${{ secrets.DEMO_SERVICE_KEY }}
+          DEMO_LOGIN_PASSWORD: ${{ secrets.DEMO_LOGIN_PASSWORD }}
+        run: |
+          set +e
+          case "${{ steps.gate.outputs.mode }}" in
+            auto)    flag="--auto" ;;
+            check)   flag="--check" ;;
+            dry-run) flag="--dry-run" ;;
+            reset)   flag="" ;;
+          esac
+          node scripts/demo/reset.mjs $flag
+          rc=$?
+          {
+            echo "### Demo reset"
+            echo "- Mode: ${{ steps.gate.outputs.mode }}"
+            echo "- Tree: $(git rev-parse --short HEAD)"
+            echo "- Exit: $rc"
+          } >> "$GITHUB_STEP_SUMMARY"
+          case "$rc" in
+            0)  exit 0 ;;
+            2|3|4) echo "::error::The guard refused (exit $rc). Nothing was touched." ;;
+            10) echo "::error::scripts/demo/reset.config.json is invalid or still the shipped example. Nothing was touched." ;;
+            11) echo "::error::Pre-check failed: the database did not identify itself as demo. Nothing was touched." ;;
+            12) echo "::error::A wipe, migrate or seed command failed. Demo may be half built. Fix the cause and run this workflow with mode 'reset'." ;;
+            13) echo "::error::Post-check failed: every command succeeded but demo is not in the expected state. Treat demo as broken until a reset passes." ;;
+            14) echo "::error::The reset passed but the marker was not written; the next scheduled tick will reset again." ;;
+            *)  echo "::error::Reset failed with exit $rc." ;;
+          esac
+          exit "$rc"

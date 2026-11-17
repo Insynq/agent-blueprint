@@ -5,60 +5,59 @@ All notable changes to the **agent-blueprint** framework.
 Format: based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), structured for parsing by `/update-framework`.
 Versioning: [Semantic Versioning](https://semver.org/).
 
-## Parsing contract for `/update-framework`
+## Format
 
-The `/update-framework` command parses this file to surface migration notes and detect command renames during update operations. Maintainers of this framework MUST keep this format intact:
-
-### Required structure
-
-- Each version entry starts with: `## [X.Y.Z] - YYYY-MM-DD`
-- The unreleased section uses: `## [Unreleased]`
-- Within a version, subsections use H3 headers: `### Added`, `### Changed`, `### Removed`, `### Renamed`, `### Migration Notes`
-- All five subsections are optional within a version; omit if empty (or include with content `N/A` or empty bullets — parser tolerates both)
-- Order of subsections within a version: Added, Changed, Removed, Renamed, Migration Notes (parser is order-insensitive but consistency aids readability)
-- Versions appear in **descending chronological order** (newest first), with `[Unreleased]` at the top
-
-### `### Renamed` format (parser-critical)
-
-One bullet per rename. Used by `/update-framework` to auto-create deprecation shims:
-
-```
-### Renamed
-- `/old-command` → `/new-command` (slash command rename — auto-shim created)
-- `docs/Old Path/` → `docs/New Path/` (directory rename — auto-detected during diff)
-```
-
-Format rules:
-- Backticks around old and new names
-- Single arrow `→` (Unicode) separating old and new — parser keys on this character
-- Optional parenthetical explanation after the arrow
-- Slash commands include the leading `/`
-
-### `### Migration Notes` format
-
-Free-form prose, displayed verbatim to users when they encounter the corresponding deprecated files during update. Group by what's changing:
-
-```
-### Migration Notes
-- **`/old-command` → `/new-command`:** behavior is identical for V1; new name is more accurate. The auto-created shim will redirect for one version, then be removed in vX.Y.
-- **`docs/Old Path/` → `docs/New Path/`:** Windows compatibility — colons in paths break `tar` extraction.
-```
-
-The parser surfaces these notes when:
-- A user has the old file (rename detected via local file matching the canonical@install-version's old name)
-- A `### Removed` entry mentions a file the user has locally
-
-### Adopter projects do not have this file
-
-Only the canonical repo (this repo) maintains `FRAMEWORK_CHANGELOG.md`. Adopter projects have their own `docs/CHANGELOG.md` for their project's state. Don't confuse the two.
-
----
+- Each release starts with `## [X.Y.Z] - YYYY-MM-DD`, newest first.
+- Subsections are `### Added`, `### Changed`, `### Removed`, `### Renamed` and `### Migration Notes`, each optional.
+- `/update-framework` reads the entries between the installed version and the target and shows the user the Removed, Renamed and Migration Notes.
 
 ## [Unreleased]
 
 [Changes pending release land here.]
 
 ---
+
+## [1.0.0] - 2026-11-17
+
+A restructure. The framework is now a runtime-neutral core with optional packs, written for current Claude Code (skills, subagent definitions, path-scoped rules, hooks), and rebalanced after five months of use in three projects: evidence rules kept and sharpened, permission prompts and unused ceremony removed, instruction files cut to roughly a third of their length. Not yet exercised in a live project.
+
+### Added
+- **Packs** (`packs/`, `lib/packs.js`, `bin/pack.js`): `app` (web, mobile and database in one repository), `claude-agent` (Claude Code driving deterministic scripts on a machine you control, with scheduled runs, VM hosting and operator handoff), `devdash` (a working local dashboard: decision runs, timed sittings with screenshots, the smoke ledger, a daily log, and hooks that bring the owner's results back to the agent). `init --packs a,b` installs them; `pack.js add` adds one later.
+- **`bin/create.js`**: start a new project from a local clone, without the framework's development files.
+- **Subagent definitions** (`.claude/agents/`): `explorer`, `grounder`, `implementer`, `judge`, `refuter`, `trace-verifier`.
+- **A size cap on `CLAUDE.md`**, enforced by a hook check.
+- **Worktree housekeeping** (`_dev/tools/worktrees.mjs`): worktrees live in `.claude/worktrees/`; `/ship` removes finished ones and a session-start hook reports any left over.
+- **Secrets convention** in the core: `docs/SECRETS.md`, `.env.example`, and a hook check that rejects recognisable keys.
+- **Spec or pull request** rule in `docs/WORKFLOW.md`: a spec records the decision, a pull request is how a change lands, and anything that changes behaviour goes through a pull request when a push deploys.
+- **Demo environment** in the `app` pack: `docs/DEMO_ENVIRONMENT.md`, a production guard, a config-driven reset script and a nightly reset workflow that stays off until armed.
+- **Hooks** (`.claude/hooks/`): a Bash guard that blocks force pushes and recursive deletes of home or root wherever the flag sits, and an edit check runner that loads modules from `.claude/hooks/checks/`. Packs add checks for their own silent-failure traps.
+- **Path-scoped rules** (`.claude/rules/`).
+- **`docs/WORKFLOW.md`**, replacing `docs/MULTI_AGENT_WORKFLOW.md`: the judge panel before build, the per-batch pipeline (ground, implement in one worktree, mechanical gate with every new test seen failing and a baselined typecheck, review, fold capped at two, pull request and never merge), the recorded gate file, smoke lanes, grill-then-run autonomy, worktree rules.
+- **`docs/AUTHORING_SKILLS.md`**, `docs/PARKING_LOT.md`, `_dev/away-queue-template.md`, `_dev/tools/setup-memory-symlink.sh`.
+- **Evidence glossary and autonomy agreement** in `CLAUDE.md`. Seeded `docs/LESSONS.md` with lessons from Braid, RE Trailhead and Kai.
+- Installer: `--packs`, `--tarball`, starter project-owned files created when absent.
+
+### Changed
+- **Commands are now skills** in `.claude/skills/<name>/SKILL.md`, with `disable-model-invocation` on those with side effects.
+- **`.claude/settings.json`**: broad allow, no `ask` list, a short deny list, hooks wired.
+- **`CLAUDE.md` template** rewritten and shortened; stack content moved to pack sections.
+- `/ship` absorbs the lessons sweep and the changelog line. `/plan-review` is the only writer of the LOCKED header and applies lock checks contributed by pack rules. `/implement` runs the batch pipeline and never merges.
+- Smoke ledger template: lanes, `live-required`, deferral records with a per-row grant.
+
+### Removed
+- `/retro` and `_dev/phase-retro-template.md` (the lessons sweep in `/ship` replaces them).
+- `/changelog` (folded into `/ship`) and `/visualize`.
+- The worker-doc lifecycle, the separate-window relay and its identification protocol.
+- The `ask` permission list.
+- **OpenClaw support, entirely**: the `workspace/` scaffold, `deploy/`, the OpenClaw KBs, `/audit-infra` and `/gen-skill`. The runtime is no longer used; agents now run as Claude Code on a machine you control (`claude-agent` pack). The runtime-neutral material from the KBs was carried into `docs/AGENT_PATTERNS.md`.
+
+### Renamed
+- `.claude/commands/*.md` → `.claude/skills/*/SKILL.md`
+- `docs/MULTI_AGENT_WORKFLOW.md` → `docs/WORKFLOW.md`
+
+### Migration Notes
+- One-time migration from 0.x: `node bin/pack.js seed-update --target <project>` from a clone, then `/update-framework` in the project. See `.claude/skills/update-framework/migrating-from-0.x.md`. A project still running on OpenClaw should stay on 0.x.
+- Hooks are discovered at session start. Restart Claude Code after updating and confirm them under `/hooks`.
 
 ## [0.8.1] - 2026-07-13
 
